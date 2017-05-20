@@ -32,6 +32,7 @@ import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
 import codeu.chat.common.Relay;
 import codeu.chat.common.Secret;
+import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
@@ -63,6 +64,8 @@ public final class Server {
 
   private final Relay relay;
   private Uuid lastSeen = Uuid.NULL;
+  
+  private static ServerInfo info;
 
   public Server(final Uuid id, final Secret secret, final Relay relay) {
 
@@ -70,7 +73,26 @@ public final class Server {
     this.secret = secret;
     this.controller = new Controller(id, model);
     this.relay = relay;
-
+    
+    try{
+    	info = new ServerInfo();
+    }catch(Exception e){
+    	
+    }
+    
+    this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command(){
+    	public void onMessage(InputStream in, OutputStream out) throws IOException{
+    		final int type = Serializers.INTEGER.read(in);
+        //final Command command = commands.get(type);
+    		if (type == NetworkCode.SERVER_INFO_REQUEST) {
+    		  Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
+    		  Uuid.SERIALIZER.write(out, info.version);
+    		} else{
+    			
+    		}
+    	}
+    });
+    
     // New Message - A client wants to add a new message to the back end.
     this.commands.put(NetworkCode.NEW_MESSAGE_REQUEST, new Command() {
       @Override
