@@ -115,6 +115,19 @@ public final class Chat {
       }
     });
     
+    panel.register("info", new Panel.Command() {
+      @Override
+      public void invoke(Scanner args) {
+        final ServerInfo info = context.getInfo();
+        if (info == null) {
+          System.out.format("ERROR: Failed to retrieve version info", args);
+        } else {
+          // Print the server info to the user in a pretty way
+        	System.out.println("Version: " + info.version);
+        }
+      }
+    });
+    
 
     // U-LIST (user list)
     //
@@ -182,19 +195,6 @@ public final class Chat {
           }
         }
         return null;
-      }
-    });
-    
-    panel.register("info", new Panel.Command() {
-      @Override
-      public void invoke(Scanner args) {
-        final ServerInfo info = context.getInfo();
-        if (info == null) {
-          System.out.format("ERROR: Failed to retrieve version info", args);
-        } else {
-          // Print the server info to the user in a pretty way
-        	System.out.println(info);
-        }
       }
     });
 

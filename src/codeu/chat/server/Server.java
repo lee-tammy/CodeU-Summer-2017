@@ -82,14 +82,8 @@ public final class Server {
     
     this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command(){
     	public void onMessage(InputStream in, OutputStream out) throws IOException{
-    		final int type = Serializers.INTEGER.read(in);
-        //final Command command = commands.get(type);
-    		if (type == NetworkCode.SERVER_INFO_REQUEST) {
-    		  Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
-    		  Uuid.SERIALIZER.write(out, info.version);
-    		} else{
-    			
-    		}
+    		Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
+    		Uuid.SERIALIZER.write(out, info.version);
     	}
     });
     
