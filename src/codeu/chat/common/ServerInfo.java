@@ -9,8 +9,15 @@ public final class ServerInfo {
 
   public final Uuid version;
   
-  public ServerInfo() throws IOException{
-			this.version = Uuid.parse(SERVER_VERSION);
+  public ServerInfo(){
+  	Uuid version = null;
+  	try{
+			version = Uuid.parse(SERVER_VERSION);
+  	}catch(IOException e){
+  		System.out.println("Could not parse version");
+  		// should not happen
+  	}
+  	this.version = version;
   }
   public ServerInfo(Uuid version) {
     this.version = version;
