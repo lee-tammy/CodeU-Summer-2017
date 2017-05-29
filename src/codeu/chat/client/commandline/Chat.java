@@ -122,7 +122,6 @@ public final class Chat {
         if (info == null) {
           System.out.format("ERROR: Failed to retrieve version info", args);
         } else {
-          // Print the server info to the user in a pretty way
         	System.out.println("Version : " + info.version);
         }
       }
