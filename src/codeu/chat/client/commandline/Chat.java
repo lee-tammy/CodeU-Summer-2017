@@ -119,12 +119,12 @@ public final class Chat {
       @Override
       public void invoke(Scanner args) {
         final ServerInfo info = context.getInfo();
-        if (info == null) {
-          System.out.format("ERROR: Failed to retrieve version info", args);
-        } else {
+				if (info == null) {
+					System.out.format("ERROR: Failed to retrieve version info", args);
+				} else {
 					// Print the server info to the user in a pretty way
-					System.out.println("Version : " + info.version);
-        }
+					System.out.println("Version: " + info.version);
+				}
       }
     });
     
