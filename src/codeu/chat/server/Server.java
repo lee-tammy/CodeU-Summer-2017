@@ -73,11 +73,7 @@ public final class Server {
 		this.controller = new Controller(id, model);
 		this.relay = relay;
 
-		try {
-			info = new ServerInfo();
-		} catch (Exception e) {
-
-		}
+    info = new ServerInfo();
 
 		this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
 			public void onMessage(InputStream in, OutputStream out) throws IOException {
