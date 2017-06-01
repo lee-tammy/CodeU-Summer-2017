@@ -67,9 +67,7 @@ public final class Time implements Comparable<Time> {
   public static Time now() { return Time.fromMs(System.currentTimeMillis()); }
 
   // Difference of end and start times.
-  // Ratio is the power of ten from seconds that the duration will be given in
-  // (e.i. ratio = -3 is milliseconds)
-  public static long duration(Time start, Time end, int ratio) {
-    return Math.round(Math.pow(10, -(3 + ratio)) * ((end.inMs() - start.inMs())));
+  public static Time duration(Time start, Time end) {
+    return new Time(end.inMs() - start.inMs());
   }
 }

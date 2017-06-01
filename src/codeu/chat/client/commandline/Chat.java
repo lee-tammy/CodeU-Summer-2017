@@ -198,8 +198,8 @@ public final class Chat {
           System.out.println("Server Information:");
           System.out.format("  Start Time : %s\n", info.startTime.toString());
           System.out.format("  Time now   : %s\n", Time.now());
-          System.out.format("  Duration   : %s sec\n", Time.duration(info.startTime,
-                Time.now(), 0));
+          System.out.format("  Duration   : %s sec\n", (int) (Time.duration(info.startTime,
+                Time.now()).inMs() * Math.pow(10, -3)));
         }
       }
     });

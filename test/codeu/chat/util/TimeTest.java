@@ -28,9 +28,6 @@ public final class TimeTest {
 
   @Test
   public void testDurationConversion() {
-    assertEquals(10, Time.duration(Time.fromMs(0), Time.fromMs(10), -3));
-    assertEquals(100, Time.duration(Time.fromMs(0), Time.fromMs(10), -4));
-    assertEquals(1, Time.duration(Time.fromMs(0), Time.fromMs(1000), 0));
-    assertEquals(1, Time.duration(Time.fromMs(2200), Time.fromMs(3200), 0));
+    assertEquals(10, Time.duration(Time.fromMs(0), Time.fromMs(10)).inMs());
   }
 }
