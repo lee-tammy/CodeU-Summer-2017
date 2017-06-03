@@ -15,7 +15,7 @@ public final class ServerInfo {
     try {
       version = Uuid.parse(SERVER_VERSION);
     } catch (IOException e) {
-      System.out.println("Could not parse version");
+      throw new IllegalArgumentException("Could not parse version");
     }
     
     this.version = version;
