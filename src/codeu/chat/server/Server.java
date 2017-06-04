@@ -42,76 +42,76 @@ import codeu.chat.util.connections.Connection;
 
 public final class Server {
 
-	private interface Command {
-		void onMessage(InputStream in, OutputStream out) throws IOException;
-	}
+  private interface Command {
+    void onMessage(InputStream in, OutputStream out) throws IOException;
+  }
 
-	private static final Logger.Log LOG = Logger.newLog(Server.class);
+  private static final Logger.Log LOG = Logger.newLog(Server.class);
 
-	private static final int RELAY_REFRESH_MS = 5000; // 5 seconds
+  private static final int RELAY_REFRESH_MS = 5000; // 5 seconds
 
-	private final Timeline timeline = new Timeline();
+  private final Timeline timeline = new Timeline();
 
-	private final Map<Integer, Command> commands = new HashMap<>();
+  private final Map<Integer, Command> commands = new HashMap<>();
 
-	private final Uuid id;
-	private final Secret secret;
+  private final Uuid id;
+  private final Secret secret;
 
-	private final Model model = new Model();
-	private final View view = new View(model);
-	private final Controller controller;
+  private final Model model = new Model();
+  private final View view = new View(model);
+  private final Controller controller;
 
-	private final Relay relay;
-	private Uuid lastSeen = Uuid.NULL;
+  private final Relay relay;
+  private Uuid lastSeen = Uuid.NULL;
 
-	private static ServerInfo info;
+  private static ServerInfo info;
 
-	public Server(final Uuid id, final Secret secret, final Relay relay) {
+  public Server(final Uuid id, final Secret secret, final Relay relay) {
 
-		this.id = id;
-		this.secret = secret;
-		this.controller = new Controller(id, model);
-		this.relay = relay;
+    this.id = id;
+    this.secret = secret;
+    this.controller = new Controller(id, model);
+    this.relay = relay;
 
     info = new ServerInfo();
 
-		this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
-			public void onMessage(InputStream in, OutputStream out) throws IOException {
-				Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
-				Uuid.SERIALIZER.write(out, info.version);
-			}
-		});
+    this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
+      public void onMessage(InputStream in, OutputStream out) throws IOException {
+        Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
+        Uuid.SERIALIZER.write(out, info.version);
+      }
+    });
 
-		// New Message - A client wants to add a new message to the back end.
-		this.commands.put(NetworkCode.NEW_MESSAGE_REQUEST, new Command() {
-			@Override
-			public void onMessage(InputStream in, OutputStream out) throws IOException {
+    // New Message - A client wants to add a new message to the back end.
+    this.commands.put(NetworkCode.NEW_MESSAGE_REQUEST, new Command() {
+      @Override
+      public void onMessage(InputStream in, OutputStream out) throws IOException {
 
-				final Uuid author = Uuid.SERIALIZER.read(in);
-				final Uuid conversation = Uuid.SERIALIZER.read(in);
-				final String content = Serializers.STRING.read(in);
+        final Uuid author = Uuid.SERIALIZER.read(in);
+        final Uuid conversation = Uuid.SERIALIZER.read(in);
+        final String content = Serializers.STRING.read(in);
 
-				final Message message = controller.newMessage(author, conversation, content);
+        final Message message = controller.newMessage(author, conversation, content);
 
-				Serializers.INTEGER.write(out, NetworkCode.NEW_MESSAGE_RESPONSE);
-				Serializers.nullable(Message.SERIALIZER).write(out, message);
+        Serializers.INTEGER.write(out, NetworkCode.NEW_MESSAGE_RESPONSE);
+        Serializers.nullable(Message.SERIALIZER).write(out, message);
 
-				timeline.scheduleNow(createSendToRelayEvent(author, conversation, message.id));
-			}
-		});
+        timeline.scheduleNow(createSendToRelayEvent(author, conversation, message.id));
+      }
+    });
 
-		// New User - A client wants to add a new user to the back end.
-		this.commands.put(NetworkCode.NEW_USER_REQUEST, new Command() {
-			@Override
-			public void onMessage(InputStream in, OutputStream out) throws IOException {
+    // New User - A client wants to add a new user to the back end.
+    this.commands.put(NetworkCode.NEW_USER_REQUEST, new Command() {
+      @Override
+      public void onMessage(InputStream in, OutputStream out) throws IOException {
 
-				final String name = Serializers.STRING.read(in);
-				final User user = controller.newUser(name);
+        final String name = Serializers.STRING.read(in);
+        final User user = controller.newUser(name);
 
-				Serializers.INTEGER.write(out, NetworkCode.NEW_USER_RESPONSE);
-				Serializers.nullable(User.SERIALIZER).write(out, user);
-			}
-		});
+        Serializers.INTEGER.write(out, NetworkCode.NEW_USER_RESPONSE);
+        Serializers.nullable(User.SERIALIZER).write(out, user);
+      }
+    });
 
 		// New Conversation - A client wants to add a new conversation to the back
 		// end.
