@@ -8,8 +8,11 @@ public final class Tokenizer {
 	private int at;
 	
 	public Tokenizer(String source) {
+		this.source = source;
+		at = 0;
+		token = new StringBuilder();
+    }
 		
-	}
 
 	//TODO: add javadoc
 	/**
