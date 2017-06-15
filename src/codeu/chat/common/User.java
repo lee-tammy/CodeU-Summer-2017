@@ -14,6 +14,9 @@
 
 package codeu.chat.common;
 
+import codeu.chat.common.Type;
+import codeu.chat.common.Interest;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -23,7 +26,7 @@ import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 
-public final class User {
+public final class User implements Interest {
 
   public static final Serializer<User> SERIALIZER = new Serializer<User>() {
 
@@ -58,5 +61,9 @@ public final class User {
     this.name = name;
     this.creation = creation;
 
+  }
+
+  public Type getType() {
+    return Type.USER;
   }
 }

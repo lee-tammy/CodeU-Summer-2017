@@ -23,6 +23,7 @@ import codeu.chat.common.Message;
 import codeu.chat.common.RandomUuidGenerator;
 import codeu.chat.common.RawController;
 import codeu.chat.common.User;
+import coduu.chat.common.Type;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
@@ -141,6 +142,36 @@ public final class Controller implements RawController, BasicController {
     }
 
     return conversation;
+  }
+
+  public void setInterest(Uuid idUser, Uuid idInterest, Type interestType) {
+    final User foundUser = model.userById().first(idUser);
+    final Interest foundInterest = getInterest(idInterest, interestType);
+    if (foundUser != null && foundInterest != null) {
+      model.addInterest(foundUser, foundInterest);
+    } else {
+      LOG.error("No user or interest were found with the given ids");
+    }
+  }
+
+  public void removeInterest(Uuid idUser, Uuid idInterest, Type interestType) {
+    final User foundUser = model.userById().first(idUser);
+    final Interest foundInterest = getInterest(idInterest, interestType);
+    if (foundUser != null && foundInterest != null) {
+      model.removeInterest(foundUser, foundInterest);
+    } else {
+      LOG.error("No user or interest were found with the given ids");
+    }
+  }
+
+  private Interest getInterest(Uuid idInterest, Type interestType) {
+    switch (interestType) {
+      case Type.USER:
+        return model.userById().first(idInterest);
+      case Type.MESSAGE:
+        return model.messageById().first(idInterest);
+    }
+    return null;
   }
 
   private Uuid createId() {

@@ -16,6 +16,7 @@ package codeu.chat.server;
 
 import java.util.Comparator;
 
+import codeu.chat.common.Interest;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.LinearUuidGenerator;
@@ -51,6 +52,13 @@ public final class Model {
     }
   };
 
+  private static final Comparator<User> USER_COMPARE = new Comparator<User>() {
+    @Override
+    public int compare(User a, User b) {
+      return UUID_COMPARE.compare(a.id, b.id);
+    }
+  }
+
   private static final Comparator<String> STRING_COMPARE = String.CASE_INSENSITIVE_ORDER;
 
   private final Store<Uuid, User> userById = new Store<>(UUID_COMPARE);
@@ -66,6 +74,8 @@ public final class Model {
   private final Store<Uuid, Message> messageById = new Store<>(UUID_COMPARE);
   private final Store<Time, Message> messageByTime = new Store<>(TIME_COMPARE);
   private final Store<String, Message> messageByText = new Store<>(STRING_COMPARE);
+
+  private final Store<User, Interest> interestByUser = new Store<>(UUID_COMPARE);
 
   public void add(User user) {
     userById.insert(user.id, user);
@@ -124,5 +134,13 @@ public final class Model {
 
   public StoreAccessor<String, Message> messageByText() {
     return messageByText;
+  }
+
+  public void addInterest(User user, Interest interest) {
+    interestByUser.insert(user, interest)
+  }
+
+  public void removeInterest(User user, Interest interest) {
+
   }
 }
