@@ -7,6 +7,12 @@ import org.junit.Test;
 public class TokenizerTest {
 
   @Test
+  public void testWithNoArgs() throws IOException {
+    final Tokenizer tokenizer = new Tokenizer(null);
+    assertEquals(tokenizer.next(), null);
+  }
+
+  @Test
   public void testWithQuotes() throws IOException {
     final Tokenizer tokenizer = new Tokenizer("\"hello world\" \"how are you\"");
     assertEquals(tokenizer.next(), "hello world");
