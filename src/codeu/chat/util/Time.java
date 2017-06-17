@@ -66,4 +66,8 @@ public final class Time implements Comparable<Time> {
 
   public static Time now() { return Time.fromMs(System.currentTimeMillis()); }
 
+  // Difference of end and start times.
+  public static Time duration(Time start, Time end) {
+    return new Time(end.inMs() - start.inMs());
+  }
 }
