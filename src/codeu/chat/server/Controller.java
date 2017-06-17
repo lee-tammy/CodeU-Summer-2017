@@ -23,7 +23,8 @@ import codeu.chat.common.Message;
 import codeu.chat.common.RandomUuidGenerator;
 import codeu.chat.common.RawController;
 import codeu.chat.common.User;
-import coduu.chat.common.Type;
+import codeu.chat.common.Type;
+import codeu.chat.common.Interest;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
@@ -166,12 +167,13 @@ public final class Controller implements RawController, BasicController {
 
   private Interest getInterest(Uuid idInterest, Type interestType) {
     switch (interestType) {
-      case Type.USER:
+      case USER:
         return model.userById().first(idInterest);
-      case Type.MESSAGE:
+      case MESSAGE:
         return model.messageById().first(idInterest);
     }
     return null;
+
   }
 
   private Uuid createId() {

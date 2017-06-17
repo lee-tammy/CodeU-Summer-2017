@@ -57,7 +57,7 @@ public final class Model {
     public int compare(User a, User b) {
       return UUID_COMPARE.compare(a.id, b.id);
     }
-  }
+  };
 
   private static final Comparator<String> STRING_COMPARE = String.CASE_INSENSITIVE_ORDER;
 
@@ -75,7 +75,7 @@ public final class Model {
   private final Store<Time, Message> messageByTime = new Store<>(TIME_COMPARE);
   private final Store<String, Message> messageByText = new Store<>(STRING_COMPARE);
 
-  private final Store<User, Interest> interestByUser = new Store<>(UUID_COMPARE);
+  private final Store<User, Interest> interestByUser = new Store<>(USER_COMPARE);
 
   public void add(User user) {
     userById.insert(user.id, user);
@@ -137,7 +137,7 @@ public final class Model {
   }
 
   public void addInterest(User user, Interest interest) {
-    interestByUser.insert(user, interest)
+    interestByUser.insert(user, interest);
   }
 
   public void removeInterest(User user, Interest interest) {

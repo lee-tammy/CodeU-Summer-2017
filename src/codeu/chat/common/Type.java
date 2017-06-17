@@ -1,6 +1,6 @@
 package codeu.chat.common;
 
-enum Type {
+public enum Type {
   USER,
   MESSAGE
 }
