@@ -66,4 +66,17 @@ public final class Time implements Comparable<Time> {
 
   public static Time now() { return Time.fromMs(System.currentTimeMillis()); }
 
+  @Override
+  public boolean equals(Object other) {
+    if (other == null) return false;
+    if (!(other instanceof Time)) return false;
+    Time that = (Time) other;
+    return this.inMs() == that.inMs();
+  }
+
+  @Override
+  public int hashCode() {
+    return new Long(inMs()).hashCode();
+  }
+
 }

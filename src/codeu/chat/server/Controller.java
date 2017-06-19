@@ -15,6 +15,7 @@
 package codeu.chat.server;
 
 import java.util.Collection;
+import java.util.HashSet;
 
 import codeu.chat.common.BasicController;
 import codeu.chat.common.ConversationHeader;
@@ -28,6 +29,8 @@ import codeu.chat.common.Interest;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
+import codeu.chat.common.InterestStatus;
+import codeu.chat.common.Interest;
 
 public final class Controller implements RawController, BasicController {
 
@@ -89,9 +92,9 @@ public final class Controller implements RawController, BasicController {
       // not change.
 
       foundConversation.firstMessage =
-          Uuid.equals(foundConversation.firstMessage, Uuid.NULL) ?
-          message.id :
-          foundConversation.firstMessage;
+        Uuid.equals(foundConversation.firstMessage, Uuid.NULL) ?
+        message.id :
+        foundConversation.firstMessage;
 
       // Update the conversation to point to the new last message as it has changed.
 
@@ -145,35 +148,62 @@ public final class Controller implements RawController, BasicController {
     return conversation;
   }
 
-  public void setInterest(Uuid idUser, Uuid idInterest, Type interestType) {
-    final User foundUser = model.userById().first(idUser);
-    final Interest foundInterest = getInterest(idInterest, interestType);
-    if (foundUser != null && foundInterest != null) {
-      model.addInterest(foundUser, foundInterest);
-    } else {
-      LOG.error("No user or interest were found with the given ids");
-    }
+  public void addInterest(Uuid userId, Uuid interestId, Type interestType) {
+    addInterest(createId(), userId, interestId, interestType, Time.now());
   }
 
-  public void removeInterest(Uuid idUser, Uuid idInterest, Type interestType) {
-    final User foundUser = model.userById().first(idUser);
-    final Interest foundInterest = getInterest(idInterest, interestType);
-    if (foundUser != null && foundInterest != null) {
-      model.removeInterest(foundUser, foundInterest);
-    } else {
-      LOG.error("No user or interest were found with the given ids");
-    }
+  public void addInterest(Uuid id, Uuid userId, Uuid interestId,
+      Type interestType, Time creationTime) {
+    model.addInterest(id, userId, interestId, interestType, creationTime);
   }
 
-  private Interest getInterest(Uuid idInterest, Type interestType) {
-    switch (interestType) {
-      case USER:
-        return model.userById().first(idInterest);
-      case MESSAGE:
-        return model.messageById().first(idInterest);
-    }
-    return null;
+  public void removeInterest(Uuid userId, Uuid interestId) {
+    model.removeInterest(userId, interestId);
+  }
 
+  public InterestStatus interestStatus(Uuid user) {
+    HashSet<Uuid> userInterests = model.interests.get(user);
+    if (userInterests == null) return new InterestStatus(new HashSet<String>());
+    HashSet<String> result = new HashSet<>();
+    for (Uuid interestId : userInterests) {
+      Interest interest = model.interestById().first(interestId);
+      String item;
+      switch(interest.type) {
+        case USER:
+          result.add(processUserInterest(model.userById().first(interest.interestId),
+              interest.lastUpdate));
+          break;
+        case CONVERSATION:
+          result.add(processConversationInterest(model.conversationById().first(
+                  interest.interestId),
+                  model.conversationPayloadById().first(
+                  interest.interestId), interest.lastUpdate));
+          break;
+
+      }
+    }
+    return new InterestStatus(result);
+  }
+
+  private String processUserInterest(User user, Time lastUpdate) {
+    return "\n";
+  }
+
+  private String processConversationInterest(ConversationHeader header,
+      ConversationPayload conversation, Time lastUpdate) {
+    Message last = model.messageById().first(conversation.lastMessage);
+    int total = 0;
+    while (last != null && last.creation.inMs() > lastUpdate.inMs()) {
+      total++;
+      last = model.messageById().first(last.previous);
+    }
+    StringBuilder result = new StringBuilder();
+    result.append("The number of messages missed in conversation -- ");
+    result.append(header.title);
+    result.append(" -- since the last status update is ");
+    result.append(total);
+    result.append("\n");
+    return result.toString();
   }
 
   private Uuid createId() {
@@ -181,22 +211,22 @@ public final class Controller implements RawController, BasicController {
     Uuid candidate;
 
     for (candidate = uuidGenerator.make();
-         isIdInUse(candidate);
-         candidate = uuidGenerator.make()) {
+        isIdInUse(candidate);
+        candidate = uuidGenerator.make()) {
 
-     // Assuming that "randomUuid" is actually well implemented, this
-     // loop should never be needed, but just incase make sure that the
-     // Uuid is not actually in use before returning it.
+      // Assuming that "randomUuid" is actually well implemented, this
+      // loop should never be needed, but just incase make sure that the
+      // Uuid is not actually in use before returning it.
 
-    }
+        }
 
     return candidate;
   }
 
   private boolean isIdInUse(Uuid id) {
     return model.messageById().first(id) != null ||
-           model.conversationById().first(id) != null ||
-           model.userById().first(id) != null;
+      model.conversationById().first(id) != null ||
+      model.userById().first(id) != null;
   }
 
   private boolean isIdFree(Uuid id) { return !isIdInUse(id); }

@@ -26,7 +26,7 @@ import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 
-public final class Message implements Interest {
+public final class Message {
 
   public static final Serializer<Message> SERIALIZER = new Serializer<Message>() {
 
@@ -73,9 +73,5 @@ public final class Message implements Interest {
     this.author = author;
     this.content = content;
 
-  }
-
-  public Type getType() {
-    return Type.MESSAGE;
   }
 }

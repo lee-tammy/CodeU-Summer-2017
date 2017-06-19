@@ -63,4 +63,15 @@ public final class ConversationHeader {
     this.title = title;
 
   }
+
+  @Override
+  public String toString() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("Title: ");
+    builder.append(title);
+    builder.append("\tTime of creation: ");
+    builder.append(creation.toString());
+    builder.append("\n");
+    return builder.toString();
+  }
 }

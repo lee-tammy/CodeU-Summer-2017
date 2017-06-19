@@ -39,6 +39,8 @@ import codeu.chat.util.Time;
 import codeu.chat.util.Timeline;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
+import codeu.chat.common.InterestStatus;
+import codeu.chat.common.Type;
 
 public final class Server {
 
@@ -169,6 +171,35 @@ public final class Server {
 
         Serializers.INTEGER.write(out, NetworkCode.GET_MESSAGES_BY_ID_RESPONSE);
         Serializers.collection(Message.SERIALIZER).write(out, messages);
+      }
+    });
+
+    this.commands.put(NetworkCode.NEW_INTEREST_REQUEST, new Command() {
+      public void onMessage(InputStream in, OutputStream out) throws IOException {
+        final Uuid userId = Uuid.SERIALIZER.read(in);
+        final Uuid interestId = Uuid.SERIALIZER.read(in);
+        final Type interestType = Type.SERIALIZER.read(in);
+
+        controller.addInterest(userId, interestId, interestType);
+        Serializers.INTEGER.write(out, NetworkCode.NEW_INTEREST_RESPONSE);
+      } 
+    });
+
+    this.commands.put(NetworkCode.REMOVE_INTEREST_REQUEST, new Command() {
+      public void onMessage(InputStream in, OutputStream out) throws IOException {
+        final Uuid userId = Uuid.SERIALIZER.read(in);
+        final Uuid interestId = Uuid.SERIALIZER.read(in);
+
+        controller.removeInterest(userId, interestId);
+        Serializers.INTEGER.write(out, NetworkCode.REMOVE_INTEREST_RESPONSE);
+      } 
+    });
+
+    this.commands.put(NetworkCode.INTEREST_STATUS_REQUEST, new Command() {
+      public void onMessage(InputStream in, OutputStream out) throws IOException {
+        final Uuid userId = Uuid.SERIALIZER.read(in);
+        Serializers.INTEGER.write(out, NetworkCode.INTEREST_STATUS_RESPONSE);
+        InterestStatus.SERIALIZER.write(out, controller.interestStatus(userId));
       }
     });
 

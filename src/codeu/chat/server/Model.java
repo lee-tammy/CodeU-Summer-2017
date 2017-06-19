@@ -26,6 +26,10 @@ import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.store.Store;
 import codeu.chat.util.store.StoreAccessor;
+import codeu.chat.common.Type;
+
+import java.util.HashMap;
+import java.util.HashSet;
 
 public final class Model {
 
@@ -75,7 +79,9 @@ public final class Model {
   private final Store<Time, Message> messageByTime = new Store<>(TIME_COMPARE);
   private final Store<String, Message> messageByText = new Store<>(STRING_COMPARE);
 
-  private final Store<User, Interest> interestByUser = new Store<>(USER_COMPARE);
+  private final Store<Uuid, Interest> interestById = new Store<>(UUID_COMPARE);
+
+  public final HashMap<Uuid, HashSet<Uuid>> interests = new HashMap<>();
 
   public void add(User user) {
     userById.insert(user.id, user);
@@ -89,6 +95,10 @@ public final class Model {
 
   public StoreAccessor<Time, User> userByTime() {
     return userByTime;
+  }
+
+  public StoreAccessor<Uuid, Interest> interestById() {
+    return interestById;
   }
 
   public StoreAccessor<String, User> userByText() {
@@ -136,11 +146,20 @@ public final class Model {
     return messageByText;
   }
 
-  public void addInterest(User user, Interest interest) {
-    interestByUser.insert(user, interest);
+  public void addInterest(Uuid id, Uuid userId, Uuid interestId, Type interestType,
+      Time creationTime) {
+    Interest newInterest = new Interest(id, interestId, interestType,
+        creationTime);
+    if (interests.get(userId) == null) {
+      interests.put(userId, new HashSet<Uuid>());
+    }
+    interests.get(userId).add(interestId);
+    interestById.insert(interestId, newInterest);
   }
 
-  public void removeInterest(User user, Interest interest) {
-
+  public void removeInterest(Uuid userId, Uuid interestId) {
+    if (interests.get(userId) != null) {
+      interests.get(userId).remove(interestId);
+    }
   }
 }

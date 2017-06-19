@@ -17,6 +17,7 @@ package codeu.chat.common;
 import codeu.chat.common.Type;
 import codeu.chat.common.Interest;
 
+import java.util.HashSet;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -26,10 +27,9 @@ import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 
-public final class User implements Interest {
+public final class User {
 
   public static final Serializer<User> SERIALIZER = new Serializer<User>() {
-
     @Override
     public void write(OutputStream out, User value) throws IOException {
 
@@ -63,7 +63,19 @@ public final class User implements Interest {
 
   }
 
-  public Type getType() {
-    return Type.USER;
+  @Override
+  public int hashCode() {
+    return 5 * id.hashCode() + 7 * name.hashCode() + 11 * creation.hashCode();
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder result = new StringBuilder();
+    result.append("Username: ");
+    result.append(name);
+    result.append("\tTime of creation: ");
+    result.append(creation.toString());
+    result.append("\n");
+    return result.toString();
   }
 }
