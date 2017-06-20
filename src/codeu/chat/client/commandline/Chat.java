@@ -110,11 +110,26 @@ public final class Chat {
         System.out.println("  u-sign-in <name>");
         System.out.println("    Sign in as the user with the given name.");
         System.out.println("  info");
+        System.out.println("    Get server info.");
         System.out.println("    Show the server information.");
         System.out.println("  exit");
         System.out.println("    Exit the program.");
       }
     });
+    
+    panel.register("info", new Panel.Command() {
+      @Override
+      public void invoke(Scanner args) {
+        final ServerInfo info = context.getInfo();
+        if (info == null) {	
+          System.out.format("ERROR: Failed to retrieve version info", args);
+        } else {
+          // Print the server info to the user in a pretty way
+          System.out.println("Version: " + info.version);
+        }
+      }
+    });
+    
 
     // U-LIST (user list)
     //

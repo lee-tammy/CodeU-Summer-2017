@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 package codeu.chat.server;
 
 import java.io.IOException;
@@ -32,6 +31,7 @@ import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
 import codeu.chat.common.Relay;
 import codeu.chat.common.Secret;
+import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
@@ -48,7 +48,7 @@ public final class Server {
 
   private static final Logger.Log LOG = Logger.newLog(Server.class);
 
-  private static final int RELAY_REFRESH_MS = 5000;  // 5 seconds
+  private static final int RELAY_REFRESH_MS = 5000; // 5 seconds
 
   private static final ServerInfo info = new ServerInfo();
 
@@ -66,12 +66,23 @@ public final class Server {
   private final Relay relay;
   private Uuid lastSeen = Uuid.NULL;
 
+  private static ServerInfo info;
+
   public Server(final Uuid id, final Secret secret, final Relay relay) {
 
     this.id = id;
     this.secret = secret;
     this.controller = new Controller(id, model);
     this.relay = relay;
+
+    info = new ServerInfo();
+
+    this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
+      public void onMessage(InputStream in, OutputStream out) throws IOException {
+        Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
+        Uuid.SERIALIZER.write(out, info.version);
+      }
+    });
 
     // New Message - A client wants to add a new message to the back end.
     this.commands.put(NetworkCode.NEW_MESSAGE_REQUEST, new Command() {
@@ -87,15 +98,12 @@ public final class Server {
         Serializers.INTEGER.write(out, NetworkCode.NEW_MESSAGE_RESPONSE);
         Serializers.nullable(Message.SERIALIZER).write(out, message);
 
-        timeline.scheduleNow(createSendToRelayEvent(
-            author,
-            conversation,
-            message.id));
+        timeline.scheduleNow(createSendToRelayEvent(author, conversation, message.id));
       }
     });
 
     // New User - A client wants to add a new user to the back end.
-    this.commands.put(NetworkCode.NEW_USER_REQUEST,  new Command() {
+    this.commands.put(NetworkCode.NEW_USER_REQUEST, new Command() {
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
 
@@ -107,73 +115,63 @@ public final class Server {
       }
     });
 
-    // New Conversation - A client wants to add a new conversation to the back end.
-    this.commands.put(NetworkCode.NEW_CONVERSATION_REQUEST,  new Command() {
-      @Override
-      public void onMessage(InputStream in, OutputStream out) throws IOException {
+		// New Conversation - A client wants to add a new conversation to the back
+		// end.
+		this.commands.put(NetworkCode.NEW_CONVERSATION_REQUEST, new Command() {
+			@Override
+			public void onMessage(InputStream in, OutputStream out) throws IOException {
 
-        final String title = Serializers.STRING.read(in);
-        final Uuid owner = Uuid.SERIALIZER.read(in);
-        final ConversationHeader conversation = controller.newConversation(title, owner);
+				final String title = Serializers.STRING.read(in);
+				final Uuid owner = Uuid.SERIALIZER.read(in);
+				final ConversationHeader conversation = controller.newConversation(title, owner);
 
-        Serializers.INTEGER.write(out, NetworkCode.NEW_CONVERSATION_RESPONSE);
-        Serializers.nullable(ConversationHeader.SERIALIZER).write(out, conversation);
-      }
-    });
+				Serializers.INTEGER.write(out, NetworkCode.NEW_CONVERSATION_RESPONSE);
+				Serializers.nullable(ConversationHeader.SERIALIZER).write(out, conversation);
+			}
+		});
 
-    // Get Users - A client wants to get all the users from the back end.
-    this.commands.put(NetworkCode.GET_USERS_REQUEST, new Command() {
-      @Override
-      public void onMessage(InputStream in, OutputStream out) throws IOException {
+		// Get Users - A client wants to get all the users from the back end.
+		this.commands.put(NetworkCode.GET_USERS_REQUEST, new Command() {
+			@Override
+			public void onMessage(InputStream in, OutputStream out) throws IOException {
 
-        final Collection<User> users = view.getUsers();
+				final Collection<User> users = view.getUsers();
 
-        Serializers.INTEGER.write(out, NetworkCode.GET_USERS_RESPONSE);
-        Serializers.collection(User.SERIALIZER).write(out, users);
-      }
-    });
+				Serializers.INTEGER.write(out, NetworkCode.GET_USERS_RESPONSE);
+				Serializers.collection(User.SERIALIZER).write(out, users);
+			}
+		});
 
-    // Get Conversations - A client wants to get all the conversations from the back end.
-    this.commands.put(NetworkCode.GET_ALL_CONVERSATIONS_REQUEST, new Command() {
-      @Override
-      public void onMessage(InputStream in, OutputStream out) throws IOException {
+		// Get Conversations - A client wants to get all the conversations from the
+		// back end.
+		this.commands.put(NetworkCode.GET_ALL_CONVERSATIONS_REQUEST, new Command() {
+			@Override
+			public void onMessage(InputStream in, OutputStream out) throws IOException {
 
-        final Collection<ConversationHeader> conversations = view.getConversations();
+				final Collection<ConversationHeader> conversations = view.getConversations();
 
-        Serializers.INTEGER.write(out, NetworkCode.GET_ALL_CONVERSATIONS_RESPONSE);
-        Serializers.collection(ConversationHeader.SERIALIZER).write(out, conversations);
-      }
-    });
+				Serializers.INTEGER.write(out, NetworkCode.GET_ALL_CONVERSATIONS_RESPONSE);
+				Serializers.collection(ConversationHeader.SERIALIZER).write(out, conversations);
+			}
+		});
 
-    // Get Conversations By Id - A client wants to get a subset of the converations from
-    //                           the back end. Normally this will be done after calling
-    //                           Get Conversations to get all the headers and now the client
-    //                           wants to get a subset of the payloads.
-    this.commands.put(NetworkCode.GET_CONVERSATIONS_BY_ID_REQUEST, new Command() {
-      @Override
-      public void onMessage(InputStream in, OutputStream out) throws IOException {
+		// Get Conversations By Id - A client wants to get a subset of the
+		// converations from
+		// the back end. Normally this will be done after calling
+		// Get Conversations to get all the headers and now the client
+		// wants to get a subset of the payloads.
+		this.commands.put(NetworkCode.GET_CONVERSATIONS_BY_ID_REQUEST, new Command() {
+			@Override
+			public void onMessage(InputStream in, OutputStream out) throws IOException {
 
-        final Collection<Uuid> ids = Serializers.collection(Uuid.SERIALIZER).read(in);
-        final Collection<ConversationPayload> conversations = view.getConversationPayloads(ids);
+				final Collection<Uuid> ids = Serializers.collection(Uuid.SERIALIZER).read(in);
+				final Collection<ConversationPayload> conversations = view.getConversationPayloads(ids);
 
-        Serializers.INTEGER.write(out, NetworkCode.GET_CONVERSATIONS_BY_ID_RESPONSE);
-        Serializers.collection(ConversationPayload.SERIALIZER).write(out, conversations);
-      }
-    });
-
-    // Get Messages By Id - A client wants to get a subset of the messages from the back end.
-    this.commands.put(NetworkCode.GET_MESSAGES_BY_ID_REQUEST, new Command() {
-      @Override
-      public void onMessage(InputStream in, OutputStream out) throws IOException {
-
-        final Collection<Uuid> ids = Serializers.collection(Uuid.SERIALIZER).read(in);
-        final Collection<Message> messages = view.getMessages(ids);
-
-        Serializers.INTEGER.write(out, NetworkCode.GET_MESSAGES_BY_ID_RESPONSE);
-        Serializers.collection(Message.SERIALIZER).write(out, messages);
-      }
-    });
-
+				Serializers.INTEGER.write(out, NetworkCode.GET_CONVERSATIONS_BY_ID_RESPONSE);
+				Serializers.collection(ConversationPayload.SERIALIZER).write(out, conversations);
+			}
+		})
+      
     this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
@@ -293,4 +291,5 @@ public final class Server {
       }
     };
   }
+
 }
