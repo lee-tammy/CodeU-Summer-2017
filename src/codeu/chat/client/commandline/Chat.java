@@ -304,9 +304,15 @@ public final class Chat {
     panel.register("c-follow", new Panel.Command(){
       @Override
       public void invoke(Scanner args){
-        final boolean followUser = true;
+        boolean followUser = true;
+        int argNum = 0;
+  
+        while(args.hasNextLine()){
+          args.nextLine();
+          argNum++;
+        }
 
-        if(args.length == 2){
+        if(argNum == 2){
 
           // Determines if an user or conversation will be added to the interest
           // system
@@ -322,11 +328,11 @@ public final class Chat {
   
           // Determines if the username or conversation name exists 
           final String followObj = args.nextLine().toLowerCase().trim();
-          if(followUser && findUser(followObj)){
-            final UserContext user = findUser(followObj);
+          if(followUser){ // && if the user exists
+            //final UserContext user = findUser(followObj);
             // Add interest if does not already exist in the interest system
-          }else if(!followUser && findFollowObj != null){
-            final ConversationContext conversation = find(followObj);
+          }else if(!followUser){ // && if the conversation exists 
+            //final ConversationContext conversation = find(followObj);
             // Add interest if does not already exist in the interest system
           }else{
             System.out.format("ERROR: '%s' does not exist", followObj);
@@ -347,9 +353,15 @@ public final class Chat {
     panel.register("c-unfollow", new Panel.Command(){
       @Override
       public void invoke(Scanner args){
-        final boolean unFollowUser = true;
-        
-        if(args.length == 2){
+        boolean unfollowUser = true;
+        int argNum = 0;        
+
+        while(args.hasNextLine()){
+          args.nextLine();
+          argNum++;
+        }
+
+        if(argNum == 2){
  
           String unfollowType = args.nextLine().toLowerCase().trim();
           if(unfollowType == "u"){
@@ -372,6 +384,7 @@ public final class Chat {
         }else{
           System.out.println("ERROR: Wrong format");
         }
+      }
     });
 
     // C-STATUS (status update)
