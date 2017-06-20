@@ -30,9 +30,9 @@ public final class Tokenizer {
    * @param source the input String
    */
   public Tokenizer(String source) {
-	this.source = source;
-	at = 0;
-	token = new StringBuilder();
+    this.source = source;
+    at = 0;
+    token = new StringBuilder();
   }
 
   /**
@@ -59,8 +59,8 @@ public final class Tokenizer {
   }
 
   private int remaining() {
-		return source.length() - at;
-	}
+    return source.length() - at;
+  }
 
   private char peek() throws IOException {
     if (at < source.length()) {
@@ -71,13 +71,13 @@ public final class Tokenizer {
   }
 
   private char read() throws IOException {
-	  final char c = peek();
-	  at += 1;
-	  return c;
+    final char c = peek();
+    at += 1;
+    return c;
   }
 
   private String readWithNoQuotes() throws IOException {
-	token.setLength(0);  // clear the token
+    token.setLength(0);  // clear the token
     while (remaining() > 0 && !Character.isWhitespace(peek())) {
       token.append(read());
     }
@@ -85,14 +85,14 @@ public final class Tokenizer {
     }
 	
   private String readWithQuotes() throws IOException {
-	token.setLength(0);  // clear the token
-	if (read() != '"') {
+    token.setLength(0);  // clear the token
+    if (read() != '"') {
       throw new IOException("Strings must start with opening quote");
     }
     while (peek() != '"') {
-	  token.append(read());
+      token.append(read());
     }
     read();  // read the closing the quote that allowed us to exit the loop
-	return token.toString();
+    return token.toString();
   }
 }
