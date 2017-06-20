@@ -23,7 +23,8 @@ import codeu.chat.client.core.Context;
 import codeu.chat.client.core.ConversationContext;
 import codeu.chat.client.core.MessageContext;
 import codeu.chat.client.core.UserContext;
-import codeu.chat.common.ServerInfo;
+import codeu.chat.util.Time;
+import codeu.chat.server.ServerInfo;
 
 public final class Chat {
 
@@ -110,6 +111,7 @@ public final class Chat {
         System.out.println("    Sign in as the user with the given name.");
         System.out.println("  info");
         System.out.println("    Get server info.");
+        System.out.println("    Show the server information.");
         System.out.println("  exit");
         System.out.println("    Exit the program.");
       }
@@ -197,6 +199,27 @@ public final class Chat {
         return null;
       }
     });
+
+    panel.register("info", new Panel.Command() {
+      @Override
+      public void invoke(Scanner args) {
+        final ServerInfo info = context.getInfo();
+        if (info == null) {
+          // Communicate error to user - the server did not send us a valid
+          // info object.
+          System.out.println("ERROR: Couldn't retrieve a valid ServerInfo object");
+        } else {
+          // Print the server info to the user in a pretty way
+          System.out.println("Server Information:");
+          System.out.format("  Start Time : %s\n", info.startTime.toString());
+          System.out.format("  Time now   : %s\n", Time.now());
+          System.out.format("  Duration   : %s sec\n", (int) (Time.duration(info.startTime,
+                Time.now()).inMs() * Math.pow(10, -3)));
+        }
+      }
+    });
+
+
 
     // Now that the panel has all its commands registered, return the panel
     // so that it can be used.
