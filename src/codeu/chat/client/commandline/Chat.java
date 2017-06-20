@@ -181,6 +181,7 @@ public final class Chat {
       }
     });
 
+   
     // Now that the panel has all its commands registered, return the panel
     // so that it can be used.
     return panel;
@@ -205,6 +206,15 @@ public final class Chat {
         System.out.println("    Add a new conversation with the given title and join it as the current user.");
         System.out.println("  c-join <title>");
         System.out.println("    Join the conversation as the current user.");
+        System.out.println("  c-follow <u for user or c for conversation> <username or title>.");
+        System.out.println("    Get updates on conversations and users.");
+        System.out.println("  c-unfollow <u for user or c for conversation>" + 
+            " <username or title>.");
+        System.out.println("    Stop getting updates on conversations and" + 
+            " users.");
+        System.out.println("  c-status");
+        System.out.println("    Gets the updated status of the followed" + 
+            " conversations and users");
         System.out.println("  info");
         System.out.println("    Display all info for the current user");
         System.out.println("  back");
@@ -255,7 +265,7 @@ public final class Chat {
 
     // C-JOIN (join conversation)
     //
-    // Add a command that will joing a conversation when the user enters
+    // Add a command that will join a conversation when the user enters
     // "c-join" while on the user panel.
     //
     panel.register("c-join", new Panel.Command() {
@@ -283,6 +293,96 @@ public final class Chat {
           }
         }
         return null;
+      }
+    });
+
+    // C-FOLLOW (follows an interest)
+    //
+    // Adds a command that will allow the user to follow users and conversations
+    // in order to get updates
+    //
+    panel.register("c-follow", new Panel.Command(){
+      @Override
+      public void invoke(Scanner args){
+        final boolean followUser = true;
+
+        if(args.length == 2){
+
+          // Determines if an user or conversation will be added to the interest
+          // system
+          String followType = args.nextLine().toLowerCase().trim();
+          if(followType == "u"){
+            followUser = true;
+          }else if(followType == "c"){
+            followUser = false;
+          }else{
+            System.out.println("ERROR: Wrong format");
+            return;
+          }
+  
+          // Determines if the username or conversation name exists 
+          final String followObj = args.nextLine().toLowerCase().trim();
+          if(followUser && findUser(followObj)){
+            final UserContext user = findUser(followObj);
+            // Add interest if does not already exist in the interest system
+          }else if(!followUser && findFollowObj != null){
+            final ConversationContext conversation = find(followObj);
+            // Add interest if does not already exist in the interest system
+          }else{
+            System.out.format("ERROR: '%s' does not exist", followObj);
+            return;
+          }
+          
+        }else{
+          System.out.println("ERROR: Wrong format");
+        }
+      } 
+    });
+
+    // C-UNFOLLOW (unfollows an interest)
+    // 
+    // Adds a command that will allow the user to unfollow users and
+    // conversations to stop getting updates 
+    //
+    panel.register("c-unfollow", new Panel.Command(){
+      @Override
+      public void invoke(Scanner args){
+        final boolean unFollowUser = true;
+        
+        if(args.length == 2){
+ 
+          String unfollowType = args.nextLine().toLowerCase().trim();
+          if(unfollowType == "u"){
+            unfollowUser = true;
+          }else if(unfollowType == "c"){
+            unfollowUser = false;
+          }else{
+            System.out.println("ERROR: Wrong format");
+          }
+
+          final String unfollowObj = args.nextLine().toLowerCase().trim();
+          if(unfollowUser){ // && check if the user is in the interest system
+            //Remove user from interest system
+          }else if(!unfollowUser){ // && check if the conversation is in the
+                                   // interest system
+            //Remove conversation from the interest system
+          }else{
+            System.out.format("ERROR: '%s' is not being followed", unfollowObj);
+          }
+        }else{
+          System.out.println("ERROR: Wrong format");
+        }
+    });
+
+    // C-STATUS (status update)
+    //
+    // Adds a command that will report the status updates of the followed users
+    // and conversations
+    //
+    panel.register("c-status", new Panel.Command(){
+      @Override
+      public void invoke(Scanner args){
+        // Loops through interest system and prints out information
       }
     });
 
