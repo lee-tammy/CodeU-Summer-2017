@@ -4,14 +4,23 @@ import java.io.IOException;
 import static org.junit.Assert.*;
 import org.junit.Test;
 
+/*
+ * Tester File for the Tokenizer Class
+ */
 public class TokenizerTest {
 
+  /*
+   * Test with no Arguments
+   */
   @Test
   public void testWithNoArgs() throws IOException {
     final Tokenizer tokenizer = new Tokenizer(null);
     assertEquals(tokenizer.next(), null);
   }
 
+  /* 
+   * Test with Quotes in input
+   */
   @Test
   public void testWithQuotes() throws IOException {
     final Tokenizer tokenizer = new Tokenizer("\"hello world\" \"how are you\"");
@@ -20,6 +29,9 @@ public class TokenizerTest {
     assertEquals(tokenizer.next(), null);
   }
 
+  /*
+   * Test with no quotes in input
+   */
   @Test
   public void testWithNoQuotes() throws IOException {
     final Tokenizer tokenizer = new Tokenizer("hello world how are you");

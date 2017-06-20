@@ -16,22 +16,35 @@ package codeu.chat.util;
 
 import java.io.IOException;
 
+/**
+ * Class handles parsing of the input strings into tokens
+ */
 public final class Tokenizer {
   private StringBuilder token;
   private String source;
   private int at;
 
+  /**
+   * Constructor for the Tokenizer class
+   *
+   * @param source the input String
+   */
   public Tokenizer(String source) {
 	this.source = source;
 	at = 0;
 	token = new StringBuilder();
   }
 
+  /**
+   * Increment to the next string in the input
+   *
+   * @return The next String token that was seperated by space
+   */
   public String next() {
     try {
       // Skip all leading whitespace
       while (remaining() > 0 && Character.isWhitespace(peek())) {
-        read();  // ignore the result because we already know that it is a whitespace character
+        read();  // ignore white space charactrers
       }
       if (remaining() <= 0) {
         return null;
