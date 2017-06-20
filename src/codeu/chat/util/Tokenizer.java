@@ -44,7 +44,8 @@ public final class Tokenizer {
     try {
       // Skip all leading whitespace
       while (remaining() > 0 && Character.isWhitespace(peek())) {
-        read();  // ignore white space charactrers
+        read();
+	//ignore the result because we already know that it is a whitespace character
       }
       if (remaining() <= 0) {
         return null;
