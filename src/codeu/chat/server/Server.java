@@ -68,6 +68,9 @@ public final class Server {
 
   private static ServerInfo info;
 
+  private static String fileLocation = ""; //see note in Controller.java
+  public PrintWriter output;
+
   public Server(final Uuid id, final Secret secret, final Relay relay) {
 
     this.id = id;
@@ -76,6 +79,20 @@ public final class Server {
     this.relay = relay;
 
     info = new ServerInfo();
+
+    try {
+      output = new PrintWriter(new FileWriter(fileLocation, true));
+      output.flush();
+    }catch (FileNotFoundException e){
+      e.printStackTrace();
+    }
+    //
+    // here is where I want to put code that reads in the info from what's stored
+    // in fileLocation and then uses this.controller to add those stored messages,
+    // users, and convos to the server. Need logic that accounts for overwriting
+    //
+    // a separate logParser class should be made in util so that this class doesn't
+    // get out of control
 
     this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
       public void onMessage(InputStream in, OutputStream out) throws IOException {

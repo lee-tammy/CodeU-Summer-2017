@@ -1,5 +1,7 @@
 package codeu.chat.common;
 
+// TODO: merge the two serverInfo classes?
+
 import java.io.IOException;
 
 import codeu.chat.util.Uuid;

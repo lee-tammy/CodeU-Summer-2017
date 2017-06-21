@@ -15,6 +15,10 @@
 package codeu.chat.server;
 
 import java.util.Collection;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 import codeu.chat.common.BasicController;
 import codeu.chat.common.ConversationHeader;
@@ -34,9 +38,19 @@ public final class Controller implements RawController, BasicController {
   private final Model model;
   private final Uuid.Generator uuidGenerator;
 
+  //TODO: determine way to make the file location a set place within the project directory
+  private static String fileLocation = "";
+  public PrintWriter output;
+
   public Controller(Uuid serverId, Model model) {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
+    try {
+      output = new PrintWriter(new FileWriter(fileLocation, true));
+      output.flush();
+    }catch (FileNotFoundException e){
+      e.printStackTrace();
+    }
   }
 
   @Override
@@ -95,6 +109,9 @@ public final class Controller implements RawController, BasicController {
 
       foundConversation.lastMessage = message.id;
     }
+    output.println("NEW MESSAGE: " + author + "_" + id + "_" + conversation +  "_" +
+            creationTime + "_" + body + "|");
+    output.flush();
 
     return message;
   }
@@ -123,6 +140,8 @@ public final class Controller implements RawController, BasicController {
           name,
           creationTime);
     }
+    output.println("NEW USER: " + name + "_" + user.id + "_" + creationTime + "|");
+    output.flush();
 
     return user;
   }
@@ -139,6 +158,8 @@ public final class Controller implements RawController, BasicController {
       model.add(conversation);
       LOG.info("Conversation added: " + id);
     }
+    output.println("NEW CONVERSATION: " + title + "_" + id + "_" + owner + "_" + creationTime + "|");
+    output.flush();
 
     return conversation;
   }
