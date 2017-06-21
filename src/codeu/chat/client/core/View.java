@@ -22,6 +22,7 @@ import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
+import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
@@ -29,6 +30,7 @@ import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
 import codeu.chat.util.connections.ConnectionSource;
+import codeu.chat.server.ServerInfo;
 
 // VIEW
 //
@@ -43,6 +45,24 @@ final class View implements BasicView {
 
   public View(ConnectionSource source) {
     this.source = source;
+  }
+
+  public ServerInfo getInfo() {
+    try (final Connection connection = source.connect()) {
+      Serializers.INTEGER.write(connection.out(), NetworkCode.SERVER_INFO_REQUEST);
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.SERVER_INFO_RESPONSE) {
+        final Time startTime = Time.SERIALIZER.read(connection.in());
+        System.out.println(startTime);
+        return new ServerInfo(startTime);
+      } else {
+        LOG.error("Response from server failed.");
+      }
+    } catch (Exception ex) {
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server.");
+    }
+    // If we get here it means something went wrong and null should be returned
+    return null;
   }
 
   @Override
@@ -135,5 +155,25 @@ final class View implements BasicView {
     }
 
     return messages;
+  }
+  
+  public ServerInfo getInfo() {
+    try (final Connection connection = this.source.connect()) {
+      Serializers.INTEGER.write(connection.out(), NetworkCode.SERVER_INFO_REQUEST);
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.SERVER_INFO_RESPONSE) {
+        final Uuid version = Uuid.SERIALIZER.read(connection.in());
+        return new ServerInfo(version);
+      } else {
+        // Communicate this error - the server did not respond with the type of
+        // response we expected.
+      	LOG.error("Response from server failed.");
+      }
+    } catch (Exception ex) {
+    	System.out.println("ERROR: Exception during call on server. Check log for details.");
+    	LOG.error(ex, "Exception during call on server.");
+      // Communicate this error - something went wrong with the connection.
+    }
+    // If we get here it means something went wrong and null should be returned
+    return null;
   }
 }
