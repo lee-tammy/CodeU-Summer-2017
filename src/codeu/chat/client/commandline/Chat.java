@@ -319,6 +319,7 @@ public final class Chat {
           String followType = args.nextLine().toLowerCase().trim();
           if(followType == "u"){
             followUser = true;
+            //interest id user id
           }else if(followType == "c"){
             followUser = false;
           }else{
