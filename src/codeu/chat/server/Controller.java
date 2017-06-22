@@ -30,6 +30,7 @@ import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
+import codeu.chat.util.ServerLog;
 
 public final class Controller implements RawController, BasicController {
 
@@ -38,15 +39,14 @@ public final class Controller implements RawController, BasicController {
   private final Model model;
   private final Uuid.Generator uuidGenerator;
 
-  //TODO: determine way to make the file location a set place within the project directory
-  private static String fileLocation = "";
   public PrintWriter output;
+  public static boolean writeToLog = false;
 
   public Controller(Uuid serverId, Model model) throws IOException {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
     try {
-      output = new PrintWriter(new FileWriter(fileLocation, true));
+      output = new PrintWriter(new FileWriter(ServerLog.createFilePath(), true));
       output.flush();
     }catch (FileNotFoundException e){
       e.printStackTrace();
@@ -109,9 +109,12 @@ public final class Controller implements RawController, BasicController {
 
       foundConversation.lastMessage = message.id;
     }
-    output.println("NEW MESSAGE: " + author + "_" + id + "_" + conversation +  "_" +
-            creationTime + "_" + body + "|");
-    output.flush();
+    
+    if(writeToLog) {
+      output.println("M: " + author + "_" + id + "_" + conversation +  "_" +
+            creationTime + "_" + body);
+      output.flush();
+    }
 
     return message;
   }
@@ -140,8 +143,11 @@ public final class Controller implements RawController, BasicController {
           name,
           creationTime);
     }
-    output.println("NEW USER: " + name + "_" + user.id + "_" + creationTime + "|");
-    output.flush();
+    
+    if(writeToLog) {
+      output.println("U: " + name + "_" + user.id + "_" + creationTime);
+      output.flush();
+    }
 
     return user;
   }
@@ -158,8 +164,11 @@ public final class Controller implements RawController, BasicController {
       model.add(conversation);
       LOG.info("Conversation added: " + id);
     }
-    output.println("NEW CONVERSATION: " + title + "_" + id + "_" + owner + "_" + creationTime + "|");
-    output.flush();
+    
+    if(writeToLog) {
+      output.println("C: " + title + "_" + id + "_" + owner + "_" + creationTime);
+      output.flush();
+    }
 
     return conversation;
   }

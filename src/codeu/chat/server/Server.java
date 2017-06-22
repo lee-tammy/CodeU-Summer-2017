@@ -14,6 +14,7 @@
 
 package codeu.chat.server;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -38,6 +39,7 @@ import codeu.chat.common.ServerVersion;
 import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
+import codeu.chat.util.ServerLog;
 import codeu.chat.util.Time;
 import codeu.chat.util.Timeline;
 import codeu.chat.util.Uuid;
@@ -70,7 +72,6 @@ public final class Server {
   private final Relay relay;
   private Uuid lastSeen = Uuid.NULL;
 
-  private static String fileLocation = ""; //see note in Controller.java
   public PrintWriter output;
 
   public Server(final Uuid id, final Secret secret, final Relay relay) throws IOException {
@@ -79,23 +80,30 @@ public final class Server {
     this.secret = secret;
     this.controller = new Controller(id, model);
     this.relay = relay;
+    
+    codeu.chat.server.Controller.writeToLog = false;
 
     info = new ServerInfo();
     version = new ServerVersion();
 
-    try {
-      output = new PrintWriter(new FileWriter(fileLocation, true));
-      output.flush();
-    }catch (FileNotFoundException e){
-      e.printStackTrace();
+//    try {
+//      output = new PrintWriter(new FileWriter(ServerLog.createFilePath(), true));
+//      output.flush();
+//    }catch (FileNotFoundException e){
+//      e.printStackTrace();
+//    }
+    
+    ServerLog log = new ServerLog(new File(ServerLog.createFilePath()));
+    
+    for(int i = 0; i < log.getLength(); i++) {
+        // adding in messages
+        
+        // adding in users
+        
+        // adding in conversations		
     }
-    //
-    // here is where I want to put code that reads in the info from what's stored
-    // in fileLocation and then uses this.controller to add those stored messages,
-    // users, and convos to the server. Need logic that accounts for overwriting
-    //
-    // a separate logParser class should be made in util so that this class doesn't
-    // get out of control
+    
+    codeu.chat.server.Controller.writeToLog = true;
 
     this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
       public void onMessage(InputStream in, OutputStream out) throws IOException {
