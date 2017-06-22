@@ -20,7 +20,7 @@ import java.util.Collection;
 
 import codeu.chat.common.BasicView;
 import codeu.chat.client.core.View;
-import codeu.chat.common.ServerInfo;
+import codeu.chat.common.ServerVersion;
 
 import codeu.chat.common.User;
 import codeu.chat.util.Uuid;
@@ -56,7 +56,7 @@ public final class Context {
     return users;
   }
   
-  public ServerInfo getInfo() {
-    return ((View) view).getInfo();
+  public ServerVersion getVersion() {
+    return view.getVersion();
   }
 }

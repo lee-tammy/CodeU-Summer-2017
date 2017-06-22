@@ -14,9 +14,12 @@
 
 package codeu.chat.server;
 
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
@@ -31,7 +34,7 @@ import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
 import codeu.chat.common.Relay;
 import codeu.chat.common.Secret;
-import codeu.chat.common.ServerInfo;
+import codeu.chat.common.ServerVersion;
 import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
@@ -50,7 +53,8 @@ public final class Server {
 
   private static final int RELAY_REFRESH_MS = 5000; // 5 seconds
 
-  private static final ServerInfo info = new ServerInfo();
+  private static ServerInfo info = new ServerInfo();
+  private static ServerVersion version = new ServerVersion();
 
   private final Timeline timeline = new Timeline();
 
@@ -66,12 +70,10 @@ public final class Server {
   private final Relay relay;
   private Uuid lastSeen = Uuid.NULL;
 
-  private static ServerInfo info;
-
   private static String fileLocation = ""; //see note in Controller.java
   public PrintWriter output;
 
-  public Server(final Uuid id, final Secret secret, final Relay relay) {
+  public Server(final Uuid id, final Secret secret, final Relay relay) throws IOException {
 
     this.id = id;
     this.secret = secret;
@@ -79,6 +81,7 @@ public final class Server {
     this.relay = relay;
 
     info = new ServerInfo();
+    version = new ServerVersion();
 
     try {
       output = new PrintWriter(new FileWriter(fileLocation, true));
@@ -97,7 +100,7 @@ public final class Server {
     this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
       public void onMessage(InputStream in, OutputStream out) throws IOException {
         Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
-        Uuid.SERIALIZER.write(out, info.version);
+        Uuid.SERIALIZER.write(out, version.version);
       }
     });
 
@@ -187,7 +190,7 @@ public final class Server {
 				Serializers.INTEGER.write(out, NetworkCode.GET_CONVERSATIONS_BY_ID_RESPONSE);
 				Serializers.collection(ConversationPayload.SERIALIZER).write(out, conversations);
 			}
-		})
+		});
       
     this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
       @Override

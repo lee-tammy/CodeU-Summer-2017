@@ -22,7 +22,7 @@ import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
-import codeu.chat.common.ServerInfo;
+import codeu.chat.common.ServerVersion;
 import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
@@ -35,7 +35,7 @@ import codeu.chat.server.ServerInfo;
 // VIEW
 //
 // This is the view component of the Model-View-Controller pattern used by the
-// the client to reterive readonly data from the server. All methods are blocking
+// the client to retrieve readonly data from the server. All methods are blocking
 // calls.
 final class View implements BasicView {
 
@@ -64,6 +64,23 @@ final class View implements BasicView {
     // If we get here it means something went wrong and null should be returned
     return null;
   }
+  
+  public ServerVersion getVersion() {
+	    try (final Connection connection = source.connect()) {
+	      Serializers.INTEGER.write(connection.out(), NetworkCode.SERVER_INFO_REQUEST);
+	      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.SERVER_INFO_RESPONSE) {
+	    	  final Uuid version = Uuid.SERIALIZER.read(connection.in());
+	          return new ServerVersion(version);
+	      } else {
+	        LOG.error("Response from server failed.");
+	      }
+	    } catch (Exception ex) {
+	      System.out.println("ERROR: Exception during call on server. Check log for details.");
+	      LOG.error(ex, "Exception during call on server.");
+	    }
+	    // If we get here it means something went wrong and null should be returned
+	    return null;
+	  }
 
   @Override
   public Collection<User> getUsers() {

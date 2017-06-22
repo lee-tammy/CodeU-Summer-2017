@@ -42,7 +42,7 @@ public final class Controller implements RawController, BasicController {
   private static String fileLocation = "";
   public PrintWriter output;
 
-  public Controller(Uuid serverId, Model model) {
+  public Controller(Uuid serverId, Model model) throws IOException {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
     try {

@@ -26,6 +26,7 @@ import codeu.chat.client.core.UserContext;
 import codeu.chat.util.Tokenizer;
 import codeu.chat.util.Time;
 import codeu.chat.server.ServerInfo;
+import codeu.chat.common.ServerVersion;
 
 public final class Chat {
 
@@ -124,8 +125,8 @@ public final class Chat {
     
     panel.register("info", new Panel.Command() {
       @Override
-      public void invoke(Scanner args) {
-        final ServerInfo info = context.getInfo();
+      public void invoke(List<String> args) {
+        final ServerVersion info = context.getVersion();
         if (info == null) {	
           System.out.format("ERROR: Failed to retrieve version info", args);
         } else {
@@ -207,7 +208,7 @@ public final class Chat {
 
     panel.register("info", new Panel.Command() {
       @Override
-      public void invoke(Scanner args) {
+      public void invoke(List<String> args) {
         final ServerInfo info = context.getInfo();
         if (info == null) {
           // Communicate error to user - the server did not send us a valid

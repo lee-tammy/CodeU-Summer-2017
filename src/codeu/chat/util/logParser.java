@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-public final class logParser implements {
+public final class logParser {
   // implement logic for reading in data from transaction log
 
 

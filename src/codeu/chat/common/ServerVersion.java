@@ -1,17 +1,16 @@
 package codeu.chat.common;
 
-// TODO: merge the two serverInfo classes?
 
 import java.io.IOException;
 
 import codeu.chat.util.Uuid;
 
-public final class ServerInfo {
+public final class ServerVersion {
   private final static String SERVER_VERSION = "1.0.0";
 
   public final Uuid version;
   
-  public ServerInfo() {
+  public ServerVersion() {
     Uuid version = null;
     
     try {
@@ -23,7 +22,7 @@ public final class ServerInfo {
     this.version = version;
   }
 
-  public ServerInfo(Uuid version) {
+  public ServerVersion(Uuid version) {
     this.version = version;
   }
 }

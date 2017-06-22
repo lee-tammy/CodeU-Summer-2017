@@ -15,6 +15,9 @@
 package codeu.chat.server;
 
 import static org.junit.Assert.*;
+
+import java.io.IOException;
+
 import org.junit.Test;
 import org.junit.Before;
 
@@ -37,7 +40,11 @@ public final class RawControllerTest {
   @Before
   public void doBefore() {
     model = new Model();
-    controller = new Controller(Uuid.NULL, model);
+    try {
+		controller = new Controller(Uuid.NULL, model);
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
 
     userId = new Uuid(1);
     conversationId = new Uuid(2);
