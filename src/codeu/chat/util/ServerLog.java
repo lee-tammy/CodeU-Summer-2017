@@ -37,6 +37,7 @@ public final class ServerLog {
   
   
   /**
+   * gets the location of the log
    * @return a String that represents the location of the ServerLog
   */
   public static String createFilePath() {
@@ -45,13 +46,18 @@ public final class ServerLog {
   }
   
   /**
+   * Gets the length of logs
    * @return the number of lines in the ServerLog
   */
   public int getLength() { 
     return lines.size();
   }
   
-  public String[] readLine(int index) {
+  /**
+   * Reads log line and create the object based on logs
+   * @param index of the line in the log
+   */
+  public void readLine(int index) {
     String toParse = lines.get(index);
 
     // turns the string from log into an array
@@ -72,7 +78,6 @@ public final class ServerLog {
       controller.newConversation(Uuid.parse(ParArr[2]), ParArr[1], 
 		                 Uuid.parse(ParArr[3]), parArr[4] );
     }
-    return null;
   }
 
   private HashMap<Integer,String> readFile(BufferedReader br) {
