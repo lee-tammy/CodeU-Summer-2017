@@ -32,6 +32,7 @@ import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.ServerLog;
 
+
 public final class Controller implements RawController, BasicController {
 
   private final static Logger.Log LOG = Logger.newLog(Controller.class);
@@ -46,7 +47,7 @@ public final class Controller implements RawController, BasicController {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
     try {
-      output = new PrintWriter(new FileWriter(ServerLog.createFilePath(), true));
+      output = new PrintWriter(new BufferedWriter(new FileWriter(ServerLog.createFilePath(), true) ) );
       output.flush();
     }catch (FileNotFoundException e){
       e.printStackTrace();
@@ -111,7 +112,7 @@ public final class Controller implements RawController, BasicController {
     }
     
     if(writeToLog) {
-      output.println("M: " + author + "_" + id + "_" + conversation +  "_" +
+      output.println("M_" + author + "_" + id + "_" + conversation +  "_" +
             creationTime + "_" + body);
       output.flush();
     }
@@ -145,7 +146,7 @@ public final class Controller implements RawController, BasicController {
     }
     
     if(writeToLog) {
-      output.println("U: " + name + "_" + user.id + "_" + creationTime);
+      output.println("U_" + name + "_" + user.id + "_" + creationTime);
       output.flush();
     }
 
@@ -166,7 +167,7 @@ public final class Controller implements RawController, BasicController {
     }
     
     if(writeToLog) {
-      output.println("C: " + title + "_" + id + "_" + owner + "_" + creationTime);
+      output.println("C_" + title + "_" + id + "_" + owner + "_" + creationTime);
       output.flush();
     }
 
