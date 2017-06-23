@@ -22,61 +22,89 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public final class ServerLog { 
+public final class ServerLog {
+  private File log;	
   private HashMap<Integer,String> lines;
   private BufferedReader in;
 
+  /**
+   * Constructor for ServerLog
+   */
   public ServerLog(File log) {
-	try {
-	  in = new BufferedReader(new FileReader(log.getAbsolutePath()));
-	} catch (FileNotFoundException e) {
-	  e.printStackTrace();
-	}
-	lines = readFile(in);
+    try {
+      this.log = log;
+      in = new BufferedReader(new FileReader(log.getAbsolutePath()));
+    } catch (FileNotFoundException e) {
+      e.printStackTrace();
+    }
+    lines = readFile(in);
   }
   
   
   /**
+   * gets the location of the log
    * @return a String that represents the location of the ServerLog
   */
   public static String createFilePath() {
-	String workingDirectory = System.getProperty("user.dir");
-	return workingDirectory + File.separator + "serverLog.txt";
+    String workingDirectory = System.getProperty("user.dir");
+    return workingDirectory + File.separator + "serverLog.txt";
   }
   
   /**
+   * Gets the length of logs
    * @return the number of lines in the ServerLog
   */
   public int getLength() { 
-	return lines.size();
+    return lines.size();
+  }
+
+  /**
+   * getter for Log
+   * @return File log
+   */
+  public File getLog() {
+    return log;
   }
   
-  public String[] readLine(int index) {
-	String toParse = lines.get(index);
-	char commandType = toParse.charAt(0);
+  /**
+   * Reads log line and create the object based on logs
+   * @param index of the line in the log
+   */
+  public void readLine(int index) {
+    String toParse = lines.get(index);
 
-	if(commandType == 'M') {
-	  // parse a message
-	} else if (commandType == 'U') {
-		// parse a user
-	} else if (commandType == 'C') {
-		// parse a conversation
-	}
-	return null;
+    // turns the string from log into an array
+    String[] ParArr = toParse.split("_");
+    char commandType = toParse.charAt(0);
+
+    if(commandType == 'M') {
+      // parse a message
+      controller.newMessage(Uuid.parse(ParArr[2]), Uuid.parse(ParArr[1]), 
+		            Uuid.parse(ParArr[3]), ParArr[5], ParArr[4] );
+
+      } else if (commandType == 'U') {
+      // parse a user
+      controller.newUser(Uuid.parse(ParArr[2]), ParArr[1], ParArr[3] );
+
+      } else if (commandType == 'C') {
+      // parse a conversation
+      controller.newConversation(Uuid.parse(ParArr[2]), ParArr[1], 
+		                 Uuid.parse(ParArr[3]), parArr[4] );
+    }
   }
 
   private HashMap<Integer,String> readFile(BufferedReader br) {
     String line;
     HashMap<Integer,String> lines = new HashMap<Integer,String>();
-	try {
-	  int index = 0;
-	  while ((line = br.readLine()) != null) {
-		lines.put(index, line);
-		index++;
-	  }
-	} catch (IOException e) {
-	  e.printStackTrace();
-	}
-	return lines;
+    try {
+      int index = 0;
+      while ((line = br.readLine()) != null) {
+        lines.put(index, line);
+        index++;
+    }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return lines;
   }
 }
