@@ -96,7 +96,8 @@ public final class Server {
     // create new log file
     ServerLog log = new ServerLog(new File(ServerLog.createFilePath()));
     
-
+    // check if the server needs to be restored
+    restore(log);
     
     codeu.chat.server.Controller.writeToLog = true;
 
