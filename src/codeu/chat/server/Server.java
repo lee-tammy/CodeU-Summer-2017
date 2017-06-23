@@ -97,7 +97,7 @@ public final class Server {
     ServerLog log = new ServerLog(new File(ServerLog.createFilePath()));
     
     // check if the server needs to be restored
-    restore(log);
+    restore(log, this.controller);
     
     codeu.chat.server.Controller.writeToLog = true;
 
@@ -317,10 +317,10 @@ public final class Server {
   }
 
   // checks if the server needs restoring
-  private void restore(ServerLog log) {
+  private void restore(ServerLog log, Controller controller) {
     for(int i = 0; i < log.getLength(); i++) {
       // reading each line of log
-      log.readLine(i);		
+      log.readLine(i, controller);		
     }
   }
 

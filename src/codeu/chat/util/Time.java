@@ -17,6 +17,7 @@ package codeu.chat.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -60,6 +61,15 @@ public final class Time implements Comparable<Time> {
   @Override
   public String toString() {
     return formatter.format(date);
+  }
+  
+  public static Time parse(String s) {
+	try {
+	  return new Time(formatter.parse(s).getTime());
+	} catch (ParseException e) {
+	  e.printStackTrace();
+	}
+	  return Time.now();
   }
 
   public static Time fromMs(long ms) { return new Time(ms); }

@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import codeu.chat.server.Controller;
+
 public final class ServerLog {
   private File log;	
   private HashMap<Integer,String> lines;
@@ -70,27 +72,35 @@ public final class ServerLog {
    * Reads log line and create the object based on logs
    * @param index of the line in the log
    */
-  public void readLine(int index) {
+  public void readLine(int index, Controller controller) {
     String toParse = lines.get(index);
 
     // turns the string from log into an array
     String[] ParArr = toParse.split("_");
     char commandType = toParse.charAt(0);
 
-    if(commandType == 'M') {
-      // parse a message
-      controller.newMessage(Uuid.parse(ParArr[2]), Uuid.parse(ParArr[1]), 
-		            Uuid.parse(ParArr[3]), ParArr[5], ParArr[4] );
+    try {
+      if(commandType == 'M') {
+        // parse a message
+        controller.newMessage(Uuid.parse(ParArr[2]), Uuid.parse(ParArr[1]), 
+		            Uuid.parse(ParArr[3]), ParArr[5], stringToTime(ParArr[4]) );
 
-      } else if (commandType == 'U') {
-      // parse a user
-      controller.newUser(Uuid.parse(ParArr[2]), ParArr[1], ParArr[3] );
+        } else if (commandType == 'U') {
+        // parse a user
+        controller.newUser(Uuid.parse(ParArr[2]), ParArr[1], stringToTime(ParArr[3]) );
 
-      } else if (commandType == 'C') {
-      // parse a conversation
-      controller.newConversation(Uuid.parse(ParArr[2]), ParArr[1], 
-		                 Uuid.parse(ParArr[3]), parArr[4] );
+        } else if (commandType == 'C') {
+        // parse a conversation
+        controller.newConversation(Uuid.parse(ParArr[2]), ParArr[1], 
+		                 Uuid.parse(ParArr[3]), stringToTime(ParArr[4]) );
+        }
+    } catch(IOException e) {
+	  e.printStackTrace();
     }
+  }
+  
+  private Time stringToTime(String s) {
+	  return Time.parse(s);
   }
 
   private HashMap<Integer,String> readFile(BufferedReader br) {

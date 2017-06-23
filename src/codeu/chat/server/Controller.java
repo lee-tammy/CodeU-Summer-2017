@@ -14,7 +14,7 @@
 
 package codeu.chat.server;
 
-import java.util.Collection;
+import java.io.BufferedWriter;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
