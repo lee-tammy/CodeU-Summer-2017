@@ -41,7 +41,7 @@ public final class Controller implements RawController, BasicController {
   private final Uuid.Generator uuidGenerator;
 
   public PrintWriter output;
-  public static boolean writeToLog = false;
+  public static boolean writeToLog;
 
   public Controller(Uuid serverId, Model model) throws IOException {
     this.model = model;

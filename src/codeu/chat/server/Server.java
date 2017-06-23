@@ -99,6 +99,8 @@ public final class Server {
     // check if the server needs to be restored
     restore(log, this.controller);
     
+    // once we are done reading in old data from the log
+    // we set this to true so that new data is written to the log
     codeu.chat.server.Controller.writeToLog = true;
 
     this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
@@ -318,7 +320,7 @@ public final class Server {
 
   // checks if the server needs restoring
   private void restore(ServerLog log, Controller controller) {
-    for(int i = 0; i < log.getLength(); i++) {
+	for(int i = 0; i < log.getLength(); i++) {
       // reading each line of log
       log.readLine(i, controller);		
     }
