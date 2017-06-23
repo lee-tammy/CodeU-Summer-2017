@@ -28,8 +28,8 @@ import codeu.chat.util.store.Store;
 import codeu.chat.util.store.StoreAccessor;
 import codeu.chat.common.Type;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 
 public final class Model {
 
@@ -56,13 +56,6 @@ public final class Model {
     }
   };
 
-  private static final Comparator<User> USER_COMPARE = new Comparator<User>() {
-    @Override
-    public int compare(User a, User b) {
-      return UUID_COMPARE.compare(a.id, b.id);
-    }
-  };
-
   private static final Comparator<String> STRING_COMPARE = String.CASE_INSENSITIVE_ORDER;
 
   private final Store<Uuid, User> userById = new Store<>(UUID_COMPARE);
@@ -81,7 +74,7 @@ public final class Model {
 
   private final Store<Uuid, Interest> interestById = new Store<>(UUID_COMPARE);
 
-  public final HashMap<Uuid, HashSet<Uuid>> interests = new HashMap<>();
+  public final HashMap<Uuid, ArrayList<Uuid>> interests = new HashMap<>();
 
   public void add(User user) {
     userById.insert(user.id, user);
@@ -151,7 +144,7 @@ public final class Model {
     Interest newInterest = new Interest(id, interestId, interestType,
         creationTime);
     if (interests.get(userId) == null) {
-      interests.put(userId, new HashSet<Uuid>());
+      interests.put(userId, new ArrayList<Uuid>());
     }
     interests.get(userId).add(interestId);
     interestById.insert(interestId, newInterest);

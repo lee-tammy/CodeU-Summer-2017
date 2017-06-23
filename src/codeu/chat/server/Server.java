@@ -22,6 +22,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -199,7 +200,7 @@ public final class Server {
       public void onMessage(InputStream in, OutputStream out) throws IOException {
         final Uuid userId = Uuid.SERIALIZER.read(in);
         Serializers.INTEGER.write(out, NetworkCode.INTEREST_STATUS_RESPONSE);
-        InterestStatus.SERIALIZER.write(out, controller.interestStatus(userId));
+        Serializers.collection(Serializers.STRING).write(out, controller.interestStatus(userId));
       }
     });
 

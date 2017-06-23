@@ -14,8 +14,7 @@
 
 package codeu.chat.server;
 
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.ArrayList;
 
 import codeu.chat.common.BasicController;
 import codeu.chat.common.ConversationHeader;
@@ -69,7 +68,7 @@ public final class Controller implements RawController, BasicController {
 
     if (foundUser != null && foundConversation != null && isIdFree(id)) {
 
-      message = new Message(id, Uuid.NULL, Uuid.NULL, creationTime, author, body);
+      message = new Message(id, Uuid.NULL, Uuid.NULL, creationTime, author, body, conversation);
       model.add(message);
       LOG.info("Message added: %s", message.id);
 
@@ -161,48 +160,69 @@ public final class Controller implements RawController, BasicController {
     model.removeInterest(userId, interestId);
   }
 
-  public InterestStatus interestStatus(Uuid user) {
-    HashSet<Uuid> userInterests = model.interests.get(user);
-    if (userInterests == null) return new InterestStatus(new HashSet<String>());
-    HashSet<String> result = new HashSet<>();
+  public ArrayList<String> interestStatus(Uuid user) {
+    ArrayList<Uuid> userInterests = model.interests.get(user);
+    ArrayList<String> result = new ArrayList<>();
+    if (userInterests == null) return result;
     for (Uuid interestId : userInterests) {
-      Interest interest = model.interestById().first(interestId);
-      String item;
-      switch(interest.type) {
-        case USER:
-          result.add(processUserInterest(model.userById().first(interest.interestId),
-              interest.lastUpdate));
-          break;
-        case CONVERSATION:
-          result.add(processConversationInterest(model.conversationById().first(
-                  interest.interestId),
-                  model.conversationPayloadById().first(
-                  interest.interestId), interest.lastUpdate));
-          break;
-
-      }
+      result.add(processInterest(interestId));
     }
-    return new InterestStatus(result);
+    return result;
   }
 
-  private String processUserInterest(User user, Time lastUpdate) {
-    return "\n";
-  }
-
-  private String processConversationInterest(ConversationHeader header,
-      ConversationPayload conversation, Time lastUpdate) {
-    Message last = model.messageById().first(conversation.lastMessage);
-    int total = 0;
-    while (last != null && last.creation.inMs() > lastUpdate.inMs()) {
-      total++;
-      last = model.messageById().first(last.previous);
-    }
+  /* Syntax guide: 
+   *
+   * if type is User:
+   *   U <name>: C <header title> --> for conversations created by the user
+   *   U <name>: A <header title> --> for messages added to conversation by the
+   *   user.
+   * if type is Conversation
+   *   C <name>: <number of new messages>
+   */
+  private String processInterest(Uuid id) {
+    Interest interest = model.interestById().first(id);
+    Time lastUpdate = interest.lastUpdate;
     StringBuilder result = new StringBuilder();
-    result.append("The number of messages missed in conversation -- ");
-    result.append(header.title);
-    result.append(" -- since the last status update is ");
-    result.append(total);
-    result.append("\n");
+    if (interest.type == Type.USER) {
+      User user = model.userById().first(id);
+      // Return all values with time higher than last Update
+      Iterable<ConversationHeader> headers = model.conversationByTime().
+        after(lastUpdate);
+      for (ConversationHeader header : headers) {
+        result.append("U ");
+        result.append(user.name);
+        result.append(": ");
+        result.append("C ");
+        result.append(header.title);
+        result.append("\n");
+      }
+
+      // Return all values with time higher than last Update
+      Iterable<Message> messages = model.messageByTime().after(lastUpdate);
+      for (Message message : messages) {
+        result.append("U ");
+        result.append(user.name);
+        result.append(": ");
+        result.append("A ");
+        result.append(model.conversationById().first(message.conversationHeader).title);
+        result.append("\n");
+      }
+
+    } else if (interest.type == Type.CONVERSATION) {
+      ConversationHeader header = model.conversationById().first(id);
+      ConversationPayload payload = model.conversationPayloadById().first(id);
+      Message last = model.messageById().first(payload.lastMessage);
+      int total = 0;
+      while (last != null && last.creation.compareTo(lastUpdate) > 0) {
+        total++;
+        last = model.messageById().first(last.previous);
+      }
+      result.append("C ");
+      result.append(header.title);
+      result.append(": ");
+      result.append(total);
+      result.append("\n");
+    }
     return result.toString();
   }
 
