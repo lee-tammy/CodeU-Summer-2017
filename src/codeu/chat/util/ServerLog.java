@@ -22,12 +22,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public final class ServerLog { 
+public final class ServerLog {
+  private File log;	
   private HashMap<Integer,String> lines;
   private BufferedReader in;
 
+  /**
+   * Constructor for ServerLog
+   */
   public ServerLog(File log) {
     try {
+      this.log = log;
       in = new BufferedReader(new FileReader(log.getAbsolutePath()));
     } catch (FileNotFoundException e) {
       e.printStackTrace();
@@ -51,6 +56,14 @@ public final class ServerLog {
   */
   public int getLength() { 
     return lines.size();
+  }
+
+  /**
+   * getter for Log
+   * @return File log
+   */
+  public File getLog() {
+    return log;
   }
   
   /**
