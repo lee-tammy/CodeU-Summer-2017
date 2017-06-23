@@ -92,16 +92,11 @@ public final class Server {
 //    }catch (FileNotFoundException e){
 //      e.printStackTrace();
 //    }
-    
+   
+    // create new log file
     ServerLog log = new ServerLog(new File(ServerLog.createFilePath()));
     
-    for(int i = 0; i < log.getLength(); i++) {
-        // adding in messages
-        
-        // adding in users
-        
-        // adding in conversations		
-    }
+
     
     codeu.chat.server.Controller.writeToLog = true;
 
@@ -318,6 +313,14 @@ public final class Server {
                     relay.pack(message.id, message.content, message.creation));
       }
     };
+  }
+
+  // checks if the server needs restoring
+  private void restore(ServerLog log) {
+    for(int i = 0; i < log.getLength(); i++) {
+      // reading each line of log
+      log.readLine(i);		
+    }
   }
 
 }
