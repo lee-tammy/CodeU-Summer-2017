@@ -56,6 +56,12 @@ public final class Chat {
     for (String token = tokenizer.next(); token != null; token = tokenizer.next()){
       args.add(token);
     }
+    
+    if(args.size() < 0) {
+      // nothing was actually passed in, trying to get the first command 
+      // by calling args.get(0) will make the program crash  
+      return false;
+    }
     final String command = args.get(0);
     args.remove(0);
 

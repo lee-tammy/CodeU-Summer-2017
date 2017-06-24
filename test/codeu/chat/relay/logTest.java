@@ -8,8 +8,10 @@ import java.util.Collection;
 
 import org.junit.Test;
 
+import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.Relay;
 import codeu.chat.common.Secret;
+import codeu.chat.common.User;
 import codeu.chat.server.Controller;
 import codeu.chat.server.Model;
 import codeu.chat.util.ServerLog;
@@ -36,14 +38,21 @@ public final class LogTest {
   }
   
   @Test
-  public void testAddTeam() {
+  public void testRestoreConversation() {
+	  
+	final User user = controller.newUser("user");
 
-    final Server relay = new Server(8, 8);
+	assertFalse(
+	    "Check that user has a valid reference",
+	    user == null);
 
-	final Uuid team = new Uuid(3);
-	final Secret secret = new Secret((byte)0x00, (byte)0x01, (byte)0x02);
+	final ConversationHeader conversation = controller.newConversation(
+	    "conversation",
+	    user.id);
 
-	assertTrue(relay.addTeam(team, secret));
+	assertFalse(
+	    "Check that conversation has a valid reference",
+	    conversation == null);
   }
 
   @Test
