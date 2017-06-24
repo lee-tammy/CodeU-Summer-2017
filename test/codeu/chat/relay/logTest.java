@@ -21,7 +21,7 @@ import codeu.chat.util.Uuid;
 import org.junit.Before;
 
 
-public final class LogTest {
+public final class logTest {
   private Model model;
   private Controller controller;
   private ServerLog log;
