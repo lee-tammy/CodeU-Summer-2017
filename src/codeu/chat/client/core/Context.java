@@ -57,12 +57,9 @@ public final class Context {
     return users;
   }
   
-<<<<<<< HEAD
-  public ServerVersion getVersion() {
-    return view.getVersion();
-=======
+  //public ServerVersion getVersion() {
+  //  return view.getVersion();
   public ServerInfo getInfo() {
     return ((View) view).getInfo();
->>>>>>> origin
   }
 }

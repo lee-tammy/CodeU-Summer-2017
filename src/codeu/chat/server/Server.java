@@ -35,11 +35,8 @@ import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
 import codeu.chat.common.Relay;
 import codeu.chat.common.Secret;
-<<<<<<< HEAD
 import codeu.chat.common.ServerVersion;
-=======
 import codeu.chat.common.ServerInfo;
->>>>>>> origin
 import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
@@ -332,7 +329,6 @@ public final class Server {
     };
   }
 
-<<<<<<< HEAD
   // checks if the server needs restoring
   private void restore(ServerLog log, Controller controller) {
 	for(int i = 0; i < log.getLength(); i++) {
@@ -340,7 +336,4 @@ public final class Server {
       log.readLine(i, controller);		
     }
   }
-
-=======
->>>>>>> origin
 }
