@@ -17,16 +17,12 @@ package codeu.chat.server;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
-import codeu.chat.common.LinearUuidGenerator;
 import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
 import codeu.chat.common.Relay;
@@ -66,8 +62,6 @@ public final class Server {
   private final Relay relay;
   private Uuid lastSeen = Uuid.NULL;
 
-  private static ServerInfo info;
-
   public Server(final Uuid id, final Secret secret, final Relay relay) {
 
     this.id = id;
@@ -75,12 +69,10 @@ public final class Server {
     this.controller = new Controller(id, model);
     this.relay = relay;
 
-    info = new ServerInfo();
-
     this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
       public void onMessage(InputStream in, OutputStream out) throws IOException {
         Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
-        Uuid.SERIALIZER.write(out, info.version);
+        ServerInfo.SERIALIZER.write(out, info);
       }
     });
 
@@ -170,16 +162,8 @@ public final class Server {
 				Serializers.INTEGER.write(out, NetworkCode.GET_CONVERSATIONS_BY_ID_RESPONSE);
 				Serializers.collection(ConversationPayload.SERIALIZER).write(out, conversations);
 			}
-		})
+		});
       
-    this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
-      @Override
-      public void onMessage(InputStream in, OutputStream out) throws IOException {
-        Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
-        Time.SERIALIZER.write(out, info.startTime);
-      }
-    });
-
     this.timeline.scheduleNow(new Runnable() {
       @Override
       public void run() {
