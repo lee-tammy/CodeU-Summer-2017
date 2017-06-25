@@ -15,21 +15,21 @@
 package codeu.chat.server;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import codeu.chat.common.BasicController;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
+import codeu.chat.common.Interest;
+import codeu.chat.common.InterestStatus;
 import codeu.chat.common.Message;
 import codeu.chat.common.RandomUuidGenerator;
 import codeu.chat.common.RawController;
-import codeu.chat.common.User;
 import codeu.chat.common.Type;
-import codeu.chat.common.Interest;
+import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
-import codeu.chat.common.InterestStatus;
-import codeu.chat.common.Interest;
 
 public final class Controller implements RawController, BasicController {
 
@@ -43,6 +43,10 @@ public final class Controller implements RawController, BasicController {
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
   }
 
+  public User userById(Uuid id) {
+    return model.userById().first(id);
+  }
+  
   @Override
   public Message newMessage(Uuid author, Uuid conversation, String body) {
     return newMessage(createId(), author, conversation, body, Time.now());
@@ -147,25 +151,31 @@ public final class Controller implements RawController, BasicController {
     return conversation;
   }
 
-  public void addInterest(Uuid userId, Uuid interestId, Type interestType) {
-    addInterest(createId(), userId, interestId, interestType, Time.now());
+  public Interest addInterest(Uuid userId, Uuid interestId, Type interestType) {
+    return addInterest(userId, userId, interestId, interestType, Time.now());
   }
 
-  public void addInterest(Uuid id, Uuid userId, Uuid interestId,
+  public Interest addInterest(Uuid id, Uuid userId, Uuid interestId,
       Type interestType, Time creationTime) {
-    model.addInterest(id, userId, interestId, interestType, creationTime);
+    return model.addInterest(id, userId, interestId, interestType, creationTime);
   }
 
   public void removeInterest(Uuid userId, Uuid interestId) {
     model.removeInterest(userId, interestId);
   }
 
-  public ArrayList<String> interestStatus(Uuid user) {
+  // TODO(Adam): Create and send an ArrayList of InterestStatus objects instead of an array
+  // list of strings. Allow the client to figure out how to sort through the
+  // data.
+  public ArrayList<InterestStatus> interestStatus(Uuid user) {
     ArrayList<Uuid> userInterests = model.interests.get(user);
-    ArrayList<String> result = new ArrayList<>();
+    ArrayList<InterestStatus> result = new ArrayList<>();
+    Time now = Time.now();
     if (userInterests == null) return result;
     for (Uuid interestId : userInterests) {
-      result.add(processInterest(interestId));
+      InterestStatus report = processInterest(interestId, now);
+      if (report == null) continue;
+      result.add(report);
     }
     return result;
   }
@@ -179,37 +189,32 @@ public final class Controller implements RawController, BasicController {
    * if type is Conversation
    *   C <name>: <number of new messages>
    */
-  private String processInterest(Uuid id) {
+  private InterestStatus processInterest(Uuid id, Time now) {
     Interest interest = model.interestById().first(id);
+    if (interest == null) return null;
     Time lastUpdate = interest.lastUpdate;
-    StringBuilder result = new StringBuilder();
+    InterestStatus result = null;
     if (interest.type == Type.USER) {
       User user = model.userById().first(id);
       // Return all values with time higher than last Update
       Iterable<ConversationHeader> headers = model.conversationByTime().
         after(lastUpdate);
+      List<String> createdConversations = new ArrayList<>();
       for (ConversationHeader header : headers) {
-        result.append("U ");
-        result.append(user.name);
-        result.append(": ");
-        result.append("C ");
-        result.append(header.title);
-        result.append("\n");
+        if (!header.owner.equals(user.id)) continue;
+        createdConversations.add(header.title);
       }
 
       // Return all values with time higher than last Update
       Iterable<Message> messages = model.messageByTime().after(lastUpdate);
+      List<String> addedConversations = new ArrayList<>();
       for (Message message : messages) {
-        result.append("U ");
-        result.append(user.name);
-        result.append(": ");
-        result.append("A ");
-        result.append(model.conversationById().first(message.conversationHeader).title);
-        result.append("\n");
+        if (!message.author.equals(user.id)) continue;
+        addedConversations.add(model.conversationById().first(message.conversationHeader).title);
       }
-
+      
+      result = new InterestStatus(id, createdConversations, addedConversations);
     } else if (interest.type == Type.CONVERSATION) {
-      ConversationHeader header = model.conversationById().first(id);
       ConversationPayload payload = model.conversationPayloadById().first(id);
       Message last = model.messageById().first(payload.lastMessage);
       int total = 0;
@@ -217,13 +222,10 @@ public final class Controller implements RawController, BasicController {
         total++;
         last = model.messageById().first(last.previous);
       }
-      result.append("C ");
-      result.append(header.title);
-      result.append(": ");
-      result.append(total);
-      result.append("\n");
+      result = new InterestStatus(id, total);
     }
-    return result.toString();
+    interest.lastUpdate = now;
+    return result;
   }
 
   private Uuid createId() {
@@ -250,5 +252,9 @@ public final class Controller implements RawController, BasicController {
   }
 
   private boolean isIdFree(Uuid id) { return !isIdInUse(id); }
+
+  public ConversationHeader conversationHeaderById(Uuid id) {
+    return model.conversationById().first(id);
+  }
 
 }

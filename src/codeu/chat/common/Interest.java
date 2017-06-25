@@ -14,7 +14,7 @@ public final class Interest {
   public final Uuid id;
   public final Uuid interestId;
   public final Type type;
-  public final Time lastUpdate;
+  public Time lastUpdate;
 
   public static final Serializer<Interest> SERIALIZER = new Serializer<Interest>() {
     @Override

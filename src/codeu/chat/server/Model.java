@@ -139,7 +139,7 @@ public final class Model {
     return messageByText;
   }
 
-  public void addInterest(Uuid id, Uuid userId, Uuid interestId, Type interestType,
+  public Interest addInterest(Uuid id, Uuid userId, Uuid interestId, Type interestType,
       Time creationTime) {
     Interest newInterest = new Interest(id, interestId, interestType,
         creationTime);
@@ -148,6 +148,7 @@ public final class Model {
     }
     interests.get(userId).add(interestId);
     interestById.insert(interestId, newInterest);
+    return newInterest;
   }
 
   public void removeInterest(Uuid userId, Uuid interestId) {

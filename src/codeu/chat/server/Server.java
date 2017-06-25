@@ -18,30 +18,24 @@ package codeu.chat.server;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
-import codeu.chat.common.LinearUuidGenerator;
+import codeu.chat.common.InterestStatus;
 import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
 import codeu.chat.common.Relay;
 import codeu.chat.common.Secret;
+import codeu.chat.common.Type;
 import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
-import codeu.chat.util.Time;
 import codeu.chat.util.Timeline;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
-import codeu.chat.common.InterestStatus;
-import codeu.chat.common.Type;
 
 public final class Server {
 
@@ -161,7 +155,29 @@ public final class Server {
         Serializers.collection(ConversationPayload.SERIALIZER).write(out, conversations);
       }
     });
+    
+    this.commands.put(NetworkCode.GET_USER_BY_ID_REQUEST, new Command() {
+      @Override
+      public void onMessage(InputStream in, OutputStream out) throws IOException {
+        
+        final Uuid userId = Uuid.SERIALIZER.read(in); 
+         
+        Serializers.INTEGER.write(out, NetworkCode.GET_USER_BY_ID_RESPONSE);
+        User.SERIALIZER.write(out, controller.userById(userId));
+      }
+    });
 
+     this.commands.put(NetworkCode.GET_CONVERSATION_HEADER_BY_ID_REQUEST, new Command() {
+      @Override
+      public void onMessage(InputStream in, OutputStream out) throws IOException {
+        
+        final Uuid id = Uuid.SERIALIZER.read(in); 
+         
+        Serializers.INTEGER.write(out, NetworkCode.GET_USER_BY_ID_RESPONSE);
+        ConversationHeader.SERIALIZER.write(out, controller.conversationHeaderById(id));
+      }
+    });
+   
     // Get Messages By Id - A client wants to get a subset of the messages from the back end.
     this.commands.put(NetworkCode.GET_MESSAGES_BY_ID_REQUEST, new Command() {
       @Override
@@ -183,7 +199,7 @@ public final class Server {
 
         controller.addInterest(userId, interestId, interestType);
         Serializers.INTEGER.write(out, NetworkCode.NEW_INTEREST_RESPONSE);
-      } 
+      }
     });
 
     this.commands.put(NetworkCode.REMOVE_INTEREST_REQUEST, new Command() {
@@ -193,14 +209,14 @@ public final class Server {
 
         controller.removeInterest(userId, interestId);
         Serializers.INTEGER.write(out, NetworkCode.REMOVE_INTEREST_RESPONSE);
-      } 
+      }
     });
 
     this.commands.put(NetworkCode.INTEREST_STATUS_REQUEST, new Command() {
       public void onMessage(InputStream in, OutputStream out) throws IOException {
         final Uuid userId = Uuid.SERIALIZER.read(in);
         Serializers.INTEGER.write(out, NetworkCode.INTEREST_STATUS_RESPONSE);
-        Serializers.collection(Serializers.STRING).write(out, controller.interestStatus(userId));
+        Serializers.collection(InterestStatus.SERIALIZER).write(out, controller.interestStatus(userId));
       }
     });
 
