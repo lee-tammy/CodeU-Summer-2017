@@ -18,11 +18,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Stack;
+import java.util.HashSet;
+import java.util.ArrayList;
 
 import codeu.chat.client.core.Context;
 import codeu.chat.client.core.ConversationContext;
 import codeu.chat.client.core.MessageContext;
 import codeu.chat.client.core.UserContext;
+
+import codeu.chat.util.Serializer;
+import codeu.chat.util.Serializers;
+
+import codeu.chat.common.Type;
+
+import codeu.chat.util.connections.Connection;
 
 public final class Chat {
 
@@ -35,7 +44,10 @@ public final class Chat {
   // panel all it needs to do is pop the top panel.
   private final Stack<Panel> panels = new Stack<>();
 
+  private Context context;
+
   public Chat(Context context) {
+    this.context = context;
     this.panels.push(createRootPanel(context));
   }
 
@@ -158,7 +170,7 @@ public final class Chat {
       public void invoke(Scanner args) {
         final String name = args.hasNext() ? args.nextLine().trim() : "";
         if (name.length() > 0) {
-          final UserContext user = findUser(name);
+          final UserContext user = findUser(name, context);
           if (user == null) {
             System.out.format("ERROR: Failed to sign in as '%s'\n", name);
           } else {
@@ -171,20 +183,30 @@ public final class Chat {
 
       // Find the first user with the given name and return a user context
       // for that user. If no user is found, the function will return null.
-      private UserContext findUser(String name) {
-        for (final UserContext user : context.allUsers()) {
-          if (user.user.name.equals(name)) {
-            return user;
-          }
-        }
-        return null;
-      }
+      
     });
 
    
     // Now that the panel has all its commands registered, return the panel
     // so that it can be used.
     return panel;
+  }
+
+  private UserContext findUser(String name, Context context) {
+    for (final UserContext user : context.allUsers()) {
+      if (user.user.name.equals(name)){
+        return user;
+      }
+    }
+    return null;
+  } 
+  private ConversationContext find(String title, UserContext user) {
+    for(final ConversationContext conversation : user.conversations()) {
+      if(title.equals(conversation.conversation.title)) {
+        return conversation;
+      }
+    }
+    return null;
   }
 
   private Panel createUserPanel(final UserContext user) {
@@ -206,15 +228,13 @@ public final class Chat {
         System.out.println("    Add a new conversation with the given title and join it as the current user.");
         System.out.println("  c-join <title>");
         System.out.println("    Join the conversation as the current user.");
-        System.out.println("  c-follow <u for user or c for conversation> <username or title>.");
+        System.out.println("  i-add <u for user or c for conversation> <username or title>.");
         System.out.println("    Get updates on conversations and users.");
-        System.out.println("  c-unfollow <u for user or c for conversation>" + 
+        System.out.println("  i-remove <u for user or c for conversation>" + 
             " <username or title>.");
-        System.out.println("    Stop getting updates on conversations and" + 
-            " users.");
-        System.out.println("  c-status");
-        System.out.println("    Gets the updated status of the followed" + 
-            " conversations and users");
+        System.out.println("    Remove interest");
+        System.out.println("  i-status");
+        System.out.println("    Get status of interests");
         System.out.println("  info");
         System.out.println("    Display all info for the current user");
         System.out.println("  back");
@@ -273,7 +293,7 @@ public final class Chat {
       public void invoke(Scanner args) {
         final String name = args.hasNext() ? args.nextLine().trim() : "";
         if (name.length() > 0) {
-          final ConversationContext conversation = find(name);
+          final ConversationContext conversation = find(name, user);
           if (conversation == null) {
             System.out.format("ERROR: No conversation with name '%s'\n", name);
           } else {
@@ -286,14 +306,6 @@ public final class Chat {
 
       // Find the first conversation with the given name and return its context.
       // If no conversation has the given name, this will return null.
-      private ConversationContext find(String title) {
-        for (final ConversationContext conversation : user.conversations()) {
-          if (title.equals(conversation.conversation.title)) {
-            return conversation;
-          }
-        }
-        return null;
-      }
     });
 
     // C-FOLLOW (follows an interest)
@@ -301,10 +313,10 @@ public final class Chat {
     // Adds a command that will allow the user to follow users and conversations
     // in order to get updates
     //
-    panel.register("c-follow", new Panel.Command(){
+    panel.register("i-add", new Panel.Command(){
       @Override
       public void invoke(Scanner args){
-        boolean followUser = true;
+        boolean isUser = true;
         int argNum = 0;
   
         while(args.hasNextLine()){
@@ -316,28 +328,49 @@ public final class Chat {
 
           // Determines if an user or conversation will be added to the interest
           // system
-          String followType = args.nextLine().toLowerCase().trim();
-          if(followType == "u"){
-            followUser = true;
+          String interestType = args.nextLine().toLowerCase().trim();
+          if(interestType == "u"){
+            isUser = true;
             //interest id user id
-          }else if(followType == "c"){
-            followUser = false;
+          }else if(interestType == "c"){
+            isUser = false;
           }else{
             System.out.println("ERROR: Wrong format");
             return;
           }
   
           // Determines if the username or conversation name exists 
-          final String followObj = args.nextLine().toLowerCase().trim();
-          if(followUser){ // && if the user exists
-            //final UserContext user = findUser(followObj);
+          final String interestObj = args.nextLine().toLowerCase().trim();
+          if(isUser && findUser(interestObj, context) != null){ 
+            final UserContext userInterest = findUser(interestObj, context);
+            try(final Connection connection = source.connect()){
+              Serializers.INTEGER.write(connection.out(),
+                  NetworkCode.NEW_INTEREST_REQUEST);
+              if(Serializers.INTEGER.read(connection.in()) ==
+                  NetworkCode.NEW_INTEREST_RESPONSE){
+                //Serializer.nullable(Interest.SERIALIZER).write(out,
+                Uuid.SERIALIZER.write(connection.out(), user.user.id);
+                Uuid.SERIALIZER.write(connection.out(), userInterest.id);
+                // How to get type
+                Type.SERIALIZER.write(connection.out(), Type.USER);
+              }
+            }
             // Add interest if does not already exist in the interest system
-          }else if(!followUser){ // && if the conversation exists 
-            //final ConversationContext conversation = find(followObj);
-            // Add interest if does not already exist in the interest system
+          }else if(!isUser && find(interestObj, user) != null){
+            final ConversationContext convoInterest = find(interestObj, user);
+        
+            Serializers.INTEGER.write(connection.out(),
+                NetworkCode.NEW_INTEREST_REQUEST);
+            if(Serializers.INTEGER.read(connection.in()) ==
+                NetworkCode.NEW_INTEREST_RESPONSE){
+
+              Uuid.SERIALIZER.write(connection.out(), user.user.id);
+              Uuid.SERIALIZER.write(connection.out(),
+                  convoInterest.conversation.id);  
+              Type.SERIALIZER.write(connection.out(), Type.CONVERSATION);          
+            }
           }else{
-            System.out.format("ERROR: '%s' does not exist", followObj);
-            return;
+            System.out.format("ERROR: '%s' does not exist", interestObj);
           }
           
         }else{
@@ -351,10 +384,10 @@ public final class Chat {
     // Adds a command that will allow the user to unfollow users and
     // conversations to stop getting updates 
     //
-    panel.register("c-unfollow", new Panel.Command(){
+    panel.register("i-remove", new Panel.Command(){
       @Override
       public void invoke(Scanner args){
-        boolean unfollowUser = true;
+        boolean isUser = true;
         int argNum = 0;        
 
         while(args.hasNextLine()){
@@ -364,21 +397,35 @@ public final class Chat {
 
         if(argNum == 2){
  
-          String unfollowType = args.nextLine().toLowerCase().trim();
-          if(unfollowType == "u"){
-            unfollowUser = true;
-          }else if(unfollowType == "c"){
-            unfollowUser = false;
+          String interestType = args.nextLine().toLowerCase().trim();
+          if(interestType == "u"){
+            isUser = true;
+          }else if(interestType == "c"){
+            isUser = false;
           }else{
             System.out.println("ERROR: Wrong format");
           }
 
-          final String unfollowObj = args.nextLine().toLowerCase().trim();
-          if(unfollowUser){ // && check if the user is in the interest system
-            //Remove user from interest system
-          }else if(!unfollowUser){ // && check if the conversation is in the
-                                   // interest system
-            //Remove conversation from the interest system
+          final String interestObj = args.nextLine().toLowerCase().trim();
+          if(isUser && findUser(interestObj, context) != null){ // && check if the user is in the interest system
+            final UserContext userInterest = findUser(interestObj, context);
+            Serializers.INTEGER.write(connection.out(),
+                NetworkCode.REMOVE_INTEREST_REQUEST);
+            Uuid.SERIALIZER.write(connection.out(), user.user.id);
+            // Need interest id
+            Uuid.SERIALIZER.write(connection.out(), userInterest.user.id);
+            // Need type of interest
+            Type.SERIALIZER.write(connection.out(), Type.USER);            
+          }else if(!isUser && find(interestObj, user) != null){ 
+            final ConversationContext convoInterest = find(interestObj, user);
+            Serializers.INTEGER.write(connection.out(),
+                NetworkCode.REMOVE_INTEREST_REQUEST);
+            Uuid.SERIALIZER.write(connection.out(), user.user.id);
+            // Need interest id
+            Uuid.SERIALIZER.write(connection.out(),
+                convoInterest.conversation.id);
+            // Need type of interest
+            Type.SERIALIZER.write(connection.out(), Type.CONVERSATION);
           }else{
             System.out.format("ERROR: '%s' is not being followed", unfollowObj);
           }
@@ -393,9 +440,17 @@ public final class Chat {
     // Adds a command that will report the status updates of the followed users
     // and conversations
     //
-    panel.register("c-status", new Panel.Command(){
+    panel.register("i-status", new Panel.Command(){
       @Override
       public void invoke(Scanner args){
+        try(final Connection connection = source.connect()){
+          Serializers.INTEGER.read(connection.in(),
+              NetworkCode.INTEREST_STATUS_REQUEST);
+          ArrayList<String> system = Serializers.collection.SERIALIZER.read(connection.in());
+          for(String s: status){
+            System.out.println(s);
+          }
+        }
         // Loops through interest system and prints out information
       }
     });
