@@ -451,32 +451,37 @@ public final class Chat {
       public void invoke(Scanner args){
 
         try(final Connection connection = user.getSource()){
-          Serializers.INTEGER.read(connection.in());
-          List<InterestStatus> allInterests = 
-              Serializers.collection(InterestStatus.SERIALIZER).read(connection.in());
-          System.out.println("STATUS UPDATE");
-          System.out.println("===============");
 
-          for(InterestStatus interest : allInterests){
+          if(Serializers.INTEGER.read(connection.in()) ==
+              NetworkCode.INTEREST_STATUS_RESPONSE){
+          
+            List<InterestStatus> allInterests = 
+                Serializers.collection(InterestStatus.SERIALIZER).read(connection.in());
 
-            if(interest.type == Type.CONVERSATION){
-              System.out.format("Number of unread messages: '%d'",
-                  interest.unreadMessages);
-              System.out.println("===============");
+            System.out.println("STATUS UPDATE");
+            System.out.println("===============");
 
-            }else{
-              System.out.format("Number of new conversations: '%d'",
-                  interest.newConversations.size());
-              for(int j = 0; j < interest.newConversations.size(); j++){
-                System.out.println(" " + interest.newConversations.get(j));
+            for(InterestStatus interest : allInterests){
+
+              if(interest.type == Type.CONVERSATION){
+                System.out.format("Number of unread messages: '%d'",
+                    interest.unreadMessages);
+                System.out.println("===============");
+
+              }else{
+                System.out.format("Number of new conversations: '%d'",
+                    interest.newConversations.size());
+                for(int j = 0; j < interest.newConversations.size(); j++){
+                  System.out.println(" " + interest.newConversations.get(j));
+                }
+                System.out.println(" - - - - - - - -");
+                System.out.format("Number of recent conversations: '%d'",
+                    interest.addedConversations.size());
+                for(int k = 0; k < interest.addedConversations.size(); k++){  
+                  System.out.println(" " + interest.addedConversations.get(k));
+                }
+                System.out.println("===============");
               }
-              System.out.println(" - - - - - - - -");
-              System.out.format("Number of recent conversations: '%d'",
-                  interest.addedConversations.size());
-              for(int k = 0; k < interest.addedConversations.size(); k++){  
-                System.out.println(" " + interest.addedConversations.get(k));
-              }
-              System.out.println("===============");
             }
           }
         }

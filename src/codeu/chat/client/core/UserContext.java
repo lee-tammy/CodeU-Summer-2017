@@ -37,7 +37,7 @@ public final class UserContext {
   }
 
   public Connection getSource(){
-    return Controller(controller).source.connect();
+    return controller.source.connect();
   }
   
   public ConversationContext start(String name) {
