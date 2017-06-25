@@ -124,15 +124,23 @@ public final class Chat {
         System.out.println("  info");
         System.out.println("    Get server info.");
         System.out.println("    Show the server information.");
+        System.out.println("  version");
+        System.out.println("    Show version.");
         System.out.println("  exit");
         System.out.println("    Exit the program.");
       }
     });
     
-    panel.register("info", new Panel.Command() {
+    //panel.register("info", new Panel.Command() {
+    //  @Override
+    //  public void invoke(List<String> args) {
+    //    final ServerVersion info = context.getVersion();
+
+    panel.register("version", new Panel.Command() {
       @Override
-      public void invoke(List<String> args) {
-        final ServerVersion info = context.getVersion();
+      public void invoke(Scanner args) {
+        final ServerInfo info = context.getInfo();
+
         if (info == null) {	
           System.out.format("ERROR: Failed to retrieve version info", args);
         } else {

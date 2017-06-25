@@ -35,7 +35,11 @@ import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
 import codeu.chat.common.Relay;
 import codeu.chat.common.Secret;
+<<<<<<< HEAD
 import codeu.chat.common.ServerVersion;
+=======
+import codeu.chat.common.ServerInfo;
+>>>>>>> origin
 import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
@@ -72,9 +76,10 @@ public final class Server {
   private final Relay relay;
   private Uuid lastSeen = Uuid.NULL;
 
-  public PrintWriter output;
 
   public Server(final Uuid id, final Secret secret, final Relay relay) throws IOException {
+  private static ServerInfo info;
+  public PrintWriter output;
 
     this.id = id;
     this.secret = secret;
@@ -107,6 +112,15 @@ public final class Server {
       public void onMessage(InputStream in, OutputStream out) throws IOException {
         Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
         Uuid.SERIALIZER.write(out, version.version);
+      }
+    });
+
+    info = new ServerInfo();
+
+    this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
+      public void onMessage(InputStream in, OutputStream out) throws IOException {
+        Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
+        Uuid.SERIALIZER.write(out, info.version);
       }
     });
 
@@ -318,6 +332,7 @@ public final class Server {
     };
   }
 
+<<<<<<< HEAD
   // checks if the server needs restoring
   private void restore(ServerLog log, Controller controller) {
 	for(int i = 0; i < log.getLength(); i++) {
@@ -326,4 +341,6 @@ public final class Server {
     }
   }
 
+=======
+>>>>>>> origin
 }
