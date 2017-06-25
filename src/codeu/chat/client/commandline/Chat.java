@@ -20,16 +20,21 @@ import java.util.Scanner;
 import java.util.Stack;
 import java.util.HashSet;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import codeu.chat.client.core.Context;
 import codeu.chat.client.core.ConversationContext;
 import codeu.chat.client.core.MessageContext;
 import codeu.chat.client.core.UserContext;
+import codeu.chat.client.core.Controller;
 
 import codeu.chat.util.Serializer;
 import codeu.chat.util.Serializers;
+import codeu.chat.util.Uuid;
 
 import codeu.chat.common.Type;
+import codeu.chat.common.NetworkCode;
+import codeu.chat.common.InterestStatus;
 
 import codeu.chat.util.connections.Connection;
 
@@ -208,7 +213,6 @@ public final class Chat {
     }
     return null;
   }
-
   private Panel createUserPanel(final UserContext user) {
 
     final Panel panel = new Panel();
@@ -331,7 +335,6 @@ public final class Chat {
           String interestType = args.nextLine().toLowerCase().trim();
           if(interestType == "u"){
             isUser = true;
-            //interest id user id
           }else if(interestType == "c"){
             isUser = false;
           }else{
@@ -341,36 +344,37 @@ public final class Chat {
   
           // Determines if the username or conversation name exists 
           final String interestObj = args.nextLine().toLowerCase().trim();
-          if(isUser && findUser(interestObj, context) != null){ 
-            final UserContext userInterest = findUser(interestObj, context);
-            try(final Connection connection = source.connect()){
+
+          try(final Connection connection = user.getSource()){
+            if(isUser && findUser(interestObj, context) != null){ 
+              final UserContext userInterest = findUser(interestObj, context);
+
+              Serializers.INTEGER.write(connection.out(),
+              NetworkCode.NEW_INTEREST_REQUEST);
+              if(Serializers.INTEGER.read(connection.in()) ==
+                  NetworkCode.NEW_INTEREST_RESPONSE){
+                Uuid.SERIALIZER.write(connection.out(), user.user.id);
+                Uuid.SERIALIZER.write(connection.out(), userInterest.user.id);
+                Type.SERIALIZER.write(connection.out(), Type.USER);
+              }
+           
+            }else if(!isUser && find(interestObj, user) != null){
+              final ConversationContext convoInterest = find(interestObj, user);
+       
               Serializers.INTEGER.write(connection.out(),
                   NetworkCode.NEW_INTEREST_REQUEST);
               if(Serializers.INTEGER.read(connection.in()) ==
                   NetworkCode.NEW_INTEREST_RESPONSE){
-                //Serializer.nullable(Interest.SERIALIZER).write(out,
-                Uuid.SERIALIZER.write(connection.out(), user.user.id);
-                Uuid.SERIALIZER.write(connection.out(), userInterest.id);
-                // How to get type
-                Type.SERIALIZER.write(connection.out(), Type.USER);
-              }
-            }
-            // Add interest if does not already exist in the interest system
-          }else if(!isUser && find(interestObj, user) != null){
-            final ConversationContext convoInterest = find(interestObj, user);
-        
-            Serializers.INTEGER.write(connection.out(),
-                NetworkCode.NEW_INTEREST_REQUEST);
-            if(Serializers.INTEGER.read(connection.in()) ==
-                NetworkCode.NEW_INTEREST_RESPONSE){
 
-              Uuid.SERIALIZER.write(connection.out(), user.user.id);
-              Uuid.SERIALIZER.write(connection.out(),
-                  convoInterest.conversation.id);  
-              Type.SERIALIZER.write(connection.out(), Type.CONVERSATION);          
+                Uuid.SERIALIZER.write(connection.out(), user.user.id);
+                Uuid.SERIALIZER.write(connection.out(),
+                    convoInterest.conversation.id);  
+                Type.SERIALIZER.write(connection.out(), Type.CONVERSATION);          
+              } 
+            }else{
+              System.out.format("ERROR: '%s' does not exist", interestObj);
             }
-          }else{
-            System.out.format("ERROR: '%s' does not exist", interestObj);
+        
           }
           
         }else{
@@ -404,31 +408,33 @@ public final class Chat {
             isUser = false;
           }else{
             System.out.println("ERROR: Wrong format");
+            return;
           }
 
           final String interestObj = args.nextLine().toLowerCase().trim();
-          if(isUser && findUser(interestObj, context) != null){ // && check if the user is in the interest system
-            final UserContext userInterest = findUser(interestObj, context);
-            Serializers.INTEGER.write(connection.out(),
-                NetworkCode.REMOVE_INTEREST_REQUEST);
-            Uuid.SERIALIZER.write(connection.out(), user.user.id);
-            // Need interest id
-            Uuid.SERIALIZER.write(connection.out(), userInterest.user.id);
-            // Need type of interest
-            Type.SERIALIZER.write(connection.out(), Type.USER);            
-          }else if(!isUser && find(interestObj, user) != null){ 
-            final ConversationContext convoInterest = find(interestObj, user);
-            Serializers.INTEGER.write(connection.out(),
-                NetworkCode.REMOVE_INTEREST_REQUEST);
-            Uuid.SERIALIZER.write(connection.out(), user.user.id);
-            // Need interest id
-            Uuid.SERIALIZER.write(connection.out(),
-                convoInterest.conversation.id);
-            // Need type of interest
-            Type.SERIALIZER.write(connection.out(), Type.CONVERSATION);
-          }else{
-            System.out.format("ERROR: '%s' is not being followed", unfollowObj);
+          try(final Connection connection = user.getSource()){
+            if(isUser && findUser(interestObj, context) != null){ 
+              final UserContext userInterest = findUser(interestObj, context);
+              Serializers.INTEGER.write(connection.out(),
+                  NetworkCode.REMOVE_INTEREST_REQUEST);
+              Uuid.SERIALIZER.write(connection.out(), user.user.id);
+              Uuid.SERIALIZER.write(connection.out(), userInterest.user.id);
+              Type.SERIALIZER.write(connection.out(), Type.USER); 
+           
+            }else if(!isUser && find(interestObj, user) != null){ 
+              final ConversationContext convoInterest = find(interestObj, user);
+              Serializers.INTEGER.write(connection.out(),
+                  NetworkCode.REMOVE_INTEREST_REQUEST);
+              Uuid.SERIALIZER.write(connection.out(), user.user.id);
+              Uuid.SERIALIZER.write(connection.out(),
+                  convoInterest.conversation.id);
+              Type.SERIALIZER.write(connection.out(), Type.CONVERSATION);
+
+            }else{
+              System.out.format("ERROR: '%s' is not being followed", interestObj);
+            } 
           }
+
         }else{
           System.out.println("ERROR: Wrong format");
         }
@@ -440,15 +446,38 @@ public final class Chat {
     // Adds a command that will report the status updates of the followed users
     // and conversations
     //
-    panel.register("i-status", new Panel.Command(){
+    panel.register("status-update", new Panel.Command(){
       @Override
       public void invoke(Scanner args){
-        try(final Connection connection = source.connect()){
-          Serializers.INTEGER.read(connection.in(),
-              NetworkCode.INTEREST_STATUS_REQUEST);
-          ArrayList<String> system = Serializers.collection.SERIALIZER.read(connection.in());
-          for(String s: status){
-            System.out.println(s);
+
+        try(final Connection connection = user.getSource()){
+          Serializers.INTEGER.read(connection.in());
+          List<InterestStatus> allInterests = 
+              Serializers.collection(InterestStatus.SERIALIZER).read(connection.in());
+          System.out.println("STATUS UPDATE");
+          System.out.println("===============");
+
+          for(InterestStatus interest : allInterests){
+
+            if(interest.type == Type.CONVERSATION){
+              System.out.format("Number of unread messages: '%d'",
+                  interest.unreadMessages);
+              System.out.println("===============");
+
+            }else{
+              System.out.format("Number of new conversations: '%d'",
+                  interest.newConversations.size());
+              for(int j = 0; j < interest.newConversations.size(); j++){
+                System.out.println(" " + interest.newConversations.get(j));
+              }
+              System.out.println(" - - - - - - - -");
+              System.out.format("Number of recent conversations: '%d'",
+                  interest.addedConversations.size());
+              for(int k = 0; k < interest.addedConversations.size(); k++){  
+                System.out.println(" " + interest.addedConversations.get(k));
+              }
+              System.out.println("===============");
+            }
           }
         }
         // Loops through interest system and prints out information

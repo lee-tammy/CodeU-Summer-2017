@@ -47,4 +47,8 @@ public final class Context {
     }
     return users;
   }
+  
+  public View getView(){
+    return (View)view;
+  }
 }

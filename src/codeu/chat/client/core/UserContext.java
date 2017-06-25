@@ -22,6 +22,7 @@ import codeu.chat.common.BasicView;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.User;
 import codeu.chat.util.Uuid;
+import codeu.chat.util.connections.Connection;
 
 public final class UserContext {
 
@@ -35,6 +36,10 @@ public final class UserContext {
     this.controller = controller;
   }
 
+  public Connection getSource(){
+    return Controller(controller).source.connect();
+  }
+  
   public ConversationContext start(String name) {
     final ConversationHeader conversation = controller.newConversation(name, user.id);
     return conversation == null ?

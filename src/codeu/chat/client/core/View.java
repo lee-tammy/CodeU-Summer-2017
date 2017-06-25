@@ -45,6 +45,10 @@ final class View implements BasicView {
     this.source = source;
   }
 
+  public ConnectionSource getSource(){
+    return source;
+  }
+
   @Override
   public Collection<User> getUsers() {
 
