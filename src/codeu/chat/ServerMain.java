@@ -98,7 +98,7 @@ final class ServerMain {
     Server server;
 	
 
-	server = new Server(id, secret, relay);
+    server = new Server(id, secret, relay);
 
 
     LOG.info("Created server.");
