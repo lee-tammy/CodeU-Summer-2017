@@ -40,6 +40,10 @@ public final class UserContext {
     return controller.source.connect();
   }
   
+  public Controller getController(){
+    return controller;
+  }
+  
   public ConversationContext start(String name) {
     final ConversationHeader conversation = controller.newConversation(name, user.id);
     return conversation == null ?

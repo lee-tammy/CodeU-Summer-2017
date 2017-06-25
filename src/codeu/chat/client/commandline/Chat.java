@@ -342,41 +342,13 @@ public final class Chat {
             return;
           }
   
-          // Determines if the username or conversation name exists 
+          // Determines if the username or conversation name exists
           final String interestObj = args.nextLine().toLowerCase().trim();
-
-          try(final Connection connection = user.getSource()){
-            if(isUser && findUser(interestObj, context) != null){ 
-              final UserContext userInterest = findUser(interestObj, context);
-
-              Serializers.INTEGER.write(connection.out(),
-              NetworkCode.NEW_INTEREST_REQUEST);
-              if(Serializers.INTEGER.read(connection.in()) ==
-                  NetworkCode.NEW_INTEREST_RESPONSE){
-                Uuid.SERIALIZER.write(connection.out(), user.user.id);
-                Uuid.SERIALIZER.write(connection.out(), userInterest.user.id);
-                Type.SERIALIZER.write(connection.out(), Type.USER);
-              }
-           
-            }else if(!isUser && find(interestObj, user) != null){
-              final ConversationContext convoInterest = find(interestObj, user);
-       
-              Serializers.INTEGER.write(connection.out(),
-                  NetworkCode.NEW_INTEREST_REQUEST);
-              if(Serializers.INTEGER.read(connection.in()) ==
-                  NetworkCode.NEW_INTEREST_RESPONSE){
-
-                Uuid.SERIALIZER.write(connection.out(), user.user.id);
-                Uuid.SERIALIZER.write(connection.out(),
-                    convoInterest.conversation.id);  
-                Type.SERIALIZER.write(connection.out(), Type.CONVERSATION);          
-              } 
-            }else{
-              System.out.format("ERROR: '%s' does not exist", interestObj);
-            }
-        
-          }
-          
+          final UserContext userInterest = findUser(interestObj, context);
+          final ConversationContext convoInterest = find(interestObj, user);
+          user.getController().newInterest(user, context, isUser, interestObj,
+              userInterest, convoInterest);
+                  
         }else{
           System.out.println("ERROR: Wrong format");
         }
@@ -412,28 +384,10 @@ public final class Chat {
           }
 
           final String interestObj = args.nextLine().toLowerCase().trim();
-          try(final Connection connection = user.getSource()){
-            if(isUser && findUser(interestObj, context) != null){ 
-              final UserContext userInterest = findUser(interestObj, context);
-              Serializers.INTEGER.write(connection.out(),
-                  NetworkCode.REMOVE_INTEREST_REQUEST);
-              Uuid.SERIALIZER.write(connection.out(), user.user.id);
-              Uuid.SERIALIZER.write(connection.out(), userInterest.user.id);
-              Type.SERIALIZER.write(connection.out(), Type.USER); 
-           
-            }else if(!isUser && find(interestObj, user) != null){ 
-              final ConversationContext convoInterest = find(interestObj, user);
-              Serializers.INTEGER.write(connection.out(),
-                  NetworkCode.REMOVE_INTEREST_REQUEST);
-              Uuid.SERIALIZER.write(connection.out(), user.user.id);
-              Uuid.SERIALIZER.write(connection.out(),
-                  convoInterest.conversation.id);
-              Type.SERIALIZER.write(connection.out(), Type.CONVERSATION);
-
-            }else{
-              System.out.format("ERROR: '%s' is not being followed", interestObj);
-            } 
-          }
+          final UserContext userInterest = findUser(interestObj, context);
+          final ConversationContext convoInterest = find(interestObj, user);
+          user.getController().removeInterest(user, isUser, interestObj,
+              userInterest, convoInterest);
 
         }else{
           System.out.println("ERROR: Wrong format");
@@ -450,43 +404,36 @@ public final class Chat {
       @Override
       public void invoke(Scanner args){
 
-        try(final Connection connection = user.getSource()){
+        ArrayList<InterestStatus> allInterests = user.getController().statusUpdate();
+        if(allInterests != null && allInterests.size() >= 1){
+          System.out.println("STATUS UPDATE");
+          System.out.println("===============");
 
-          if(Serializers.INTEGER.read(connection.in()) ==
-              NetworkCode.INTEREST_STATUS_RESPONSE){
-          
-            List<InterestStatus> allInterests = 
-                Serializers.collection(InterestStatus.SERIALIZER).read(connection.in());
+          for(InterestStatus interest : allInterests){
 
-            System.out.println("STATUS UPDATE");
-            System.out.println("===============");
+            if(interest.type == Type.CONVERSATION){
+              System.out.format("Number of unread messages: '%d'",
+                  interest.unreadMessages);
+              System.out.println("===============");
 
-            for(InterestStatus interest : allInterests){
-
-              if(interest.type == Type.CONVERSATION){
-                System.out.format("Number of unread messages: '%d'",
-                    interest.unreadMessages);
-                System.out.println("===============");
-
-              }else{
-                System.out.format("Number of new conversations: '%d'",
-                    interest.newConversations.size());
-                for(int j = 0; j < interest.newConversations.size(); j++){
-                  System.out.println(" " + interest.newConversations.get(j));
-                }
-                System.out.println(" - - - - - - - -");
-                System.out.format("Number of recent conversations: '%d'",
-                    interest.addedConversations.size());
-                for(int k = 0; k < interest.addedConversations.size(); k++){  
-                  System.out.println(" " + interest.addedConversations.get(k));
-                }
-                System.out.println("===============");
+            }else{
+              System.out.format("Number of new conversations: '%d'",
+                  interest.newConversations.size());
+              for(int j = 0; j < interest.newConversations.size(); j++){
+                System.out.println(" " + interest.newConversations.get(j));
               }
+              System.out.println(" - - - - - - - -");
+              System.out.format("Number of recent conversations: '%d'",
+                  interest.addedConversations.size());
+              for(int k = 0; k < interest.addedConversations.size(); k++){  
+                System.out.println(" " + interest.addedConversations.get(k));
+              }
+              System.out.println("===============");
             }
           }
         }
-        // Loops through interest system and prints out information
       }
+        // Loops through interest system and prints out information
     });
 
     // INFO

@@ -17,12 +17,16 @@ package codeu.chat.client.core;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.Thread;
+import java.util.*;
 
 import codeu.chat.common.BasicController;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
 import codeu.chat.common.User;
+import codeu.chat.common.Type;
+import codeu.chat.common.InterestStatus;
+
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.Uuid;
@@ -112,4 +116,75 @@ public final class Controller implements BasicController {
 
     return response;
   }
+
+  public void newInterest(UserContext user, Context context, boolean isUser,
+      String interestObj, UserContext userInterest, ConversationContext
+      convoInterest){
+    try(final Connection connection = user.getSource()){
+      if(isUser && userInterest != null){ 
+        Serializers.INTEGER.write(connection.out(),
+        NetworkCode.NEW_INTEREST_REQUEST);
+        if(Serializers.INTEGER.read(connection.in()) ==
+            NetworkCode.NEW_INTEREST_RESPONSE){
+          Uuid.SERIALIZER.write(connection.out(), user.user.id);
+          Uuid.SERIALIZER.write(connection.out(), userInterest.user.id);
+          Type.SERIALIZER.write(connection.out(), Type.USER);
+        }
+           
+      }else if(!isUser && convoInterest != null){       
+        Serializers.INTEGER.write(connection.out(),
+        NetworkCode.NEW_INTEREST_REQUEST);
+        if(Serializers.INTEGER.read(connection.in()) ==
+            NetworkCode.NEW_INTEREST_RESPONSE){
+
+          Uuid.SERIALIZER.write(connection.out(), user.user.id);
+          Uuid.SERIALIZER.write(connection.out(),
+              convoInterest.conversation.id);  
+            Type.SERIALIZER.write(connection.out(), Type.CONVERSATION);          
+        } 
+      }else{
+        System.out.format("ERROR: '%s' does not exist", interestObj);
+      }
+        
+    }
+  }
+
+  public void removeInterest(UserContext user, boolean isUser, String
+      interestObj, UserContext userInterest, ConversationContext convoInterest){
+    try(final Connection connection = user.getSource()){
+
+      if(isUser && userInterest != null){ 
+        Serializers.INTEGER.write(connection.out(),
+            NetworkCode.REMOVE_INTEREST_REQUEST);
+        Uuid.SERIALIZER.write(connection.out(), user.user.id);
+        Uuid.SERIALIZER.write(connection.out(), userInterest.user.id);
+        Type.SERIALIZER.write(connection.out(), Type.USER); 
+           
+      }else if(!isUser && convoInterest != null){ 
+        Serializers.INTEGER.write(connection.out(),
+            NetworkCode.REMOVE_INTEREST_REQUEST);
+        Uuid.SERIALIZER.write(connection.out(), user.user.id);
+        Uuid.SERIALIZER.write(connection.out(),
+            convoInterest.conversation.id);
+        Type.SERIALIZER.write(connection.out(), Type.CONVERSATION);
+      }else{
+        System.out.format("ERROR: '%s' is not being followed", interestObj);
+      }
+    } 
+     
+  }
+
+  public ArrayList<InterestStatus> statusUpdate(){
+    try(final Connection connection = user.getSource()){
+      if(Serializers.INTEGER.read(connection.in()) ==
+          NetworkCode.INTEREST_STATUS_RESPONSE){
+          
+        ArrayList<InterestStatus> allInterests = 
+            Serializers.collection(InterestStatus.SERIALIZER).read(connection.in());
+        return allInterests;
+      }
+    }  
+    return null;
+  }
+
 }
