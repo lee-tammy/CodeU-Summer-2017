@@ -18,6 +18,15 @@ public class TokenizerTest {
     assertEquals(tokenizer.next(), null);
   }
 
+  /**
+   * Test with empty string
+   */
+  @Test
+  public void testWithEmptyString() throws IOException {
+    final Tokenizer tokenizer = new Tokenizer("");
+    assertEquals(tokenizer.next(), null);
+  }
+  
   /* 
    * Test with Quotes in input
    */

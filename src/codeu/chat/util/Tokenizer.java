@@ -41,6 +41,11 @@ public final class Tokenizer {
    * @return The next String token that was seperated by space
    */
   public String next() {
+    // check for null
+    if (source == null) {
+      return null;
+    }
+
     try {
       // Skip all leading whitespace
       while (remaining() > 0 && Character.isWhitespace(peek())) {
