@@ -14,10 +14,6 @@
 
 package codeu.chat.common;
 
-import codeu.chat.common.Type;
-import codeu.chat.common.Interest;
-
-import java.util.HashSet;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -42,11 +38,9 @@ public final class User {
     @Override
     public User read(InputStream in) throws IOException {
 
-      return new User(
-          Uuid.SERIALIZER.read(in),
-          Serializers.STRING.read(in),
-          Time.SERIALIZER.read(in)
-      );
+      return new User(Uuid.SERIALIZER.read(in),
+                      Serializers.STRING.read(in),
+                      Time.SERIALIZER.read(in));
 
     }
   };

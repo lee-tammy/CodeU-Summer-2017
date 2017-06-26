@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 package codeu.chat.server;
 
 import java.io.IOException;
@@ -45,7 +44,7 @@ public final class Server {
 
   private static final Logger.Log LOG = Logger.newLog(Server.class);
 
-  private static final int RELAY_REFRESH_MS = 5000;  // 5 seconds
+  private static final int RELAY_REFRESH_MS = 5000; // 5 seconds
 
   private final Timeline timeline = new Timeline();
 
@@ -82,15 +81,12 @@ public final class Server {
         Serializers.INTEGER.write(out, NetworkCode.NEW_MESSAGE_RESPONSE);
         Serializers.nullable(Message.SERIALIZER).write(out, message);
 
-        timeline.scheduleNow(createSendToRelayEvent(
-            author,
-            conversation,
-            message.id));
+        timeline.scheduleNow(createSendToRelayEvent(author, conversation, message.id));
       }
     });
 
     // New User - A client wants to add a new user to the back end.
-    this.commands.put(NetworkCode.NEW_USER_REQUEST,  new Command() {
+    this.commands.put(NetworkCode.NEW_USER_REQUEST, new Command() {
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
 
@@ -102,8 +98,9 @@ public final class Server {
       }
     });
 
-    // New Conversation - A client wants to add a new conversation to the back end.
-    this.commands.put(NetworkCode.NEW_CONVERSATION_REQUEST,  new Command() {
+    // New Conversation - A client wants to add a new conversation to the back
+    // end.
+    this.commands.put(NetworkCode.NEW_CONVERSATION_REQUEST, new Command() {
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
 
@@ -128,7 +125,8 @@ public final class Server {
       }
     });
 
-    // Get Conversations - A client wants to get all the conversations from the back end.
+    // Get Conversations - A client wants to get all the conversations from the
+    // back end.
     this.commands.put(NetworkCode.GET_ALL_CONVERSATIONS_REQUEST, new Command() {
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
@@ -140,10 +138,11 @@ public final class Server {
       }
     });
 
-    // Get Conversations By Id - A client wants to get a subset of the converations from
-    //                           the back end. Normally this will be done after calling
-    //                           Get Conversations to get all the headers and now the client
-    //                           wants to get a subset of the payloads.
+    // Get Conversations By Id - A client wants to get a subset of the
+    // converations from
+    // the back end. Normally this will be done after calling
+    // Get Conversations to get all the headers and now the client
+    // wants to get a subset of the payloads.
     this.commands.put(NetworkCode.GET_CONVERSATIONS_BY_ID_REQUEST, new Command() {
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
@@ -155,30 +154,31 @@ public final class Server {
         Serializers.collection(ConversationPayload.SERIALIZER).write(out, conversations);
       }
     });
-    
+
     this.commands.put(NetworkCode.GET_USER_BY_ID_REQUEST, new Command() {
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
-        
-        final Uuid userId = Uuid.SERIALIZER.read(in); 
-         
+
+        final Uuid userId = Uuid.SERIALIZER.read(in);
+
         Serializers.INTEGER.write(out, NetworkCode.GET_USER_BY_ID_RESPONSE);
         User.SERIALIZER.write(out, controller.userById(userId));
       }
     });
 
-     this.commands.put(NetworkCode.GET_CONVERSATION_HEADER_BY_ID_REQUEST, new Command() {
+    this.commands.put(NetworkCode.GET_CONVERSATION_HEADER_BY_ID_REQUEST, new Command() {
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
-        
-        final Uuid id = Uuid.SERIALIZER.read(in); 
-         
+
+        final Uuid id = Uuid.SERIALIZER.read(in);
+
         Serializers.INTEGER.write(out, NetworkCode.GET_USER_BY_ID_RESPONSE);
         ConversationHeader.SERIALIZER.write(out, controller.conversationHeaderById(id));
       }
     });
-   
-    // Get Messages By Id - A client wants to get a subset of the messages from the back end.
+
+    // Get Messages By Id - A client wants to get a subset of the messages from
+    // the back end.
     this.commands.put(NetworkCode.GET_MESSAGES_BY_ID_REQUEST, new Command() {
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
@@ -216,7 +216,8 @@ public final class Server {
       public void onMessage(InputStream in, OutputStream out) throws IOException {
         final Uuid userId = Uuid.SERIALIZER.read(in);
         Serializers.INTEGER.write(out, NetworkCode.INTEREST_STATUS_RESPONSE);
-        Serializers.collection(InterestStatus.SERIALIZER).write(out, controller.interestStatus(userId));
+        Serializers.collection(InterestStatus.SERIALIZER).write(out,
+                                                                controller.interestStatus(userId));
       }
     });
 
@@ -294,9 +295,9 @@ public final class Server {
 
     if (conversation == null) {
 
-      // As the relay does not tell us who made the conversation - the first person who
-      // has a message in the conversation will get ownership over this server's copy
-      // of the conversation.
+      // As the relay does not tell us who made the conversation - the first
+      // person who has a message in the conversation will get ownership over
+      // this server's copy of the conversation.
       conversation = controller.newConversation(relayConversation.id(),
                                                 relayConversation.text(),
                                                 user.id,

@@ -14,29 +14,19 @@
 
 package codeu.chat.client.commandline;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Stack;
-import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Scanner;
+import java.util.Stack;
 
 import codeu.chat.client.core.Context;
 import codeu.chat.client.core.ConversationContext;
 import codeu.chat.client.core.MessageContext;
 import codeu.chat.client.core.UserContext;
-import codeu.chat.client.core.Controller;
-
-import codeu.chat.util.Serializer;
-import codeu.chat.util.Serializers;
-import codeu.chat.util.Uuid;
-
-import codeu.chat.common.Type;
-import codeu.chat.common.NetworkCode;
 import codeu.chat.common.InterestStatus;
-
-import codeu.chat.util.connections.Connection;
+import codeu.chat.common.Type;
+import codeu.chat.util.Uuid;
 
 public final class Chat {
 
@@ -101,8 +91,10 @@ public final class Chat {
   // the first panel and the only panel that should always be at the bottom of
   // the panels stack.
   //
-  // The root panel is for commands that require no specific contextual information.
-  // This is before a user has signed in. Most commands handled by the root panel
+  // The root panel is for commands that require no specific contextual
+  // information.
+  // This is before a user has signed in. Most commands handled by the root
+  // panel
   // will be user selection focused.
   //
   private Panel createRootPanel(final Context context) {
@@ -138,10 +130,7 @@ public final class Chat {
       @Override
       public void invoke(Scanner args) {
         for (final UserContext user : context.allUsers()) {
-          System.out.format(
-              "USER %s (UUID:%s)\n",
-              user.user.name,
-              user.user.id);
+          System.out.format("USER %s (UUID:%s)\n", user.user.name, user.user.id);
         }
       }
     });
@@ -188,10 +177,9 @@ public final class Chat {
 
       // Find the first user with the given name and return a user context
       // for that user. If no user is found, the function will return null.
-      
+
     });
 
-   
     // Now that the panel has all its commands registered, return the panel
     // so that it can be used.
     return panel;
@@ -199,20 +187,22 @@ public final class Chat {
 
   private UserContext findUser(String name, Context context) {
     for (final UserContext user : context.allUsers()) {
-      if (user.user.name.equals(name)){
+      if (user.user.name.equals(name)) {
         return user;
       }
     }
     return null;
-  } 
+  }
+
   private ConversationContext find(String title, UserContext user) {
-    for(final ConversationContext conversation : user.conversations()) {
-      if(title.equals(conversation.conversation.title)) {
+    for (final ConversationContext conversation : user.conversations()) {
+      if (title.equals(conversation.conversation.title)) {
         return conversation;
       }
     }
     return null;
   }
+
   private Panel createUserPanel(final UserContext user) {
 
     final Panel panel = new Panel();
@@ -229,13 +219,14 @@ public final class Chat {
         System.out.println("  c-list");
         System.out.println("    List all conversations that the current user can interact with.");
         System.out.println("  c-add <title>");
-        System.out.println("    Add a new conversation with the given title and join it as the current user.");
+        System.out
+            .println("    Add a new conversation with the given title and join it as the current user.");
         System.out.println("  c-join <title>");
         System.out.println("    Join the conversation as the current user.");
         System.out.println("  i-add <u for user or c for conversation> <username or title>.");
         System.out.println("    Get updates on conversations and users.");
-        System.out.println("  i-remove <u for user or c for conversation>" + 
-            " <username or title>.");
+        System.out
+            .println("  i-remove <u for user or c for conversation>" + " <username or title>.");
         System.out.println("    Remove interest");
         System.out.println("  status-update");
         System.out.println("    Get status of interests");
@@ -257,10 +248,9 @@ public final class Chat {
       @Override
       public void invoke(Scanner args) {
         for (final ConversationContext conversation : user.conversations()) {
-          System.out.format(
-              "CONVERSATION %s (UUID:%s)\n",
-              conversation.conversation.title,
-              conversation.conversation.id);
+          System.out.format("CONVERSATION %s (UUID:%s)\n",
+                            conversation.conversation.title,
+                            conversation.conversation.id);
         }
       }
     });
@@ -312,13 +302,13 @@ public final class Chat {
     // Adds a command that will allow the user to follow users and conversations
     // in order to get updates
     //
-    panel.register("i-add", new Panel.Command(){
+    panel.register("i-add", new Panel.Command() {
       @Override
-      public void invoke(Scanner args){
+      public void invoke(Scanner args) {
         Type type = Type.USER;
-        ArrayList<String> arguments = new ArrayList<>();
-  
-        while(args.hasNextLine()){
+        List<String> arguments = new ArrayList<>();
+
+        while (args.hasNextLine()) {
           arguments.add(args.next().toLowerCase().trim());
         }
 
@@ -328,15 +318,15 @@ public final class Chat {
           final Uuid userId = user.user.id;         
           final ConversationContext convoInterest = find(arguments.get(1), user);
 
-          if(arguments.get(0).equals("u")){
+          if (arguments.get(0).equals("u")) {
             type = Type.USER;
-            if(userInterest != null){
+            if (userInterest != null) {
               user.getController().newInterest(userId, userInterest.user.id, type);
             }else{
               System.out.format("ERROR: '%s' does not exist", arguments.get(1));
             }
-          }else if(arguments.get(0).equals("c")){
-            if(convoInterest != null){
+          } else if (arguments.get(0).equals("c")) {
+            if (convoInterest != null) {
               type = Type.CONVERSATION;
               user.getController().newInterest(userId,
                   convoInterest.conversation.id, type);  
@@ -344,39 +334,39 @@ public final class Chat {
               System.out.format("ERROR: '%s' does not exist", arguments.get(1));
             }
 
-          }else{
+          } else {
             System.out.println("ERROR: Wrong format");
             return;
           }
-                  
-        }else{
+
+        } else {
           System.out.println("ERROR: Wrong format");
         }
-      } 
+      }
     });
 
     // C-UNFOLLOW (unfollows an interest)
-    // 
-    // Adds a command that will allow the user to unfollow users and
-    // conversations to stop getting updates 
     //
-    panel.register("i-remove", new Panel.Command(){
+    // Adds a command that will allow the user to unfollow users and
+    // conversations to stop getting updates
+    //
+    panel.register("i-remove", new Panel.Command() {
       @Override
-      public void invoke(Scanner args){
+      public void invoke(Scanner args) {
 
         ArrayList<String> arguments = new ArrayList<String>();
-        while(args.hasNextLine()){
+        while (args.hasNextLine()) {
           arguments.add(args.next().toLowerCase().trim());
         }
 
-        if(arguments.size() == 2){
- 
+        if (arguments.size() == 2) {
+
           final UserContext userInterest = findUser(arguments.get(1), context);
           final ConversationContext convoInterest = find(arguments.get(1), user);
           final Uuid userId = user.user.id;
 
-          if(arguments.get(0).equals("u")){
-            if(userInterest != null){
+          if (arguments.get(0).equals("u")) {
+            if (userInterest != null) {
               user.getController().removeInterest(userId, userInterest.user.id);
             }else{
               System.out.format("ERROR: '%s' does not exist", arguments.get(1));
@@ -389,12 +379,12 @@ public final class Chat {
             }else{
               System.out.format("ERROR: '%s' does not exist", arguments.get(1));
             }
-          }else{
+          } else {
             System.out.println("ERROR: Wrong format");
             return;
-          } 
+          }
 
-        }else{
+        } else {
           System.out.println("ERROR: Wrong format");
         }
       }
@@ -405,31 +395,33 @@ public final class Chat {
     // Adds a command that will report the status updates of the followed users
     // and conversations
     //
-    panel.register("status-update", new Panel.Command(){
+    panel.register("status-update", new Panel.Command() {
       @Override
-      public void invoke(Scanner args){
+      public void invoke(Scanner args) {
 
-        Collection<InterestStatus> allInterests = 
-            user.getController().statusUpdate(user);
-        if(allInterests != null && allInterests.size() >= 1){
+        Collection<InterestStatus> allInterests = user.getController().statusUpdate(user);
+        if (allInterests != null && !allInterests.isEmpty()) {
           System.out.println("STATUS UPDATE");
           System.out.println("===============");
 
-          for(InterestStatus interest : allInterests){
+          for (InterestStatus interest : allInterests) {
 
-            if(interest.type == Type.CONVERSATION){
-              System.out.format("Number of unread messages in conversation %s: '%d'\n", 
-                  interest.name, interest.unreadMessages);
+            if (interest.type == Type.CONVERSATION) {
+              System.out.format("Number of unread messages in conversation %s: '%d'\n",
+                                interest.name,
+                                interest.unreadMessages);
 
-            }else{
+            } else {
               System.out.format("Number of new conversations by user %s: '%d'\n",
-                  interest.name, interest.newConversations.size());
-              for(int j = 0; j < interest.newConversations.size(); j++){
+                                interest.name,
+                                interest.newConversations.size());
+              for (int j = 0; j < interest.newConversations.size(); j++) {
                 System.out.println(" " + interest.newConversations.get(j));
               }
               System.out.format("Number of conversations the user %s contributed to: '%d'\n",
-                  interest.name, interest.addedConversations.size());
-              for(int k = 0; k < interest.addedConversations.size(); k++){  
+                                interest.name,
+                                interest.addedConversations.size());
+              for (int k = 0; k < interest.addedConversations.size(); k++) {
                 System.out.println(" " + interest.addedConversations.get(k));
               }
             }
@@ -474,7 +466,8 @@ public final class Chat {
         System.out.println("  m-list");
         System.out.println("    List all messages in the current conversation.");
         System.out.println("  m-add <message>");
-        System.out.println("    Add a new message to the current conversation as the current user.");
+        System.out
+            .println("    Add a new message to the current conversation as the current user.");
         System.out.println("  info");
         System.out.println("    Display all info about the current conversation.");
         System.out.println("  back");
@@ -493,9 +486,8 @@ public final class Chat {
       @Override
       public void invoke(Scanner args) {
         System.out.println("--- start of conversation ---");
-        for (MessageContext message = conversation.firstMessage();
-                            message != null;
-                            message = message.next()) {
+        for (MessageContext message = conversation
+            .firstMessage(); message != null; message = message.next()) {
           System.out.println();
           System.out.format("USER : %s\n", message.message.author);
           System.out.format("SENT : %s\n", message.message.creation);

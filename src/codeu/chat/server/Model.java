@@ -38,11 +38,17 @@ public final class Model {
     @Override
     public int compare(Uuid a, Uuid b) {
 
-      if (a == b) { return 0; }
+      if (a == b) {
+        return 0;
+      }
 
-      if (a == null && b != null) { return -1; }
+      if (a == null && b != null) {
+        return -1;
+      }
 
-      if (a != null && b == null) { return 1; }
+      if (a != null && b == null) {
+        return 1;
+      }
 
       final int order = Integer.compare(a.id(), b.id());
       return order == 0 ? compare(a.root(), b.root()) : order;
@@ -139,10 +145,12 @@ public final class Model {
     return messageByText;
   }
 
-  public Interest addInterest(Uuid id, Uuid userId, Uuid interestId, Type interestType,
-      Time creationTime) {
-    Interest newInterest = new Interest(id, interestId, interestType,
-        creationTime);
+  public Interest addInterest(Uuid id,
+                              Uuid userId,
+                              Uuid interestId,
+                              Type interestType,
+                              Time creationTime) {
+    Interest newInterest = new Interest(id, interestId, interestType, creationTime);
     if (interests.get(userId) == null) {
       interests.put(userId, new ArrayList<Uuid>());
     }

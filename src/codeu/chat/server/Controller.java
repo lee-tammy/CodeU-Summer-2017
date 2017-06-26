@@ -46,7 +46,7 @@ public final class Controller implements RawController, BasicController {
   public User userById(Uuid id) {
     return model.userById().first(id);
   }
-  
+
   @Override
   public Message newMessage(Uuid author, Uuid conversation, String body) {
     return newMessage(createId(), author, conversation, body, Time.now());
@@ -63,16 +63,27 @@ public final class Controller implements RawController, BasicController {
   }
 
   @Override
-  public Message newMessage(Uuid id, Uuid author, Uuid conversation, String body, Time creationTime) {
+  public Message newMessage(Uuid id,
+                            Uuid author,
+                            Uuid conversation,
+                            String body,
+                            Time creationTime) {
 
     final User foundUser = model.userById().first(author);
-    final ConversationPayload foundConversation = model.conversationPayloadById().first(conversation);
+    final ConversationPayload foundConversation = model.conversationPayloadById()
+        .first(conversation);
 
     Message message = null;
 
     if (foundUser != null && foundConversation != null && isIdFree(id)) {
 
-      message = new Message(id, Uuid.NULL, foundConversation.lastMessage, creationTime, author, body, conversation);
+      message = new Message(id,
+                            Uuid.NULL,
+                            foundConversation.lastMessage,
+                            creationTime,
+                            author,
+                            body,
+                            conversation);
       model.add(message);
       LOG.info("Message added: %s", message.id);
 
@@ -81,8 +92,10 @@ public final class Controller implements RawController, BasicController {
 
       if (Uuid.equals(foundConversation.lastMessage, Uuid.NULL)) {
 
-        // The conversation has no messages in it, that's why the last message is NULL (the first
-        // message should be NULL too. Since there is no last message, then it is not possible
+        // The conversation has no messages in it, that's why the last message
+        // is NULL (the first
+        // message should be NULL too. Since there is no last message, then it
+        // is not possible
         // to update the last message's "next" value.
         foundConversation.firstMessage = message.id;
         foundConversation.lastMessage = message.id;
@@ -92,11 +105,14 @@ public final class Controller implements RawController, BasicController {
         lastMessage.next = message.id;
       }
 
-      // If the first message points to NULL it means that the conversation was empty and that
-      // the first message should be set to the new message. Otherwise the message should
+      // If the first message points to NULL it means that the conversation was
+      // empty and that
+      // the first message should be set to the new message. Otherwise the
+      // message should
       // not change.
 
-      // Update the conversation to point to the new last message as it has changed.
+      // Update the conversation to point to the new last message as it has
+      // changed.
 
       foundConversation.lastMessage = message.id;
     }
@@ -114,19 +130,14 @@ public final class Controller implements RawController, BasicController {
       user = new User(id, name, creationTime);
       model.add(user);
 
-      LOG.info(
-          "newUser success (user.id=%s user.name=%s user.time=%s)",
-          id,
-          name,
-          creationTime);
+      LOG.info("newUser success (user.id=%s user.name=%s user.time=%s)", id, name, creationTime);
 
     } else {
 
-      LOG.info(
-          "newUser fail - id in use (user.id=%s user.name=%s user.time=%s)",
-          id,
-          name,
-          creationTime);
+      LOG.info("newUser fail - id in use (user.id=%s user.name=%s user.time=%s)",
+               id,
+               name,
+               creationTime);
     }
 
     return user;
@@ -152,8 +163,11 @@ public final class Controller implements RawController, BasicController {
     return addInterest(userId, userId, interestId, interestType, Time.now());
   }
 
-  public Interest addInterest(Uuid id, Uuid userId, Uuid interestId,
-      Type interestType, Time creationTime) {
+  public Interest addInterest(Uuid id,
+                              Uuid userId,
+                              Uuid interestId,
+                              Type interestType,
+                              Time creationTime) {
     return model.addInterest(id, userId, interestId, interestType, creationTime);
   }
 
@@ -161,57 +175,62 @@ public final class Controller implements RawController, BasicController {
     model.removeInterest(userId, interestId);
   }
 
-  // TODO(Adam): Create and send an ArrayList of InterestStatus objects instead of an array
+  // TODO(Adam): Create and send an ArrayList of InterestStatus objects instead
+  // of an array
   // list of strings. Allow the client to figure out how to sort through the
   // data.
-  public ArrayList<InterestStatus> interestStatus(Uuid user) {
-    ArrayList<Uuid> userInterests = model.interests.get(user);
-    ArrayList<InterestStatus> result = new ArrayList<>();
+  public List<InterestStatus> interestStatus(Uuid user) {
+    List<Uuid> userInterests = model.interests.get(user);
+    List<InterestStatus> result = new ArrayList<>();
     Time now = Time.now();
-    if (userInterests == null) return result;
+    if (userInterests == null)
+      return result;
     for (Uuid interestId : userInterests) {
       InterestStatus report = processInterest(interestId, now);
-      if (report == null) continue;
+      if (report == null)
+        continue;
       result.add(report);
     }
     return result;
   }
 
-  /* Syntax guide: 
+  /*
+   * Syntax guide:
    *
-   * if type is User:
-   *   U <name>: C <header title> --> for conversations created by the user
-   *   U <name>: A <header title> --> for messages added to conversation by the
-   *   user.
-   * if type is Conversation
-   *   C <name>: <number of new messages>
+   * if type is User: U <name>: C <header title> --> for conversations created
+   * by the user U <name>: A <header title> --> for messages added to
+   * conversation by the user. if type is Conversation C <name>: <number of new
+   * messages>
    */
   private InterestStatus processInterest(Uuid id, Time now) {
     Interest interest = model.interestById().first(id);
-    if (interest == null) return null;
+    if (interest == null)
+      return null;
     Time lastUpdate = interest.lastUpdate;
     InterestStatus result = null;
     if (interest.type == Type.USER) {
       User user = model.userById().first(id);
       // Return all values with time higher than last Update
-      Iterable<ConversationHeader> headers = model.conversationByTime().
-        after(lastUpdate);
+      Iterable<ConversationHeader> headers = model.conversationByTime().after(lastUpdate);
       List<String> createdConversations = new ArrayList<>();
       for (ConversationHeader header : headers) {
-        if (!header.owner.equals(user.id)) continue;
-        createdConversations.add(header.title);
+        if (header.owner.equals(user.id)) {
+          createdConversations.add(header.title);
+        }
       }
 
       // Return all values with time higher than last Update
       Iterable<Message> messages = model.messageByTime().after(lastUpdate);
       List<String> addedConversations = new ArrayList<>();
       for (Message message : messages) {
-        if (!message.author.equals(user.id)) continue;
-        String conversation = model.conversationById().first(message.conversationHeader).title;
-        if (addedConversations.contains(conversation)) continue;
-        addedConversations.add(conversation);
+        if (message.author.equals(user.id)) {
+          String conversation = model.conversationById().first(message.conversationHeader).title;
+          if (!addedConversations.contains(conversation)) {
+            addedConversations.add(conversation);
+          }
+        }
       }
-      
+
       result = new InterestStatus(id, createdConversations, addedConversations, user.name);
     } else if (interest.type == Type.CONVERSATION) {
       ConversationPayload payload = model.conversationPayloadById().first(id);
@@ -232,26 +251,25 @@ public final class Controller implements RawController, BasicController {
 
     Uuid candidate;
 
-    for (candidate = uuidGenerator.make();
-        isIdInUse(candidate);
-        candidate = uuidGenerator.make()) {
+    for (candidate = uuidGenerator.make(); isIdInUse(candidate); candidate = uuidGenerator.make()) {
 
       // Assuming that "randomUuid" is actually well implemented, this
       // loop should never be needed, but just incase make sure that the
       // Uuid is not actually in use before returning it.
 
-        }
+    }
 
     return candidate;
   }
 
   private boolean isIdInUse(Uuid id) {
-    return model.messageById().first(id) != null ||
-      model.conversationById().first(id) != null ||
-      model.userById().first(id) != null;
+    return model.messageById().first(id) != null || model.conversationById().first(id) != null
+        || model.userById().first(id) != null;
   }
 
-  private boolean isIdFree(Uuid id) { return !isIdInUse(id); }
+  private boolean isIdFree(Uuid id) {
+    return !isIdInUse(id);
+  }
 
   public ConversationHeader conversationHeaderById(Uuid id) {
     return model.conversationById().first(id);

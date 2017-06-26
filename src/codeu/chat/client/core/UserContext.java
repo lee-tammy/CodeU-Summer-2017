@@ -38,24 +38,23 @@ public final class UserContext {
     this.controller = controller;
   }
 
-  public Connection getSource() throws IOException{
-    Connection connect = ((Controller)controller).getSource().connect();
-    if(connect != null){
+  public Connection getSource() throws IOException {
+    Connection connect = ((Controller) controller).getSource().connect();
+    if (connect != null) {
       return connect;
-    }else{
+    } else {
       throw new IOException();
     }
   }
-  
-  public Controller getController(){
-    return (Controller)controller;
+
+  public Controller getController() {
+    return (Controller) controller;
   }
-  
+
   public ConversationContext start(String name) {
     final ConversationHeader conversation = controller.newConversation(name, user.id);
-    return conversation == null ?
-        null :
-        new ConversationContext(user, conversation, view, controller);
+    return conversation == null ? null
+        : new ConversationContext(user, conversation, view, controller);
   }
 
   public Iterable<ConversationContext> conversations() {
