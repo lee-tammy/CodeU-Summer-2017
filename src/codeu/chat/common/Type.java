@@ -8,8 +8,7 @@ import java.io.OutputStream;
 import java.io.IOException;
 
 public enum Type {
-  USER(0),
-  CONVERSATION(1);
+  USER(0), CONVERSATION(1);
 
   public final int fId;
 
@@ -22,6 +21,7 @@ public enum Type {
     public void write(OutputStream out, Type value) throws IOException {
       Serializers.INTEGER.write(out, value.fId);
     }
+
     @Override
     public Type read(InputStream in) throws IOException {
       return Type.fromId(Serializers.INTEGER.read(in));

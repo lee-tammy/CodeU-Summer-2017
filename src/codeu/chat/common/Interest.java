@@ -24,12 +24,13 @@ public final class Interest {
       Type.SERIALIZER.write(out, value.type);
       Time.SERIALIZER.write(out, value.lastUpdate);
     }
+
     @Override
     public Interest read(InputStream in) throws IOException {
       return new Interest(Uuid.SERIALIZER.read(in),
-          Uuid.SERIALIZER.read(in),
-          Type.SERIALIZER.read(in),
-          Time.SERIALIZER.read(in));
+                          Uuid.SERIALIZER.read(in),
+                          Type.SERIALIZER.read(in),
+                          Time.SERIALIZER.read(in));
     }
   };
 
@@ -42,21 +43,19 @@ public final class Interest {
 
   @Override
   public boolean equals(Object other) {
-    if (other == null) return false;
-    if (!(other instanceof Interest)) return false;
+    if (other == null)
+      return false;
+    if (!(other instanceof Interest))
+      return false;
     Interest that = (Interest) other;
-    if (!(this.id.equals(that.id))) return false;
-    if (!(this.interestId.equals(that.interestId))) return false;
-    if (!(this.type.equals(that.type))) return false;
-    if (!(this.lastUpdate.equals(that.lastUpdate))) return false;
-		return true;
+    return this.id.equals(that.id) && this.interestId.equals(that.interestId)
+        && this.type.equals(that.type) && this.lastUpdate.equals(that.lastUpdate);
   }
 
   @Override
   public int hashCode() {
-    int total = 3 * id.hashCode() + 7 * interestId.hashCode() + 13 *
-      type.hashCode() + 17 * lastUpdate.hashCode();
+    int total = 3 * id.hashCode() + 7 * interestId.hashCode() + 13 * type.hashCode()
+        + 17 * lastUpdate.hashCode();
     return total;
   }
 }
-

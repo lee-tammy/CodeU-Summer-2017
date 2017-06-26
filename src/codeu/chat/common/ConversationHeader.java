@@ -40,12 +40,10 @@ public final class ConversationHeader {
     @Override
     public ConversationHeader read(InputStream in) throws IOException {
 
-      return new ConversationHeader(
-          Uuid.SERIALIZER.read(in),
-          Uuid.SERIALIZER.read(in),
-          Time.SERIALIZER.read(in),
-          Serializers.STRING.read(in)
-      );
+      return new ConversationHeader(Uuid.SERIALIZER.read(in),
+                                    Uuid.SERIALIZER.read(in),
+                                    Time.SERIALIZER.read(in),
+                                    Serializers.STRING.read(in));
 
     }
   };

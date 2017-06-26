@@ -14,9 +14,6 @@
 
 package codeu.chat.common;
 
-import codeu.chat.common.Interest;
-import codeu.chat.common.Type;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -46,15 +43,13 @@ public final class Message {
     @Override
     public Message read(InputStream in) throws IOException {
 
-      return new Message(
-          Uuid.SERIALIZER.read(in),
-          Uuid.SERIALIZER.read(in),
-          Uuid.SERIALIZER.read(in),
-          Time.SERIALIZER.read(in),
-          Uuid.SERIALIZER.read(in),
-          Serializers.STRING.read(in),
-          Uuid.SERIALIZER.read(in)
-      );
+      return new Message(Uuid.SERIALIZER.read(in),
+                         Uuid.SERIALIZER.read(in),
+                         Uuid.SERIALIZER.read(in),
+                         Time.SERIALIZER.read(in),
+                         Uuid.SERIALIZER.read(in),
+                         Serializers.STRING.read(in),
+                         Uuid.SERIALIZER.read(in));
     }
   };
 
@@ -66,7 +61,8 @@ public final class Message {
   public final Uuid conversationHeader;
   public Uuid next;
 
-  public Message(Uuid id, Uuid next, Uuid previous, Time creation, Uuid author, String content, Uuid conversation) {
+  public Message(Uuid id, Uuid next, Uuid previous, Time creation, Uuid author, String content,
+      Uuid conversation) {
 
     this.id = id;
     this.next = next;

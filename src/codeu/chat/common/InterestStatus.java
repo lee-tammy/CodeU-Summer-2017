@@ -12,8 +12,7 @@ import codeu.chat.util.Uuid;
 public class InterestStatus {
 
   public static final Serializer<InterestStatus> SERIALIZER = new Serializer<InterestStatus>() {
-    public void write(OutputStream out, InterestStatus value)
-        throws IOException {
+    public void write(OutputStream out, InterestStatus value) throws IOException {
       Uuid.SERIALIZER.write(out, value.id);
       Serializers.INTEGER.write(out, value.unreadMessages);
       Serializers.nullable(Serializers.collection(Serializers.STRING))
@@ -33,8 +32,12 @@ public class InterestStatus {
           .nullable(Serializers.collection(Serializers.STRING)).read(in);
       Type type = Type.SERIALIZER.read(in);
       String name = Serializers.STRING.read(in);
-      return new InterestStatus(id, unreadMessages, newConversations,
-          addedConversations, type, name);
+      return new InterestStatus(id,
+                                unreadMessages,
+                                newConversations,
+                                addedConversations,
+                                type,
+                                name);
     }
   };
 
@@ -52,9 +55,8 @@ public class InterestStatus {
   // The name of the conversation or the User
   public final String name;
 
-  public InterestStatus(Uuid id, int unreadMessages,
-      List<String> newConversations, List<String> addedConversations,
-      Type type, String name) {
+  public InterestStatus(Uuid id, int unreadMessages, List<String> newConversations,
+      List<String> addedConversations, Type type, String name) {
     this.id = id;
     this.unreadMessages = unreadMessages;
     this.newConversations = newConversations;
@@ -67,8 +69,8 @@ public class InterestStatus {
     this(id, unreadMessages, null, null, Type.CONVERSATION, name);
   }
 
-  public InterestStatus(Uuid id, List<String> newConversations,
-      List<String> addedConversations, String name) {
+  public InterestStatus(Uuid id, List<String> newConversations, List<String> addedConversations,
+      String name) {
     this(id, -1, newConversations, addedConversations, Type.USER, name);
   }
 }
