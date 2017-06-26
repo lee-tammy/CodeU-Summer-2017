@@ -57,7 +57,7 @@ public final class Chat {
       args.add(token);
     }
     
-    if (args.size() < 0) {
+    if (args.size() == 0) {
       // nothing was actually passed in, trying to get the first command 
       // by calling args.get(0) will make the program crash  
       return false;
