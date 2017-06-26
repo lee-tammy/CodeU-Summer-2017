@@ -72,11 +72,11 @@ public final class Server {
 
   private final Relay relay;
   private Uuid lastSeen = Uuid.NULL;
+  private static ServerInfo info;
+  private PrintWriter output;
 
+  public Server(final Uuid id, final Secret secret, final Relay relay) {
 
-  public Server(final Uuid id, final Secret secret, final Relay relay) throws IOException {
-    private static ServerInfo info;
-    private PrintWriter output;
 
     this.id = id;
     this.secret = secret;
