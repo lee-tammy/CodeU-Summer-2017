@@ -155,7 +155,7 @@ public final class Controller implements BasicController {
      
   }
 
-  public ArrayList<InterestStatus> statusUpdate(UserContext user){
+  public Collection<InterestStatus> statusUpdate(UserContext user){
     try{
       final Connection connection = user.getSource();
       Serializers.INTEGER.write(connection.out(),
@@ -163,7 +163,7 @@ public final class Controller implements BasicController {
       if(Serializers.INTEGER.read(connection.in()) ==
           NetworkCode.INTEREST_STATUS_RESPONSE){
           
-        ArrayList<InterestStatus> allInterests = 
+        Collection<InterestStatus> allInterests = 
             Serializers.collection(InterestStatus.SERIALIZER).read(connection.in());
         return allInterests;
       }

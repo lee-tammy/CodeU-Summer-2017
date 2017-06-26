@@ -20,7 +20,7 @@ import java.util.Scanner;
 import java.util.Stack;
 import java.util.HashSet;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 
 import codeu.chat.client.core.Context;
 import codeu.chat.client.core.ConversationContext;
@@ -428,7 +428,7 @@ public final class Chat {
       @Override
       public void invoke(Scanner args){
 
-        ArrayList<InterestStatus> allInterests = 
+        Collection<InterestStatus> allInterests = 
             user.getController().statusUpdate(user);
         if(allInterests != null && allInterests.size() >= 1){
           System.out.println("STATUS UPDATE");
