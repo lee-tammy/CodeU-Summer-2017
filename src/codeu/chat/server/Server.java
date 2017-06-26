@@ -29,6 +29,7 @@ import codeu.chat.common.NetworkCode;
 import codeu.chat.common.Relay;
 import codeu.chat.common.Secret;
 import codeu.chat.common.Type;
+import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
@@ -45,6 +46,8 @@ public final class Server {
   private static final Logger.Log LOG = Logger.newLog(Server.class);
 
   private static final int RELAY_REFRESH_MS = 5000; // 5 seconds
+
+  private static final ServerInfo info = new ServerInfo();
 
   private final Timeline timeline = new Timeline();
 
@@ -66,6 +69,13 @@ public final class Server {
     this.secret = secret;
     this.controller = new Controller(id, model);
     this.relay = relay;
+
+    this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
+      public void onMessage(InputStream in, OutputStream out) throws IOException {
+        Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
+        ServerInfo.SERIALIZER.write(out, info);
+      }
+    });
 
     // New Message - A client wants to add a new message to the back end.
     this.commands.put(NetworkCode.NEW_MESSAGE_REQUEST, new Command() {
@@ -139,10 +149,9 @@ public final class Server {
     });
 
     // Get Conversations By Id - A client wants to get a subset of the
-    // converations from
-    // the back end. Normally this will be done after calling
-    // Get Conversations to get all the headers and now the client
-    // wants to get a subset of the payloads.
+    // converations from the back end. Normally this will be done after calling
+    // Get Conversations to get all the headers and now the client wants to get
+    // a subset of the payloads.
     this.commands.put(NetworkCode.GET_CONVERSATIONS_BY_ID_REQUEST, new Command() {
       @Override
       public void onMessage(InputStream in, OutputStream out) throws IOException {
@@ -332,4 +341,5 @@ public final class Server {
       }
     };
   }
+
 }

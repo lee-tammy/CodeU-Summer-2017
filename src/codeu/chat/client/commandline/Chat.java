@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Stack;
+import java.io.IOException;
 
 import codeu.chat.client.core.Context;
 import codeu.chat.client.core.ConversationContext;
@@ -27,6 +28,9 @@ import codeu.chat.client.core.UserContext;
 import codeu.chat.common.InterestStatus;
 import codeu.chat.common.Type;
 import codeu.chat.util.Uuid;
+import codeu.chat.util.Tokenizer;
+import codeu.chat.util.Time;
+import codeu.chat.common.ServerInfo;
 
 public final class Chat {
 
@@ -52,11 +56,15 @@ public final class Chat {
   // is willing to take another command, the function will return true. If
   // the system wants to exit, the function will return false.
   //
-  public boolean handleCommand(String line) {
+  public boolean handleCommand(String line) throws IOException {
 
-    final Scanner tokens = new Scanner(line.trim());
-
-    final String command = tokens.hasNext() ? tokens.next() : "";
+    final List<String> args = new ArrayList<>();
+    final Tokenizer tokenizer = new Tokenizer(line);
+    for (String token = tokenizer.next(); token != null; token = tokenizer.next()){
+      args.add(token);
+    }
+    final String command = args.get(0);
+    args.remove(0);
 
     // Because "exit" and "back" are applicable to every panel, handle
     // those commands here to avoid having to implement them for each
@@ -73,7 +81,7 @@ public final class Chat {
       return true;
     }
 
-    if (panels.peek().handleCommand(command, tokens)) {
+    if (panels.peek().handleCommand(command, args)) {
       // the command was handled
       return true;
     }
@@ -108,7 +116,7 @@ public final class Chat {
     //
     panel.register("help", new Panel.Command() {
       @Override
-      public void invoke(Scanner args) {
+      public void invoke(List<String> args) {
         System.out.println("ROOT MODE");
         System.out.println("  u-list");
         System.out.println("    List all users.");
@@ -116,10 +124,33 @@ public final class Chat {
         System.out.println("    Add a new user with the given name.");
         System.out.println("  u-sign-in <name>");
         System.out.println("    Sign in as the user with the given name.");
+        System.out.println("  info");
+        System.out.println("    Get server info.");
+        System.out.println("    Show the server information.");
         System.out.println("  exit");
         System.out.println("    Exit the program.");
       }
     });
+    
+    panel.register("info", new Panel.Command() {
+      @Override
+      public void invoke(List<String> args) {
+        final ServerInfo info = context.getInfo();
+        if (info == null) {	
+          System.out.format("ERROR: Failed to retrieve version info", args);
+        } else {
+          // Print the server info to the user in a pretty way
+           // Print the server info to the user in a pretty way
+          System.out.println("Server Information:");
+          System.out.format("  Start Time : %s\n", info.startTime.toString());
+          System.out.format("  Time now   : %s\n", Time.now());
+          System.out.format("  Duration   : %s sec\n", (Time.duration(info.startTime,
+                Time.now()).inMs() / 1000));
+          System.out.println("Version: " + info.version);
+        }
+      }
+    });
+    
 
     // U-LIST (user list)
     //
@@ -128,7 +159,7 @@ public final class Chat {
     //
     panel.register("u-list", new Panel.Command() {
       @Override
-      public void invoke(Scanner args) {
+      public void invoke(List<String> args) {
         for (final UserContext user : context.allUsers()) {
           System.out.format("USER %s (UUID:%s)\n", user.user.name, user.user.id);
         }
@@ -142,8 +173,8 @@ public final class Chat {
     //
     panel.register("u-add", new Panel.Command() {
       @Override
-      public void invoke(Scanner args) {
-        final String name = args.hasNext() ? args.nextLine().trim() : "";
+      public void invoke(List<String> args) {
+        final String name = args.size() > 0 ? args.get(0).trim() : "";
         if (name.length() > 0) {
           if (context.create(name) == null) {
             System.out.println("ERROR: Failed to create new user");
@@ -161,8 +192,8 @@ public final class Chat {
     //
     panel.register("u-sign-in", new Panel.Command() {
       @Override
-      public void invoke(Scanner args) {
-        final String name = args.hasNext() ? args.nextLine().trim() : "";
+      public void invoke(List<String> args) {
+        final String name = args.size() > 0 ? args.get(0).trim() : "";
         if (name.length() > 0) {
           final UserContext user = findUser(name, context);
           if (user == null) {
@@ -179,6 +210,7 @@ public final class Chat {
       // for that user. If no user is found, the function will return null.
 
     });
+
 
     // Now that the panel has all its commands registered, return the panel
     // so that it can be used.
@@ -214,7 +246,7 @@ public final class Chat {
     //
     panel.register("help", new Panel.Command() {
       @Override
-      public void invoke(Scanner args) {
+      public void invoke(List<String> args) {
         System.out.println("USER MODE");
         System.out.println("  c-list");
         System.out.println("    List all conversations that the current user can interact with.");
@@ -246,7 +278,7 @@ public final class Chat {
     //
     panel.register("c-list", new Panel.Command() {
       @Override
-      public void invoke(Scanner args) {
+      public void invoke(List<String> args) {
         for (final ConversationContext conversation : user.conversations()) {
           System.out.format("CONVERSATION %s (UUID:%s)\n",
                             conversation.conversation.title,
@@ -262,8 +294,8 @@ public final class Chat {
     //
     panel.register("c-add", new Panel.Command() {
       @Override
-      public void invoke(Scanner args) {
-        final String name = args.hasNext() ? args.nextLine().trim() : "";
+      public void invoke(List<String> args) {
+        final String name = args.size() > 0 ? args.get(0).trim() : "";
         if (name.length() > 0) {
           final ConversationContext conversation = user.start(name);
           if (conversation == null) {
@@ -282,8 +314,8 @@ public final class Chat {
     //
     panel.register("c-join", new Panel.Command() {
       @Override
-      public void invoke(Scanner args) {
-        final String name = args.hasNext() ? args.nextLine().trim() : "";
+      public void invoke(List<String> args) {
+        final String name = args.size() > 0 ? args.get(0).trim() : "";
         if (name.length() > 0) {
           final ConversationContext conversation = find(name, user);
           if (conversation == null) {
@@ -304,34 +336,29 @@ public final class Chat {
     //
     panel.register("i-add", new Panel.Command() {
       @Override
-      public void invoke(Scanner args) {
+      public void invoke(List<String> args) {
         Type type = Type.USER;
-        List<String> arguments = new ArrayList<>();
 
-        while (args.hasNextLine()) {
-          arguments.add(args.next().toLowerCase().trim());
-        }
+        if(args.size() == 2){
 
-        if(arguments.size() == 2){ 
-          
-          final UserContext userInterest = findUser(arguments.get(1), context); 
-          final Uuid userId = user.user.id;         
-          final ConversationContext convoInterest = find(arguments.get(1), user);
+          final UserContext userInterest = findUser(args.get(1), context);
+          final Uuid userId = user.user.id;
+          final ConversationContext convoInterest = find(args.get(1), user);
 
-          if (arguments.get(0).equals("u")) {
+          if (args.get(0).equals("u")) {
             type = Type.USER;
             if (userInterest != null) {
               user.getController().newInterest(userId, userInterest.user.id, type);
             }else{
-              System.out.format("ERROR: '%s' does not exist", arguments.get(1));
+              System.out.format("ERROR: '%s' does not exist", args.get(1));
             }
-          } else if (arguments.get(0).equals("c")) {
+          } else if (args.get(0).equals("c")) {
             if (convoInterest != null) {
               type = Type.CONVERSATION;
               user.getController().newInterest(userId,
-                  convoInterest.conversation.id, type);  
+                  convoInterest.conversation.id, type);
             }else{
-              System.out.format("ERROR: '%s' does not exist", arguments.get(1));
+              System.out.format("ERROR: '%s' does not exist", args.get(1));
             }
 
           } else {
@@ -352,32 +379,26 @@ public final class Chat {
     //
     panel.register("i-remove", new Panel.Command() {
       @Override
-      public void invoke(Scanner args) {
+      public void invoke(List<String> args) {
+        if (args.size() == 2) {
 
-        ArrayList<String> arguments = new ArrayList<String>();
-        while (args.hasNextLine()) {
-          arguments.add(args.next().toLowerCase().trim());
-        }
-
-        if (arguments.size() == 2) {
-
-          final UserContext userInterest = findUser(arguments.get(1), context);
-          final ConversationContext convoInterest = find(arguments.get(1), user);
+          final UserContext userInterest = findUser(args.get(1), context);
+          final ConversationContext convoInterest = find(args.get(1), user);
           final Uuid userId = user.user.id;
 
-          if (arguments.get(0).equals("u")) {
+          if (args.get(0).equals("u")) {
             if (userInterest != null) {
               user.getController().removeInterest(userId, userInterest.user.id);
             }else{
-              System.out.format("ERROR: '%s' does not exist", arguments.get(1));
+              System.out.format("ERROR: '%s' does not exist", args.get(1));
             }
-          }else if(arguments.get(0).equals("c")){
-    
+          }else if(args.get(0).equals("c")){
+
             if(convoInterest != null){
               user.getController().removeInterest(userId,
                   convoInterest.conversation.id);
             }else{
-              System.out.format("ERROR: '%s' does not exist", arguments.get(1));
+              System.out.format("ERROR: '%s' does not exist", args.get(1));
             }
           } else {
             System.out.println("ERROR: Wrong format");
@@ -397,7 +418,7 @@ public final class Chat {
     //
     panel.register("status-update", new Panel.Command() {
       @Override
-      public void invoke(Scanner args) {
+      public void invoke(List<String> args) {
 
         Collection<InterestStatus> allInterests = user.getController().statusUpdate(user);
         if (allInterests != null && !allInterests.isEmpty()) {
@@ -438,7 +459,7 @@ public final class Chat {
     //
     panel.register("info", new Panel.Command() {
       @Override
-      public void invoke(Scanner args) {
+      public void invoke(List<String> args) {
         System.out.println("User Info:");
         System.out.format("  Name : %s\n", user.user.name);
         System.out.format("  Id   : UUID:%s\n", user.user.id);
@@ -461,7 +482,7 @@ public final class Chat {
     //
     panel.register("help", new Panel.Command() {
       @Override
-      public void invoke(Scanner args) {
+      public void invoke(List<String> args) {
         System.out.println("USER MODE");
         System.out.println("  m-list");
         System.out.println("    List all messages in the current conversation.");
@@ -484,7 +505,7 @@ public final class Chat {
     //
     panel.register("m-list", new Panel.Command() {
       @Override
-      public void invoke(Scanner args) {
+      public void invoke(List<String> args) {
         System.out.println("--- start of conversation ---");
         for (MessageContext message = conversation
             .firstMessage(); message != null; message = message.next()) {
@@ -506,8 +527,8 @@ public final class Chat {
     //
     panel.register("m-add", new Panel.Command() {
       @Override
-      public void invoke(Scanner args) {
-        final String message = args.hasNext() ? args.nextLine().trim() : "";
+      public void invoke(List<String> args) {
+        final String message = args.size() > 0 ? args.get(0).trim() : "";
         if (message.length() > 0) {
           conversation.add(message);
         } else {
@@ -523,7 +544,7 @@ public final class Chat {
     //
     panel.register("info", new Panel.Command() {
       @Override
-      public void invoke(Scanner args) {
+      public void invoke(List<String> args) {
         System.out.println("Conversation Info:");
         System.out.format("  Title : %s\n", conversation.conversation.title);
         System.out.format("  Id    : UUID:%s\n", conversation.conversation.id);

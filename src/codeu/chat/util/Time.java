@@ -88,4 +88,8 @@ public final class Time implements Comparable<Time> {
     return new Long(inMs()).hashCode();
   }
 
+  // Difference of end and start times.
+  public static Time duration(Time start, Time end) {
+    return new Time(end.inMs() - start.inMs());
+  }
 }
