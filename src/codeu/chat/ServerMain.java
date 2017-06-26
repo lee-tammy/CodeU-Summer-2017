@@ -89,17 +89,13 @@ final class ServerMain {
   private static void runServer(Uuid id,
                                 Secret secret,
                                 ConnectionSource serverSource,
-                                ConnectionSource relaySource) throws IOException {
+                                ConnectionSource relaySource) {
 
     final Relay relay = relaySource == null ?
                         new NoOpRelay() :
                         new RemoteRelay(relaySource);
 
-    Server server;
-	
-
-    server = new Server(id, secret, relay);
-
+    Server server = new Server(id, secret, relay);
 
     LOG.info("Created server.");
 
