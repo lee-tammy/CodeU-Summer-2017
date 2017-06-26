@@ -145,66 +145,66 @@ public final class Server {
       }
     });
 
-		// New Conversation - A client wants to add a new conversation to the back
-		// end.
-		this.commands.put(NetworkCode.NEW_CONVERSATION_REQUEST, new Command() {
-			@Override
-			public void onMessage(InputStream in, OutputStream out) throws IOException {
+    // New Conversation - A client wants to add a new conversation to the back
+    // end.
+    this.commands.put(NetworkCode.NEW_CONVERSATION_REQUEST, new Command() {
+  @Override
+  public void onMessage(InputStream in, OutputStream out) throws IOException {
+ 
+    final String title = Serializers.STRING.read(in);
+    final Uuid owner = Uuid.SERIALIZER.read(in);
+    final ConversationHeader conversation = controller.newConversation(title, owner);
 
-				final String title = Serializers.STRING.read(in);
-				final Uuid owner = Uuid.SERIALIZER.read(in);
-				final ConversationHeader conversation = controller.newConversation(title, owner);
+    Serializers.INTEGER.write(out, NetworkCode.NEW_CONVERSATION_RESPONSE);
+    Serializers.nullable(ConversationHeader.SERIALIZER).write(out, conversation);
+  }
+  });
 
-				Serializers.INTEGER.write(out, NetworkCode.NEW_CONVERSATION_RESPONSE);
-				Serializers.nullable(ConversationHeader.SERIALIZER).write(out, conversation);
-			}
-		});
+  // Get Users - A client wants to get all the users from the back end.
+  this.commands.put(NetworkCode.GET_USERS_REQUEST, new Command() {
+  @Override
+  public void onMessage(InputStream in, OutputStream out) throws IOException {
 
-		// Get Users - A client wants to get all the users from the back end.
-		this.commands.put(NetworkCode.GET_USERS_REQUEST, new Command() {
-			@Override
-			public void onMessage(InputStream in, OutputStream out) throws IOException {
+    final Collection<User> users = view.getUsers();
 
-				final Collection<User> users = view.getUsers();
+    Serializers.INTEGER.write(out, NetworkCode.GET_USERS_RESPONSE);
+    Serializers.collection(User.SERIALIZER).write(out, users);
+  }
+  });
 
-				Serializers.INTEGER.write(out, NetworkCode.GET_USERS_RESPONSE);
-				Serializers.collection(User.SERIALIZER).write(out, users);
-			}
-		});
+  // Get Conversations - A client wants to get all the conversations from the
+  // back end.
+  this.commands.put(NetworkCode.GET_ALL_CONVERSATIONS_REQUEST, new Command() {
+  @Override
+  public void onMessage(InputStream in, OutputStream out) throws IOException {
 
-		// Get Conversations - A client wants to get all the conversations from the
-		// back end.
-		this.commands.put(NetworkCode.GET_ALL_CONVERSATIONS_REQUEST, new Command() {
-			@Override
-			public void onMessage(InputStream in, OutputStream out) throws IOException {
+    final Collection<ConversationHeader> conversations = view.getConversations();
 
-				final Collection<ConversationHeader> conversations = view.getConversations();
+    Serializers.INTEGER.write(out, NetworkCode.GET_ALL_CONVERSATIONS_RESPONSE);
+    Serializers.collection(ConversationHeader.SERIALIZER).write(out, conversations);
+  }
+  });
 
-				Serializers.INTEGER.write(out, NetworkCode.GET_ALL_CONVERSATIONS_RESPONSE);
-				Serializers.collection(ConversationHeader.SERIALIZER).write(out, conversations);
-			}
-		});
+  // Get Conversations By Id - A client wants to get a subset of the
+  // converations from
+  // the back end. Normally this will be done after calling
+  // Get Conversations to get all the headers and now the client
+  // wants to get a subset of the payloads.
+  this.commands.put(NetworkCode.GET_CONVERSATIONS_BY_ID_REQUEST, new Command() {
+  @Override
+  public void onMessage(InputStream in, OutputStream out) throws IOException {
 
-		// Get Conversations By Id - A client wants to get a subset of the
-		// converations from
-		// the back end. Normally this will be done after calling
-		// Get Conversations to get all the headers and now the client
-		// wants to get a subset of the payloads.
-		this.commands.put(NetworkCode.GET_CONVERSATIONS_BY_ID_REQUEST, new Command() {
-			@Override
-			public void onMessage(InputStream in, OutputStream out) throws IOException {
+    final Collection<Uuid> ids = Serializers.collection(Uuid.SERIALIZER).read(in);
+    final Collection<ConversationPayload> conversations = view.getConversationPayloads(ids);
 
-				final Collection<Uuid> ids = Serializers.collection(Uuid.SERIALIZER).read(in);
-				final Collection<ConversationPayload> conversations = view.getConversationPayloads(ids);
-
-				Serializers.INTEGER.write(out, NetworkCode.GET_CONVERSATIONS_BY_ID_RESPONSE);
-				Serializers.collection(ConversationPayload.SERIALIZER).write(out, conversations);
-			}
-		});
+    Serializers.INTEGER.write(out, NetworkCode.GET_CONVERSATIONS_BY_ID_RESPONSE);
+    Serializers.collection(ConversationPayload.SERIALIZER).write(out, conversations);
+  }
+  });
       
-    this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
-      @Override
-      public void onMessage(InputStream in, OutputStream out) throws IOException {
+  this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
+  @Override
+    public void onMessage(InputStream in, OutputStream out) throws IOException {
         Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
         Time.SERIALIZER.write(out, info.startTime);
       }
@@ -235,35 +235,34 @@ public final class Server {
 
   public void handleConnection(final Connection connection) {
     timeline.scheduleNow(new Runnable() {
-      @Override
-      public void run() {
-        try {
+    @Override
+    public void run() {
+      try {
 
-          LOG.info("Handling connection...");
+        LOG.info("Handling connection...");
 
-          final int type = Serializers.INTEGER.read(connection.in());
-          final Command command = commands.get(type);
+        final int type = Serializers.INTEGER.read(connection.in());
+        final Command command = commands.get(type);
 
-          if (command == null) {
-            // The message type cannot be handled so return a dummy message.
-            Serializers.INTEGER.write(connection.out(), NetworkCode.NO_MESSAGE);
-            LOG.info("Connection rejected");
-          } else {
-            command.onMessage(connection.in(), connection.out());
-            LOG.info("Connection accepted");
-          }
-
-        } catch (Exception ex) {
-
-          LOG.error(ex, "Exception while handling connection.");
-
+        if (command == null) {
+          // The message type cannot be handled so return a dummy message.
+          Serializers.INTEGER.write(connection.out(), NetworkCode.NO_MESSAGE);
+          LOG.info("Connection rejected");
+        } else {
+          command.onMessage(connection.in(), connection.out());
+          LOG.info("Connection accepted");
         }
 
-        try {
-          connection.close();
-        } catch (Exception ex) {
-          LOG.error(ex, "Exception while closing connection.");
-        }
+      } catch (Exception ex) {
+
+        LOG.error(ex, "Exception while handling connection.");
+      }
+
+      try {
+        connection.close();
+      } catch (Exception ex) {
+        LOG.error(ex, "Exception while closing connection.");
+      }
       }
     });
   }
@@ -326,7 +325,7 @@ public final class Server {
   private void restore(ServerLog log, Controller controller) {
     for (int i = 0; i < log.getLength(); i++) {
       // reading each line of log
-      log.readLine(i, controller);		
+      log.readLine(i, controller);
     }
   }
 }
