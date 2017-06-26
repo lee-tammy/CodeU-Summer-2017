@@ -40,11 +40,7 @@ public final class RawControllerTest {
   @Before
   public void doBefore() {
     model = new Model();
-    try {
-      controller = new Controller(Uuid.NULL, model);
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
+    controller = new Controller(Uuid.NULL, model);
 
     userId = new Uuid(1);
     conversationId = new Uuid(2);

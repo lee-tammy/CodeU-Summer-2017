@@ -23,10 +23,9 @@ import codeu.chat.client.core.Context;
 import codeu.chat.client.core.ConversationContext;
 import codeu.chat.client.core.MessageContext;
 import codeu.chat.client.core.UserContext;
+import codeu.chat.common.ServerInfo;
 import codeu.chat.util.Tokenizer;
 import codeu.chat.util.Time;
-import codeu.chat.server.ServerInfo;
-import codeu.chat.common.ServerVersion;
 
 public final class Chat {
 
@@ -133,7 +132,7 @@ public final class Chat {
     
     panel.register("version", new Panel.Command() {
       @Override
-      public void invoke(Scanner args) {
+      public void invoke(List<String> args) {
         final ServerInfo info = context.getInfo();
 
         if (info == null) {	

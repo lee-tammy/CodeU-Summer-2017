@@ -20,13 +20,12 @@ import java.util.Collection;
 
 import codeu.chat.common.BasicView;
 import codeu.chat.client.core.View;
-import codeu.chat.common.ServerVersion;
 import codeu.chat.common.ServerInfo;
 
 import codeu.chat.common.User;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.ConnectionSource;
-import codeu.chat.server.ServerInfo;
+import codeu.chat.common.ServerInfo;
 
 public final class Context {
 
@@ -55,9 +54,5 @@ public final class Context {
       users.add(new UserContext(user, view, controller));
     }
     return users;
-  }
-  
-  public ServerInfo getInfo() {
-    return ((View) view).getInfo();
   }
 }

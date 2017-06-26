@@ -36,11 +36,7 @@ public final class BasicControllerTest {
   @Before
   public void doBefore() {
     model = new Model();
-    try {
-      controller = new Controller(Uuid.NULL, model);
-    } catch (IOException e) {
-      throw new UncheckedIOException(e);
-    }
+    controller = new Controller(Uuid.NULL, model);
   }
 
   @Test

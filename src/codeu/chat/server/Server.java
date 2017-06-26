@@ -35,7 +35,6 @@ import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
 import codeu.chat.common.Relay;
 import codeu.chat.common.Secret;
-import codeu.chat.common.ServerVersion;
 import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
 import codeu.chat.util.Logger;
@@ -57,7 +56,6 @@ public final class Server {
   private static final int RELAY_REFRESH_MS = 5000; // 5 seconds
 
   private static ServerInfo info = new ServerInfo();
-  private static ServerVersion version = new ServerVersion();
 
   private final Timeline timeline = new Timeline();
 
@@ -72,7 +70,6 @@ public final class Server {
 
   private final Relay relay;
   private Uuid lastSeen = Uuid.NULL;
-  private static ServerInfo info;
   private PrintWriter output;
 
   public Server(final Uuid id, final Secret secret, final Relay relay) {
@@ -86,7 +83,6 @@ public final class Server {
     codeu.chat.server.Controller.setWriteToLog(false);
 
     info = new ServerInfo();
-    version = new ServerVersion();
    
     // create new log file
     ServerLog log = new ServerLog(new File(ServerLog.createFilePath()));
@@ -101,11 +97,9 @@ public final class Server {
     this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
       public void onMessage(InputStream in, OutputStream out) throws IOException {
         Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
-        Uuid.SERIALIZER.write(out, version.version);
+        Uuid.SERIALIZER.write(out, info.version);
       }
     });
-
-    info = new ServerInfo();
 
     this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
       public void onMessage(InputStream in, OutputStream out) throws IOException {
