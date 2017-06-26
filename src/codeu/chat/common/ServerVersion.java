@@ -5,6 +5,9 @@ import java.io.IOException;
 
 import codeu.chat.util.Uuid;
 
+/**
+ * Checks the version of the server
+ */
 public final class ServerVersion {
   private final static String SERVER_VERSION = "1.0.0";
 
