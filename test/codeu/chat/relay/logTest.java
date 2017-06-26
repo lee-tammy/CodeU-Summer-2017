@@ -28,31 +28,25 @@ public final class logTest {
 
   @Before
   public void doBefore() {
-	model = new Model();
-	try {
-	  controller = new Controller(Uuid.NULL, model);
-	} catch (IOException e) {
-			e.printStackTrace();
-	}
-	log = new ServerLog(new File(ServerLog.createFilePath()));
+    model = new Model();
+    try {
+      controller = new Controller(Uuid.NULL, model);
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+    log = new ServerLog(new File(ServerLog.createFilePath()));
   }
   
   @Test
   public void testRestoreConversation() {
 	  
-	final User user = controller.newUser("user");
+    final User user = controller.newUser("user");
 
-	assertFalse(
-	    "Check that user has a valid reference",
-	    user == null);
+    assertFalse("Check that user has a valid reference", user == null);
 
-	final ConversationHeader conversation = controller.newConversation(
-	    "conversation",
-	    user.id);
+    final ConversationHeader conversation = controller.newConversation("conversation", user.id);
 
-	assertFalse(
-	    "Check that conversation has a valid reference",
-	    conversation == null);
+    assertFalse("Check that conversation has a valid reference", conversation == null);
   }
 
   @Test
@@ -60,16 +54,16 @@ public final class logTest {
 
     final Server relay = new Server(8, 8);
 
-	final Uuid team = new Uuid(3);
-	final Secret secret = new Secret((byte)0x00, (byte)0x01, (byte)0x02);
+    final Uuid team = new Uuid(3);
+    final Secret secret = new Secret((byte)0x00, (byte)0x01, (byte)0x02);
 
-	assertTrue(relay.addTeam(team, secret));
+    assertTrue(relay.addTeam(team, secret));
 
-	assertTrue(relay.write(team,
-	                       secret,
-	                       relay.pack(new Uuid(4), "User", Time.now()),
-	                       relay.pack(new Uuid(5), "Conversation", Time.now()),
-	                       relay.pack(new Uuid(6), "Hello World", Time.now())));
+    assertTrue(relay.write(team, 
+               	           secret,
+                           relay.pack(new Uuid(4), "User", Time.now()),
+                           relay.pack(new Uuid(5), "Conversation", Time.now()),
+                           relay.pack(new Uuid(6), "Hello World", Time.now())));
 	}
 
 }
