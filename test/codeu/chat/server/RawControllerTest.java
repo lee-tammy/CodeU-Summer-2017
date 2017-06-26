@@ -41,10 +41,10 @@ public final class RawControllerTest {
   public void doBefore() {
     model = new Model();
     try {
-		controller = new Controller(Uuid.NULL, model);
-	} catch (IOException e) {
-		e.printStackTrace();
-	}
+      controller = new Controller(Uuid.NULL, model);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
 
     userId = new Uuid(1);
     conversationId = new Uuid(2);

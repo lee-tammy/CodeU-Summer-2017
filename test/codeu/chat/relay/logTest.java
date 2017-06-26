@@ -39,7 +39,7 @@ public final class logTest {
   
   @Test
   public void testRestoreConversation() {
-	  
+  
     final User user = controller.newUser("user");
 
     assertFalse("Check that user has a valid reference", user == null);
@@ -60,10 +60,10 @@ public final class logTest {
     assertTrue(relay.addTeam(team, secret));
 
     assertTrue(relay.write(team, 
-               	           secret,
+                           secret,
                            relay.pack(new Uuid(4), "User", Time.now()),
                            relay.pack(new Uuid(5), "Conversation", Time.now()),
                            relay.pack(new Uuid(6), "Hello World", Time.now())));
-	}
+    }
 
 }

@@ -87,24 +87,24 @@ public final class ServerLog {
       if (commandType == 'M') {
         // parse a message
         controller.newMessage(Uuid.parse(ParArr[2]), Uuid.parse(ParArr[1]), 
-		            Uuid.parse(ParArr[3]), ParArr[5], stringToTime(ParArr[4]) );
+                              Uuid.parse(ParArr[3]), ParArr[5], stringToTime(ParArr[4]) );
 
-        } else if (commandType == 'U') {
+      } else if (commandType == 'U') {
         // parse a user
         controller.newUser(Uuid.parse(ParArr[2]), ParArr[1], stringToTime(ParArr[3]) );
 
-        } else if (commandType == 'C') {
+      } else if (commandType == 'C') {
         // parse a conversation
         controller.newConversation(Uuid.parse(ParArr[2]), ParArr[1], 
-		                 Uuid.parse(ParArr[3]), stringToTime(ParArr[4]) );
-        }
+                                   Uuid.parse(ParArr[3]), stringToTime(ParArr[4]) );
+      }
     } catch (IOException e) {
-	  e.printStackTrace();
+      e.printStackTrace();
     }
   }
   
   private Time stringToTime(String s) {
-	  return Time.parse(s);
+    return Time.parse(s);
   }
 
   private Map<Integer,String> readFile(BufferedReader br) {
@@ -115,7 +115,7 @@ public final class ServerLog {
       while ((line = br.readLine()) != null) {
         lines.put(index, line);
         index++;
-    }
+      }
     } catch (IOException e) {
       e.printStackTrace();
     }
