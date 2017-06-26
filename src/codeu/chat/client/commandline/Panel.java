@@ -17,11 +17,10 @@ package codeu.chat.client.commandline;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
 // PANEL
 //
-// A panel is a collection of commands that are to be executed within a specifc
+// A panel is a collection of commands that are to be executed within a specific
 // context. Similar to how panels are used in a GUI, is is a command line
 // equivalent.
 //

@@ -17,7 +17,6 @@ package codeu.chat.common;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
-import java.util.Arrays;
 import org.junit.Test;
 
 public final class SecretTest {

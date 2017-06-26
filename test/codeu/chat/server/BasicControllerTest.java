@@ -16,9 +16,6 @@ package codeu.chat.server;
 
 import static org.junit.Assert.*;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
-
 import org.junit.Test;
 import org.junit.Before;
 
