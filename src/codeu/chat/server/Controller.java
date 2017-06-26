@@ -187,9 +187,9 @@ public final class Controller implements RawController, BasicController {
       return result;
     for (Uuid interestId : userInterests) {
       InterestStatus report = processInterest(interestId, now);
-      if (report == null)
-        continue;
-      result.add(report);
+      if (report != null) {
+        result.add(report);
+      }
     }
     return result;
   }

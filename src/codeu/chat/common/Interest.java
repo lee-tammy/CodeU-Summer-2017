@@ -8,6 +8,7 @@ import codeu.chat.common.Type;
 import java.io.InputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Objects;
 
 public final class Interest {
 
@@ -54,8 +55,6 @@ public final class Interest {
 
   @Override
   public int hashCode() {
-    int total = 3 * id.hashCode() + 7 * interestId.hashCode() + 13 * type.hashCode()
-        + 17 * lastUpdate.hashCode();
-    return total;
+    return Objects.hash(id, interestId, type, lastUpdate);
   }
 }

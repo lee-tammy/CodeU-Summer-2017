@@ -14,22 +14,21 @@
 
 package codeu.chat.server;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
-import codeu.chat.common.Interest;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
-import codeu.chat.common.LinearUuidGenerator;
+import codeu.chat.common.Interest;
 import codeu.chat.common.Message;
+import codeu.chat.common.Type;
 import codeu.chat.common.User;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.store.Store;
 import codeu.chat.util.store.StoreAccessor;
-import codeu.chat.common.Type;
-
-import java.util.ArrayList;
-import java.util.HashMap;
 
 public final class Model {
 
@@ -80,7 +79,7 @@ public final class Model {
 
   private final Store<Uuid, Interest> interestById = new Store<>(UUID_COMPARE);
 
-  public final HashMap<Uuid, ArrayList<Uuid>> interests = new HashMap<>();
+  public final Map<Uuid, ArrayList<Uuid>> interests = new HashMap<>();
 
   public void add(User user) {
     userById.insert(user.id, user);

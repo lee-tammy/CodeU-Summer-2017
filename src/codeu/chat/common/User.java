@@ -17,6 +17,7 @@ package codeu.chat.common;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Objects;
 
 import codeu.chat.util.Serializer;
 import codeu.chat.util.Serializers;
@@ -59,7 +60,7 @@ public final class User {
 
   @Override
   public int hashCode() {
-    return 5 * id.hashCode() + 7 * name.hashCode() + 11 * creation.hashCode();
+    return Objects.hash(id, name, creation);
   }
 
   @Override
