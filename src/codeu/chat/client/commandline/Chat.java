@@ -406,7 +406,7 @@ public final class Chat {
       public void invoke(Scanner args) {
 
         Collection<InterestStatus> allInterests = user.getController().statusUpdate(user);
-        if (allInterests != null && allInterests.size() >= 1) {
+        if (allInterests != null && !allInterests.isEmpty()) {
           System.out.println("STATUS UPDATE");
           System.out.println("===============");
 
