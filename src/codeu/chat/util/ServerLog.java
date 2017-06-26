@@ -26,7 +26,7 @@ import codeu.chat.server.Controller;
 
 public final class ServerLog {
   private File log;	
-  private HashMap<Integer,String> lines;
+  private Map<Integer,String> lines;
   private BufferedReader in;
 
   /**
@@ -75,12 +75,16 @@ public final class ServerLog {
   public void readLine(int index, Controller controller) {
     String toParse = lines.get(index);
 
+    // toParse check if empty or null
+    if (toParse.length() == 0 || toParse == null) {
+      return;
+    }
     // turns the string from log into an array
     String[] ParArr = toParse.split("_");
     char commandType = toParse.charAt(0);
 
     try {
-      if(commandType == 'M') {
+      if (commandType == 'M') {
         // parse a message
         controller.newMessage(Uuid.parse(ParArr[2]), Uuid.parse(ParArr[1]), 
 		            Uuid.parse(ParArr[3]), ParArr[5], stringToTime(ParArr[4]) );
@@ -94,7 +98,7 @@ public final class ServerLog {
         controller.newConversation(Uuid.parse(ParArr[2]), ParArr[1], 
 		                 Uuid.parse(ParArr[3]), stringToTime(ParArr[4]) );
         }
-    } catch(IOException e) {
+    } catch (IOException e) {
 	  e.printStackTrace();
     }
   }
@@ -103,9 +107,9 @@ public final class ServerLog {
 	  return Time.parse(s);
   }
 
-  private HashMap<Integer,String> readFile(BufferedReader br) {
+  private Map<Integer,String> readFile(BufferedReader br) {
     String line;
-    HashMap<Integer,String> lines = new HashMap<Integer,String>();
+    Map<Integer,String> lines = new HashMap<Integer,String>();
     try {
       int index = 0;
       while ((line = br.readLine()) != null) {
