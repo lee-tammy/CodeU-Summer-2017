@@ -203,7 +203,7 @@ public final class Controller implements RawController, BasicController {
    * Getter method for writeToLog
    * @return boolean if we should write to log or no
    */
-  public boolean getWriteToLog() {
+  public static boolean getWriteToLog() {
     return writeToLog;
   }
 
@@ -211,7 +211,7 @@ public final class Controller implements RawController, BasicController {
    * Setter method for writeToLOg
    * @param write the new update for writeToLog
    */
-  public void setWriteToLog(boolean write) {
+  public static void setWriteToLog(boolean write) {
     writeToLog = write;
   }
 
