@@ -14,11 +14,16 @@
 
 package codeu.chat.server;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
 
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
+import codeu.chat.common.Interest;
 import codeu.chat.common.Message;
+import codeu.chat.common.Type;
 import codeu.chat.common.User;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
@@ -32,11 +37,17 @@ public final class Model {
     @Override
     public int compare(Uuid a, Uuid b) {
 
-      if (a == b) { return 0; }
+      if (a == b) {
+        return 0;
+      }
 
-      if (a == null && b != null) { return -1; }
+      if (a == null && b != null) {
+        return -1;
+      }
 
-      if (a != null && b == null) { return 1; }
+      if (a != null && b == null) {
+        return 1;
+      }
 
       final int order = Integer.compare(a.id(), b.id());
       return order == 0 ? compare(a.root(), b.root()) : order;
@@ -66,6 +77,10 @@ public final class Model {
   private final Store<Time, Message> messageByTime = new Store<>(TIME_COMPARE);
   private final Store<String, Message> messageByText = new Store<>(STRING_COMPARE);
 
+  private final Store<Uuid, Interest> interestById = new Store<>(UUID_COMPARE);
+
+  public final Map<Uuid, ArrayList<Uuid>> interests = new HashMap<>();
+
   public void add(User user) {
     userById.insert(user.id, user);
     userByTime.insert(user.creation, user);
@@ -78,6 +93,10 @@ public final class Model {
 
   public StoreAccessor<Time, User> userByTime() {
     return userByTime;
+  }
+
+  public StoreAccessor<Uuid, Interest> interestById() {
+    return interestById;
   }
 
   public StoreAccessor<String, User> userByText() {
@@ -123,5 +142,25 @@ public final class Model {
 
   public StoreAccessor<String, Message> messageByText() {
     return messageByText;
+  }
+
+  public Interest addInterest(Uuid id,
+                              Uuid userId,
+                              Uuid interestId,
+                              Type interestType,
+                              Time creationTime) {
+    Interest newInterest = new Interest(id, interestId, interestType, creationTime);
+    if (interests.get(userId) == null) {
+      interests.put(userId, new ArrayList<Uuid>());
+    }
+    interests.get(userId).add(interestId);
+    interestById.insert(interestId, newInterest);
+    return newInterest;
+  }
+
+  public void removeInterest(Uuid userId, Uuid interestId) {
+    if (interests.get(userId) != null) {
+      interests.get(userId).remove(interestId);
+    }
   }
 }

@@ -39,9 +39,7 @@ public final class Context {
 
   public UserContext create(String name) {
     final User user = controller.newUser(name);
-    return user == null ?
-        null :
-        new UserContext(user, view, controller);
+    return user == null ? null : new UserContext(user, view, controller);
   }
 
   public Iterable<UserContext> allUsers() {
@@ -50,5 +48,9 @@ public final class Context {
       users.add(new UserContext(user, view, controller));
     }
     return users;
+  }
+
+  public View getView() {
+    return view;
   }
 }

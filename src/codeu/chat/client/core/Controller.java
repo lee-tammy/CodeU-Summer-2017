@@ -14,18 +14,23 @@
 
 package codeu.chat.client.core;
 
+import java.util.Collection;
+
 import codeu.chat.common.BasicController;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
 import codeu.chat.common.User;
+import codeu.chat.common.Type;
+import codeu.chat.common.InterestStatus;
+
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
 import codeu.chat.util.connections.ConnectionSource;
 
-final class Controller implements BasicController {
+public final class Controller implements BasicController {
 
   private final static Logger.Log LOG = Logger.newLog(Controller.class);
 
@@ -33,6 +38,10 @@ final class Controller implements BasicController {
 
   public Controller(ConnectionSource source) {
     this.source = source;
+  }
+
+  public ConnectionSource getSource(){
+    return source;
   }
 
   @Override
@@ -108,4 +117,61 @@ final class Controller implements BasicController {
 
     return response;
   }
+
+  public void newInterest(Uuid userId, Uuid interestId, Type
+      interestType){
+
+    try (final Connection connection = this.source.connect()) {
+      Serializers.INTEGER.write(connection.out(),
+          NetworkCode.NEW_INTEREST_REQUEST);
+      Uuid.SERIALIZER.write(connection.out(), userId);
+      Uuid.SERIALIZER.write(connection.out(), interestId);
+      Type.SERIALIZER.write(connection.out(), interestType);
+
+      if(Serializers.INTEGER.read(connection.in()) !=
+          NetworkCode.NEW_INTEREST_RESPONSE){
+        LOG.error("Response from server failed.");
+      }
+                 
+    }catch(Exception ex){
+      LOG.error(ex, "Exception during call on server.");
+    }
+  }
+
+  public void removeInterest(Uuid userId, Uuid interestId){
+
+    try (final Connection connection = source.connect()) {
+      Serializers.INTEGER.write(connection.out(),
+          NetworkCode.REMOVE_INTEREST_REQUEST);
+      Uuid.SERIALIZER.write(connection.out(), userId);
+      Uuid.SERIALIZER.write(connection.out(), interestId);           
+      if(Serializers.INTEGER.read(connection.in()) !=
+          NetworkCode.REMOVE_INTEREST_RESPONSE){
+        LOG.error("Response from server failed.");
+      }
+    }catch(Exception ex){
+      LOG.error(ex, "Exception during call on server.");
+    } 
+  }
+
+  public Collection<InterestStatus> statusUpdate(UserContext user){
+    Collection<InterestStatus> allInterests = null;
+    try (final Connection connection = source.connect()) {
+      Serializers.INTEGER.write(connection.out(),
+          NetworkCode.INTEREST_STATUS_REQUEST);
+      Uuid.SERIALIZER.write(connection.out(), user.user.id);
+      if(Serializers.INTEGER.read(connection.in()) ==
+          NetworkCode.INTEREST_STATUS_RESPONSE){
+        allInterests = 
+            Serializers.collection(InterestStatus.SERIALIZER).read(connection.in());
+      }
+      else {
+        LOG.error("Response from server failed.");
+      }
+    }catch(Exception ex){
+      LOG.error(ex, "Exception during call on server."); 
+    }
+    return allInterests;
+  }
+
 }

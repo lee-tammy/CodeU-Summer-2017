@@ -95,7 +95,7 @@ final class ServerMain {
                         new NoOpRelay() :
                         new RemoteRelay(relaySource);
 
-    Server server = new Server(id, secret, relay);
+    final Server server = new Server(id, secret, relay);
 
     LOG.info("Created server.");
 

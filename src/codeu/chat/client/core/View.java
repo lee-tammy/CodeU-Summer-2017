@@ -45,6 +45,10 @@ final class View implements BasicView {
     this.source = source;
   }
 
+  public ConnectionSource getSource() {
+    return source;
+  }
+
   @Override
   public Collection<User> getUsers() {
 
@@ -78,7 +82,8 @@ final class View implements BasicView {
       Serializers.INTEGER.write(connection.out(), NetworkCode.GET_ALL_CONVERSATIONS_REQUEST);
 
       if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_ALL_CONVERSATIONS_RESPONSE) {
-        summaries.addAll(Serializers.collection(ConversationHeader.SERIALIZER).read(connection.in()));
+        summaries
+            .addAll(Serializers.collection(ConversationHeader.SERIALIZER).read(connection.in()));
       } else {
         LOG.error("Response from server failed.");
       }
@@ -101,8 +106,10 @@ final class View implements BasicView {
       Serializers.INTEGER.write(connection.out(), NetworkCode.GET_CONVERSATIONS_BY_ID_REQUEST);
       Serializers.collection(Uuid.SERIALIZER).write(connection.out(), ids);
 
-      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_CONVERSATIONS_BY_ID_RESPONSE) {
-        conversations.addAll(Serializers.collection(ConversationPayload.SERIALIZER).read(connection.in()));
+      if (Serializers.INTEGER
+          .read(connection.in()) == NetworkCode.GET_CONVERSATIONS_BY_ID_RESPONSE) {
+        conversations
+            .addAll(Serializers.collection(ConversationPayload.SERIALIZER).read(connection.in()));
       } else {
         LOG.error("Response from server failed.");
       }

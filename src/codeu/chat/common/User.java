@@ -17,6 +17,7 @@ package codeu.chat.common;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Objects;
 
 import codeu.chat.util.Serializer;
 import codeu.chat.util.Serializers;
@@ -26,7 +27,6 @@ import codeu.chat.util.Uuid;
 public final class User {
 
   public static final Serializer<User> SERIALIZER = new Serializer<User>() {
-
     @Override
     public void write(OutputStream out, User value) throws IOException {
 
@@ -39,11 +39,9 @@ public final class User {
     @Override
     public User read(InputStream in) throws IOException {
 
-      return new User(
-          Uuid.SERIALIZER.read(in),
-          Serializers.STRING.read(in),
-          Time.SERIALIZER.read(in)
-      );
+      return new User(Uuid.SERIALIZER.read(in),
+                      Serializers.STRING.read(in),
+                      Time.SERIALIZER.read(in));
 
     }
   };
@@ -58,5 +56,21 @@ public final class User {
     this.name = name;
     this.creation = creation;
 
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(id, name, creation);
+  }
+
+  @Override
+  public String toString() {
+    StringBuilder result = new StringBuilder();
+    result.append("Username: ");
+    result.append(name);
+    result.append("\tTime of creation: ");
+    result.append(creation.toString());
+    result.append("\n");
+    return result.toString();
   }
 }

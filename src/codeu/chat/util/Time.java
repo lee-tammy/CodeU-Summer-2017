@@ -45,9 +45,13 @@ public final class Time implements Comparable<Time> {
 
   private final Date date;
 
-  private Time(long totalMs) { this.date = new Date(totalMs); }
+  private Time(long totalMs) {
+    this.date = new Date(totalMs);
+  }
 
-  public long inMs() { return date.getTime(); }
+  public long inMs() {
+    return date.getTime();
+  }
 
   @Override
   public int compareTo(Time other) {
@@ -62,6 +66,29 @@ public final class Time implements Comparable<Time> {
   public String toString() {
     return formatter.format(date);
   }
+
+  public static Time fromMs(long ms) {
+    return new Time(ms);
+  }
+
+  public static Time now() {
+    return Time.fromMs(System.currentTimeMillis());
+  }
+
+  @Override
+  public boolean equals(Object other) {
+    if (other == null)
+      return false;
+    if (!(other instanceof Time))
+      return false;
+    Time that = (Time) other;
+    return this.inMs() == that.inMs();
+  }
+
+  @Override
+  public int hashCode() {
+    return new Long(inMs()).hashCode();
+  }
   
   public static Time parse(String s) {
 	try {
@@ -71,10 +98,6 @@ public final class Time implements Comparable<Time> {
 	}
 	  return Time.now();
   }
-
-  public static Time fromMs(long ms) { return new Time(ms); }
-
-  public static Time now() { return Time.fromMs(System.currentTimeMillis()); }
 
   // Difference of end and start times.
   public static Time duration(Time start, Time end) {

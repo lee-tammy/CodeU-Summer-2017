@@ -24,16 +24,17 @@ import java.util.Map;
 
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
+import codeu.chat.common.InterestStatus;
 import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
 import codeu.chat.common.Relay;
 import codeu.chat.common.Secret;
+import codeu.chat.common.Type;
 import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.ServerLog;
-import codeu.chat.util.Time;
 import codeu.chat.util.Timeline;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
@@ -66,7 +67,6 @@ public final class Server {
 
   public Server(final Uuid id, final Secret secret, final Relay relay) {
 
-
     this.id = id;
     this.secret = secret;
     this.controller = new Controller(id, model);
@@ -89,14 +89,7 @@ public final class Server {
     this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
       public void onMessage(InputStream in, OutputStream out) throws IOException {
         Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
-        Uuid.SERIALIZER.write(out, info.version);
-      }
-    });
-
-    this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
-      public void onMessage(InputStream in, OutputStream out) throws IOException {
-        Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
-        Uuid.SERIALIZER.write(out, info.version);
+        ServerInfo.SERIALIZER.write(out, info);
       }
     });
 
@@ -134,65 +127,122 @@ public final class Server {
     // New Conversation - A client wants to add a new conversation to the back
     // end.
     this.commands.put(NetworkCode.NEW_CONVERSATION_REQUEST, new Command() {
-  @Override
-  public void onMessage(InputStream in, OutputStream out) throws IOException {
- 
-    final String title = Serializers.STRING.read(in);
-    final Uuid owner = Uuid.SERIALIZER.read(in);
-    final ConversationHeader conversation = controller.newConversation(title, owner);
+      @Override
+      public void onMessage(InputStream in, OutputStream out) throws IOException {
 
-    Serializers.INTEGER.write(out, NetworkCode.NEW_CONVERSATION_RESPONSE);
-    Serializers.nullable(ConversationHeader.SERIALIZER).write(out, conversation);
-  }
-  });
+        final String title = Serializers.STRING.read(in);
+        final Uuid owner = Uuid.SERIALIZER.read(in);
+        final ConversationHeader conversation = controller.newConversation(title, owner);
 
-  // Get Users - A client wants to get all the users from the back end.
-  this.commands.put(NetworkCode.GET_USERS_REQUEST, new Command() {
-  @Override
-  public void onMessage(InputStream in, OutputStream out) throws IOException {
+        Serializers.INTEGER.write(out, NetworkCode.NEW_CONVERSATION_RESPONSE);
+        Serializers.nullable(ConversationHeader.SERIALIZER).write(out, conversation);
+      }
+    });
 
-    final Collection<User> users = view.getUsers();
+    // Get Users - A client wants to get all the users from the back end.
+    this.commands.put(NetworkCode.GET_USERS_REQUEST, new Command() {
+      @Override
+      public void onMessage(InputStream in, OutputStream out) throws IOException {
 
-    Serializers.INTEGER.write(out, NetworkCode.GET_USERS_RESPONSE);
-    Serializers.collection(User.SERIALIZER).write(out, users);
-  }
-  });
+        final Collection<User> users = view.getUsers();
 
-  // Get Conversations - A client wants to get all the conversations from the
-  // back end.
-  this.commands.put(NetworkCode.GET_ALL_CONVERSATIONS_REQUEST, new Command() {
-  @Override
-  public void onMessage(InputStream in, OutputStream out) throws IOException {
+        Serializers.INTEGER.write(out, NetworkCode.GET_USERS_RESPONSE);
+        Serializers.collection(User.SERIALIZER).write(out, users);
+      }
+    });
 
-    final Collection<ConversationHeader> conversations = view.getConversations();
+    // Get Conversations - A client wants to get all the conversations from the
+    // back end.
+    this.commands.put(NetworkCode.GET_ALL_CONVERSATIONS_REQUEST, new Command() {
+      @Override
+      public void onMessage(InputStream in, OutputStream out) throws IOException {
 
-    Serializers.INTEGER.write(out, NetworkCode.GET_ALL_CONVERSATIONS_RESPONSE);
-    Serializers.collection(ConversationHeader.SERIALIZER).write(out, conversations);
-  }
-  });
+        final Collection<ConversationHeader> conversations = view.getConversations();
 
-  // Get Conversations By Id - A client wants to get a subset of the
-  // converations from
-  // the back end. Normally this will be done after calling
-  // Get Conversations to get all the headers and now the client
-  // wants to get a subset of the payloads.
-  this.commands.put(NetworkCode.GET_CONVERSATIONS_BY_ID_REQUEST, new Command() {
-  @Override
-  public void onMessage(InputStream in, OutputStream out) throws IOException {
+        Serializers.INTEGER.write(out, NetworkCode.GET_ALL_CONVERSATIONS_RESPONSE);
+        Serializers.collection(ConversationHeader.SERIALIZER).write(out, conversations);
+      }
+    });
 
-    final Collection<Uuid> ids = Serializers.collection(Uuid.SERIALIZER).read(in);
-    final Collection<ConversationPayload> conversations = view.getConversationPayloads(ids);
+    // Get Conversations By Id - A client wants to get a subset of the
+    // converations from the back end. Normally this will be done after calling
+    // Get Conversations to get all the headers and now the client wants to get
+    // a subset of the payloads.
+    this.commands.put(NetworkCode.GET_CONVERSATIONS_BY_ID_REQUEST, new Command() {
+      @Override
+      public void onMessage(InputStream in, OutputStream out) throws IOException {
 
-    Serializers.INTEGER.write(out, NetworkCode.GET_CONVERSATIONS_BY_ID_RESPONSE);
-    Serializers.collection(ConversationPayload.SERIALIZER).write(out, conversations);
-  }
-  });
-      
-  this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
-  @Override
-    public void onMessage(InputStream in, OutputStream out) throws IOException {
-        Serializers.INTEGER.write(out, NetworkCode.SERVER_INFO_RESPONSE);
-        Time.SERIALIZER.write(out, info.startTime);
+        final Collection<Uuid> ids = Serializers.collection(Uuid.SERIALIZER).read(in);
+        final Collection<ConversationPayload> conversations = view.getConversationPayloads(ids);
+
+        Serializers.INTEGER.write(out, NetworkCode.GET_CONVERSATIONS_BY_ID_RESPONSE);
+        Serializers.collection(ConversationPayload.SERIALIZER).write(out, conversations);
+      }
+    });
+
+    this.commands.put(NetworkCode.GET_USER_BY_ID_REQUEST, new Command() {
+      @Override
+      public void onMessage(InputStream in, OutputStream out) throws IOException {
+
+        final Uuid userId = Uuid.SERIALIZER.read(in);
+
+        Serializers.INTEGER.write(out, NetworkCode.GET_USER_BY_ID_RESPONSE);
+        User.SERIALIZER.write(out, controller.userById(userId));
+      }
+    });
+
+    this.commands.put(NetworkCode.GET_CONVERSATION_HEADER_BY_ID_REQUEST, new Command() {
+      @Override
+      public void onMessage(InputStream in, OutputStream out) throws IOException {
+
+        final Uuid id = Uuid.SERIALIZER.read(in);
+
+        Serializers.INTEGER.write(out, NetworkCode.GET_USER_BY_ID_RESPONSE);
+        ConversationHeader.SERIALIZER.write(out, controller.conversationHeaderById(id));
+      }
+    });
+
+    // Get Messages By Id - A client wants to get a subset of the messages from
+    // the back end.
+    this.commands.put(NetworkCode.GET_MESSAGES_BY_ID_REQUEST, new Command() {
+      @Override
+      public void onMessage(InputStream in, OutputStream out) throws IOException {
+
+        final Collection<Uuid> ids = Serializers.collection(Uuid.SERIALIZER).read(in);
+        final Collection<Message> messages = view.getMessages(ids);
+
+        Serializers.INTEGER.write(out, NetworkCode.GET_MESSAGES_BY_ID_RESPONSE);
+        Serializers.collection(Message.SERIALIZER).write(out, messages);
+      }
+    });
+
+    this.commands.put(NetworkCode.NEW_INTEREST_REQUEST, new Command() {
+      public void onMessage(InputStream in, OutputStream out) throws IOException {
+        final Uuid userId = Uuid.SERIALIZER.read(in);
+        final Uuid interestId = Uuid.SERIALIZER.read(in);
+        final Type interestType = Type.SERIALIZER.read(in);
+
+        controller.addInterest(userId, interestId, interestType);
+        Serializers.INTEGER.write(out, NetworkCode.NEW_INTEREST_RESPONSE);
+      }
+    });
+
+    this.commands.put(NetworkCode.REMOVE_INTEREST_REQUEST, new Command() {
+      public void onMessage(InputStream in, OutputStream out) throws IOException {
+        final Uuid userId = Uuid.SERIALIZER.read(in);
+        final Uuid interestId = Uuid.SERIALIZER.read(in);
+
+        controller.removeInterest(userId, interestId);
+        Serializers.INTEGER.write(out, NetworkCode.REMOVE_INTEREST_RESPONSE);
+      }
+    });
+
+    this.commands.put(NetworkCode.INTEREST_STATUS_REQUEST, new Command() {
+      public void onMessage(InputStream in, OutputStream out) throws IOException {
+        final Uuid userId = Uuid.SERIALIZER.read(in);
+        Serializers.INTEGER.write(out, NetworkCode.INTEREST_STATUS_RESPONSE);
+        Serializers.collection(InterestStatus.SERIALIZER).write(out,
+                                                                controller.interestStatus(userId));
       }
     });
 
@@ -200,14 +250,20 @@ public final class Server {
       @Override
       public void run() {
         try {
+
           LOG.info("Reading update from relay...");
+
           for (final Relay.Bundle bundle : relay.read(id, secret, lastSeen, 32)) {
             onBundle(bundle);
             lastSeen = bundle.id();
           }
+
         } catch (Exception ex) {
+
           LOG.error(ex, "Failed to read update from relay.");
+
         }
+
         timeline.scheduleIn(RELAY_REFRESH_MS, this);
       }
     });
@@ -215,34 +271,35 @@ public final class Server {
 
   public void handleConnection(final Connection connection) {
     timeline.scheduleNow(new Runnable() {
-    @Override
-    public void run() {
-      try {
+      @Override
+      public void run() {
+        try {
 
-        LOG.info("Handling connection...");
+          LOG.info("Handling connection...");
 
-        final int type = Serializers.INTEGER.read(connection.in());
-        final Command command = commands.get(type);
+          final int type = Serializers.INTEGER.read(connection.in());
+          final Command command = commands.get(type);
 
-        if (command == null) {
-          // The message type cannot be handled so return a dummy message.
-          Serializers.INTEGER.write(connection.out(), NetworkCode.NO_MESSAGE);
-          LOG.info("Connection rejected");
-        } else {
-          command.onMessage(connection.in(), connection.out());
-          LOG.info("Connection accepted");
+          if (command == null) {
+            // The message type cannot be handled so return a dummy message.
+            Serializers.INTEGER.write(connection.out(), NetworkCode.NO_MESSAGE);
+            LOG.info("Connection rejected");
+          } else {
+            command.onMessage(connection.in(), connection.out());
+            LOG.info("Connection accepted");
+          }
+
+        } catch (Exception ex) {
+
+          LOG.error(ex, "Exception while handling connection.");
+
         }
 
-      } catch (Exception ex) {
-
-        LOG.error(ex, "Exception while handling connection.");
-      }
-
-      try {
-        connection.close();
-      } catch (Exception ex) {
-        LOG.error(ex, "Exception while closing connection.");
-      }
+        try {
+          connection.close();
+        } catch (Exception ex) {
+          LOG.error(ex, "Exception while closing connection.");
+        }
       }
     });
   }
@@ -263,9 +320,9 @@ public final class Server {
 
     if (conversation == null) {
 
-      // As the relay does not tell us who made the conversation - the first person who
-      // has a message in the conversation will get ownership over this server's copy
-      // of the conversation.
+      // As the relay does not tell us who made the conversation - the first
+      // person who has a message in the conversation will get ownership over
+      // this server's copy of the conversation.
       conversation = controller.newConversation(relayConversation.id(),
                                                 relayConversation.text(),
                                                 user.id,
