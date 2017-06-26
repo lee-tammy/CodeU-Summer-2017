@@ -214,20 +214,14 @@ public final class Server {
       @Override
       public void run() {
         try {
-
           LOG.info("Reading update from relay...");
-
           for (final Relay.Bundle bundle : relay.read(id, secret, lastSeen, 32)) {
             onBundle(bundle);
             lastSeen = bundle.id();
           }
-
         } catch (Exception ex) {
-
           LOG.error(ex, "Failed to read update from relay.");
-
         }
-
         timeline.scheduleIn(RELAY_REFRESH_MS, this);
       }
     });
