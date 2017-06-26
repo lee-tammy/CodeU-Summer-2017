@@ -199,4 +199,20 @@ public final class Controller implements RawController, BasicController {
 
   private boolean isIdFree(Uuid id) { return !isIdInUse(id); }
 
+  /**
+   * Getter method for writeToLog
+   * @return boolean if we should write to log or no
+   */
+  public boolean getWriteToLog() {
+    return writeToLog;
+  }
+
+  /**
+   * Setter method for writeToLOg
+   * @param write the new update for writeToLog
+   */
+  public void setWriteToLog(boolean write) {
+    writeToLog = write;
+  }
+
 }
