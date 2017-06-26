@@ -83,7 +83,7 @@ public final class Server {
     this.controller = new Controller(id, model);
     this.relay = relay;
     
-    codeu.chat.server.Controller.writeToLog = false;
+    codeu.chat.server.Controller.setWriteToLog(false);
 
     info = new ServerInfo();
     version = new ServerVersion();
@@ -96,7 +96,7 @@ public final class Server {
     
     // once we are done reading in old data from the log
     // we set this to true so that new data is written to the log
-    codeu.chat.server.Controller.writeToLog = true;
+    codeu.chat.server.Controller.setWriteToLog(true);
 
     this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
       public void onMessage(InputStream in, OutputStream out) throws IOException {
