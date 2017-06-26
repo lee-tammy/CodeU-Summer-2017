@@ -43,7 +43,7 @@ public final class Controller implements RawController, BasicController {
   private PrintWriter output;
   private static boolean writeToLog;
 
-  public Controller(Uuid serverId, Model model) throws IOException {
+  public Controller(Uuid serverId, Model model) {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
     try {
