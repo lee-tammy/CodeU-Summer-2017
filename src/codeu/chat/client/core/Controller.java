@@ -121,19 +121,19 @@ public final class Controller implements BasicController {
     return response;
   }
 
-  public void newInterest(Uuid userId, Uuid interestId, UserContext user, Type
+  public void newInterest(Uuid userId, Uuid interestId, Type
       interestType){
 
-    try{
-      final Connection connection = user.getSource();
+    try (final Connection connection = this.source.connect()) {
       Serializers.INTEGER.write(connection.out(),
           NetworkCode.NEW_INTEREST_REQUEST);
+      Uuid.SERIALIZER.write(connection.out(), userId);
+      Uuid.SERIALIZER.write(connection.out(), interestId);
+      Type.SERIALIZER.write(connection.out(), interestType);
 
-      if(Serializers.INTEGER.read(connection.in()) ==
+      if(Serializers.INTEGER.read(connection.in()) !=
           NetworkCode.NEW_INTEREST_RESPONSE){
-        Uuid.SERIALIZER.write(connection.out(), userId);
-        Uuid.SERIALIZER.write(connection.out(), interestId);
-        Type.SERIALIZER.write(connection.out(), interestType);
+        LOG.error("Response from server failed.");
       }
                  
     }catch(Exception ex){
@@ -141,37 +141,40 @@ public final class Controller implements BasicController {
     }
   }
 
-  public void removeInterest(Uuid userId, Uuid interestId, UserContext user){
+  public void removeInterest(Uuid userId, Uuid interestId){
 
-    try{
-        final Connection connection = user.getSource();
-        Serializers.INTEGER.write(connection.out(),
-            NetworkCode.REMOVE_INTEREST_REQUEST);
-        Uuid.SERIALIZER.write(connection.out(), userId);
-        Uuid.SERIALIZER.write(connection.out(), interestId);           
+    try (final Connection connection = source.connect()) {
+      Serializers.INTEGER.write(connection.out(),
+          NetworkCode.REMOVE_INTEREST_REQUEST);
+      Uuid.SERIALIZER.write(connection.out(), userId);
+      Uuid.SERIALIZER.write(connection.out(), interestId);           
+      if(Serializers.INTEGER.read(connection.in()) !=
+          NetworkCode.REMOVE_INTEREST_RESPONSE){
+        LOG.error("Response from server failed.");
+      }
     }catch(Exception ex){
       LOG.error(ex, "Exception during call on server.");
     } 
-     
   }
 
   public Collection<InterestStatus> statusUpdate(UserContext user){
-    try{
-      final Connection connection = user.getSource();
+    Collection<InterestStatus> allInterests = null;
+    try (final Connection connection = source.connect()) {
       Serializers.INTEGER.write(connection.out(),
           NetworkCode.INTEREST_STATUS_REQUEST);
+      Uuid.SERIALIZER.write(connection.out(), user.user.id);
       if(Serializers.INTEGER.read(connection.in()) ==
           NetworkCode.INTEREST_STATUS_RESPONSE){
-          
-        Collection<InterestStatus> allInterests = 
+        allInterests = 
             Serializers.collection(InterestStatus.SERIALIZER).read(connection.in());
-        return allInterests;
+      }
+      else {
+        LOG.error("Response from server failed.");
       }
     }catch(Exception ex){
       LOG.error(ex, "Exception during call on server."); 
     }
-  
-    return null;
+    return allInterests;
   }
 
 }

@@ -3,7 +3,6 @@ package codeu.chat.common;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.List;
 
 import codeu.chat.util.Serializer;
@@ -22,6 +21,7 @@ public class InterestStatus {
       Serializers.nullable(Serializers.collection(Serializers.STRING))
           .write(out, value.addedConversations);
       Type.SERIALIZER.write(out, value.type);
+      Serializers.STRING.write(out, value.name);
     }
 
     public InterestStatus read(InputStream in) throws IOException {
@@ -32,8 +32,9 @@ public class InterestStatus {
       List<String> addedConversations = (List<String>) Serializers
           .nullable(Serializers.collection(Serializers.STRING)).read(in);
       Type type = Type.SERIALIZER.read(in);
+      String name = Serializers.STRING.read(in);
       return new InterestStatus(id, unreadMessages, newConversations,
-          addedConversations, type);
+          addedConversations, type, name);
     }
   };
 
@@ -48,23 +49,26 @@ public class InterestStatus {
   public final List<String> addedConversations;
   // The type of the interest.
   public final Type type;
+  // The name of the conversation or the User
+  public final String name;
 
   public InterestStatus(Uuid id, int unreadMessages,
       List<String> newConversations, List<String> addedConversations,
-      Type type) {
+      Type type, String name) {
     this.id = id;
     this.unreadMessages = unreadMessages;
     this.newConversations = newConversations;
     this.addedConversations = addedConversations;
     this.type = type;
+    this.name = name;
   }
 
-  public InterestStatus(Uuid id, int unreadMessages) {
-    this(id, unreadMessages, null, null, Type.CONVERSATION);
+  public InterestStatus(Uuid id, int unreadMessages, String name) {
+    this(id, unreadMessages, null, null, Type.CONVERSATION, name);
   }
 
   public InterestStatus(Uuid id, List<String> newConversations,
-      List<String> addedConversations) {
-    this(id, -1, newConversations, addedConversations, Type.USER);
+      List<String> addedConversations, String name) {
+    this(id, -1, newConversations, addedConversations, Type.USER, name);
   }
 }

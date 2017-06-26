@@ -278,8 +278,6 @@ public final class Chat {
           final ConversationContext conversation = user.start(name);
           if (conversation == null) {
             System.out.println("ERROR: Failed to create new conversation");
-          } else {
-            panels.push(createConversationPanel(conversation));
           }
         } else {
           System.out.println("ERROR: Missing <title>");
@@ -321,37 +319,33 @@ public final class Chat {
       @Override
       public void invoke(Scanner args){
         Type type = Type.USER;
-        int argNum = 0;
+        ArrayList<String> arguments = new ArrayList<>();
   
         while(args.hasNextLine()){
-          args.nextLine();
-          argNum++;
+          arguments.add(args.next().toLowerCase().trim());
         }
 
-        if(argNum == 2){ 
+        if(arguments.size() == 2){ 
           
-          // Determines if an user or conversation will be added to the interest
+          // First arguments etermines if an user or conversation will be added to the interest
           // system
-          String firstArg = args.nextLine().toLowerCase().trim();
-          // Determines if the username or conversation name exists
-          final String secondArg = args.nextLine().toLowerCase().trim();
-          final UserContext userInterest = findUser(secondArg, context); 
+          // Seconds argument determines if the username or conversation name exists
+          final UserContext userInterest = findUser(arguments.get(1), context); 
           final Uuid userId = user.user.id;         
-          final ConversationContext convoInterest = find(secondArg, user);
+          final ConversationContext convoInterest = find(arguments.get(1), user);
 
-          if(firstArg == "u"){
+          if(arguments.get(0).equals("u")){
             type = Type.USER;
             if(userInterest != null){
-              user.getController().newInterest(userId, userInterest.user.id, 
-                  user, type);
+              user.getController().newInterest(userId, userInterest.user.id, type);
             }else{
               System.out.format("ERROR: '%s' does not exist", userInterest);
             }
-          }else if(firstArg == "c"){
+          }else if(arguments.get(0).equals("c")){
             if(convoInterest != null){
               type = Type.CONVERSATION;
               user.getController().newInterest(userId,
-                  convoInterest.conversation.id, user, type);  
+                  convoInterest.conversation.id, type);  
             }else{
               System.out.format("ERROR: '%s' does not exist", convoInterest);
             }
@@ -375,36 +369,29 @@ public final class Chat {
     panel.register("i-remove", new Panel.Command(){
       @Override
       public void invoke(Scanner args){
-        Type type = Type.USER;
-        int argNum = 0;        
 
+        ArrayList<String> arguments = new ArrayList<String>();
         while(args.hasNextLine()){
-          args.nextLine();
-          argNum++;
+          arguments.add(args.next().toLowerCase().trim());
         }
 
-        if(argNum == 2){
+        if(arguments.size() == 2){
  
-          String firstArg = args.nextLine().toLowerCase().trim();
-          final String secondArg = args.nextLine().toLowerCase().trim();
-          final UserContext userInterest = findUser(secondArg, context);
-          final ConversationContext convoInterest = find(secondArg, user);
+          final UserContext userInterest = findUser(arguments.get(1), context);
+          final ConversationContext convoInterest = find(arguments.get(1), user);
           final Uuid userId = user.user.id;
 
-          if(firstArg == "u"){
-            type = Type.USER;
+          if(arguments.get(0).equals("u")){
             if(userInterest != null){
-              user.getController().removeInterest(userId, userInterest.user.id,
-                  user);
+              user.getController().removeInterest(userId, userInterest.user.id);
             }else{
               System.out.format("ERROR: '%s' does not exist", userInterest);
             }
-          }else if(firstArg == "c"){
+          }else if(arguments.get(0).equals("c")){
     
             if(convoInterest != null){
-              type = Type.CONVERSATION;
               user.getController().removeInterest(userId,
-                  convoInterest.conversation.id, user);
+                  convoInterest.conversation.id);
             }else{
               System.out.format("ERROR: '%s' does not exist", convoInterest);
             }
@@ -437,24 +424,22 @@ public final class Chat {
           for(InterestStatus interest : allInterests){
 
             if(interest.type == Type.CONVERSATION){
-              System.out.format("Number of unread messages: '%d'",
-                  interest.unreadMessages);
-              System.out.println("===============");
+              System.out.format("Number of unread messages in conversation %s: '%d'\n", 
+                  interest.name, interest.unreadMessages);
 
             }else{
-              System.out.format("Number of new conversations: '%d'",
-                  interest.newConversations.size());
+              System.out.format("Number of new conversations by user %s: '%d'\n",
+                  interest.name, interest.newConversations.size());
               for(int j = 0; j < interest.newConversations.size(); j++){
                 System.out.println(" " + interest.newConversations.get(j));
               }
-              System.out.println(" - - - - - - - -");
-              System.out.format("Number of recent conversations: '%d'",
-                  interest.addedConversations.size());
+              System.out.format("Number of conversations the user %s contributed to: '%d'\n",
+                  interest.name, interest.addedConversations.size());
               for(int k = 0; k < interest.addedConversations.size(); k++){  
                 System.out.println(" " + interest.addedConversations.get(k));
               }
-              System.out.println("===============");
             }
+            System.out.println("===============");
           }
         }
       }

@@ -72,7 +72,7 @@ public final class Controller implements RawController, BasicController {
 
     if (foundUser != null && foundConversation != null && isIdFree(id)) {
 
-      message = new Message(id, Uuid.NULL, Uuid.NULL, creationTime, author, body, conversation);
+      message = new Message(id, Uuid.NULL, foundConversation.lastMessage, creationTime, author, body, conversation);
       model.add(message);
       LOG.info("Message added: %s", message.id);
 
@@ -84,6 +84,8 @@ public final class Controller implements RawController, BasicController {
         // The conversation has no messages in it, that's why the last message is NULL (the first
         // message should be NULL too. Since there is no last message, then it is not possible
         // to update the last message's "next" value.
+        foundConversation.firstMessage = message.id;
+        foundConversation.lastMessage = message.id;
 
       } else {
         final Message lastMessage = model.messageById().first(foundConversation.lastMessage);
@@ -93,11 +95,6 @@ public final class Controller implements RawController, BasicController {
       // If the first message points to NULL it means that the conversation was empty and that
       // the first message should be set to the new message. Otherwise the message should
       // not change.
-
-      foundConversation.firstMessage =
-        Uuid.equals(foundConversation.firstMessage, Uuid.NULL) ?
-        message.id :
-        foundConversation.firstMessage;
 
       // Update the conversation to point to the new last message as it has changed.
 
@@ -210,19 +207,22 @@ public final class Controller implements RawController, BasicController {
       List<String> addedConversations = new ArrayList<>();
       for (Message message : messages) {
         if (!message.author.equals(user.id)) continue;
-        addedConversations.add(model.conversationById().first(message.conversationHeader).title);
+        String conversation = model.conversationById().first(message.conversationHeader).title;
+        if (addedConversations.contains(conversation)) continue;
+        addedConversations.add(conversation);
       }
       
-      result = new InterestStatus(id, createdConversations, addedConversations);
+      result = new InterestStatus(id, createdConversations, addedConversations, user.name);
     } else if (interest.type == Type.CONVERSATION) {
       ConversationPayload payload = model.conversationPayloadById().first(id);
+      String title = model.conversationById().first(id).title;
       Message last = model.messageById().first(payload.lastMessage);
       int total = 0;
       while (last != null && last.creation.compareTo(lastUpdate) > 0) {
         total++;
         last = model.messageById().first(last.previous);
       }
-      result = new InterestStatus(id, total);
+      result = new InterestStatus(id, total, title);
     }
     interest.lastUpdate = now;
     return result;
