@@ -40,16 +40,16 @@ public final class Controller implements RawController, BasicController {
   private final Model model;
   private final Uuid.Generator uuidGenerator;
 
-  public PrintWriter output;
-  public static boolean writeToLog;
+  private PrintWriter output;
+  private static boolean writeToLog;
 
   public Controller(Uuid serverId, Model model) throws IOException {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
     try {
-      output = new PrintWriter(new BufferedWriter(new FileWriter(ServerLog.createFilePath(), true) ) );
+      output = new PrintWriter(new BufferedWriter(new FileWriter(ServerLog.createFilePath(), true)));
       output.flush();
-    }catch (FileNotFoundException e){
+    } catch (Exception e) {
       e.printStackTrace();
     }
   }
@@ -111,7 +111,7 @@ public final class Controller implements RawController, BasicController {
       foundConversation.lastMessage = message.id;
     }
     
-    if(writeToLog) {
+    if (writeToLog) {
       output.println("M_" + author + "_" + id + "_" + conversation +  "_" +
             creationTime + "_" + body);
       output.flush();
@@ -145,7 +145,7 @@ public final class Controller implements RawController, BasicController {
           creationTime);
     }
     
-    if(writeToLog) {
+    if (writeToLog) {
       output.println("U_" + name + "_" + user.id + "_" + creationTime);
       output.flush();
     }

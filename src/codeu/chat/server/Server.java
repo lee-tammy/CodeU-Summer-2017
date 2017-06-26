@@ -75,8 +75,8 @@ public final class Server {
 
 
   public Server(final Uuid id, final Secret secret, final Relay relay) throws IOException {
-  private static ServerInfo info;
-  public PrintWriter output;
+    private static ServerInfo info;
+    private PrintWriter output;
 
     this.id = id;
     this.secret = secret;
@@ -87,13 +87,6 @@ public final class Server {
 
     info = new ServerInfo();
     version = new ServerVersion();
-
-//    try {
-//      output = new PrintWriter(new FileWriter(ServerLog.createFilePath(), true));
-//      output.flush();
-//    }catch (FileNotFoundException e){
-//      e.printStackTrace();
-//    }
    
     // create new log file
     ServerLog log = new ServerLog(new File(ServerLog.createFilePath()));
@@ -331,7 +324,7 @@ public final class Server {
 
   // checks if the server needs restoring
   private void restore(ServerLog log, Controller controller) {
-	for(int i = 0; i < log.getLength(); i++) {
+	for (int i = 0; i < log.getLength(); i++) {
       // reading each line of log
       log.readLine(i, controller);		
     }
