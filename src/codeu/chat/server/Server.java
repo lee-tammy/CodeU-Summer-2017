@@ -324,7 +324,7 @@ public final class Server {
 
   // checks if the server needs restoring
   private void restore(ServerLog log, Controller controller) {
-	for (int i = 0; i < log.getLength(); i++) {
+    for (int i = 0; i < log.getLength(); i++) {
       // reading each line of log
       log.readLine(i, controller);		
     }

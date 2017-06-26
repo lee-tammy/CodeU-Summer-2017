@@ -166,7 +166,7 @@ public final class Controller implements RawController, BasicController {
       LOG.info("Conversation added: " + id);
     }
     
-    if(writeToLog) {
+    if (writeToLog) {
       output.println("C_" + title + "_" + id + "_" + owner + "_" + creationTime);
       output.flush();
     }
