@@ -237,7 +237,7 @@ public final class Chat {
         System.out.println("  i-remove <u for user or c for conversation>" + 
             " <username or title>.");
         System.out.println("    Remove interest");
-        System.out.println("  i-status");
+        System.out.println("  status-update");
         System.out.println("    Get status of interests");
         System.out.println("  info");
         System.out.println("    Display all info for the current user");
@@ -305,9 +305,6 @@ public final class Chat {
           System.out.println("ERROR: Missing <title>");
         }
       }
-
-      // Find the first conversation with the given name and return its context.
-      // If no conversation has the given name, this will return null.
     });
 
     // C-FOLLOW (follows an interest)
@@ -327,9 +324,6 @@ public final class Chat {
 
         if(arguments.size() == 2){ 
           
-          // First arguments etermines if an user or conversation will be added to the interest
-          // system
-          // Seconds argument determines if the username or conversation name exists
           final UserContext userInterest = findUser(arguments.get(1), context); 
           final Uuid userId = user.user.id;         
           final ConversationContext convoInterest = find(arguments.get(1), user);
@@ -339,7 +333,7 @@ public final class Chat {
             if(userInterest != null){
               user.getController().newInterest(userId, userInterest.user.id, type);
             }else{
-              System.out.format("ERROR: '%s' does not exist", userInterest);
+              System.out.format("ERROR: '%s' does not exist", arguments.get(1));
             }
           }else if(arguments.get(0).equals("c")){
             if(convoInterest != null){
@@ -347,7 +341,7 @@ public final class Chat {
               user.getController().newInterest(userId,
                   convoInterest.conversation.id, type);  
             }else{
-              System.out.format("ERROR: '%s' does not exist", convoInterest);
+              System.out.format("ERROR: '%s' does not exist", arguments.get(1));
             }
 
           }else{
@@ -385,7 +379,7 @@ public final class Chat {
             if(userInterest != null){
               user.getController().removeInterest(userId, userInterest.user.id);
             }else{
-              System.out.format("ERROR: '%s' does not exist", userInterest);
+              System.out.format("ERROR: '%s' does not exist", arguments.get(1));
             }
           }else if(arguments.get(0).equals("c")){
     
@@ -393,7 +387,7 @@ public final class Chat {
               user.getController().removeInterest(userId,
                   convoInterest.conversation.id);
             }else{
-              System.out.format("ERROR: '%s' does not exist", convoInterest);
+              System.out.format("ERROR: '%s' does not exist", arguments.get(1));
             }
           }else{
             System.out.println("ERROR: Wrong format");
@@ -443,7 +437,6 @@ public final class Chat {
           }
         }
       }
-        // Loops through interest system and prints out information
     });
 
     // INFO
