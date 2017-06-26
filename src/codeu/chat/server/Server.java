@@ -14,6 +14,7 @@
 
 package codeu.chat.server;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -33,6 +34,7 @@ import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
+import codeu.chat.util.ServerLog;
 import codeu.chat.util.Timeline;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
@@ -47,7 +49,7 @@ public final class Server {
 
   private static final int RELAY_REFRESH_MS = 5000; // 5 seconds
 
-  private static final ServerInfo info = new ServerInfo();
+  private static ServerInfo info = new ServerInfo();
 
   private final Timeline timeline = new Timeline();
 
@@ -69,6 +71,20 @@ public final class Server {
     this.secret = secret;
     this.controller = new Controller(id, model);
     this.relay = relay;
+    
+    codeu.chat.server.Controller.setWriteToLog(false);
+
+    info = new ServerInfo();
+   
+    // create new log file
+    ServerLog log = new ServerLog(new File(ServerLog.createFilePath()));
+    
+    // check if the server needs to be restored
+    restore(log, this.controller);
+    
+    // once we are done reading in old data from the log
+    // we set this to true so that new data is written to the log
+    codeu.chat.server.Controller.setWriteToLog(true);
 
     this.commands.put(NetworkCode.SERVER_INFO_REQUEST, new Command() {
       public void onMessage(InputStream in, OutputStream out) throws IOException {
@@ -342,4 +358,11 @@ public final class Server {
     };
   }
 
+  // checks if the server needs restoring
+  private void restore(ServerLog log, Controller controller) {
+    for (int i = 0; i < log.getLength(); i++) {
+      // reading each line of log
+      log.readLine(i, controller);
+    }
+  }
 }

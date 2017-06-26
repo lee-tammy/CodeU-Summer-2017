@@ -14,6 +14,9 @@
 
 package codeu.chat.server;
 
+import java.io.PrintWriter;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +33,7 @@ import codeu.chat.common.User;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
+import codeu.chat.util.ServerLog;
 
 public final class Controller implements RawController, BasicController {
 
@@ -38,11 +42,19 @@ public final class Controller implements RawController, BasicController {
   private final Model model;
   private final Uuid.Generator uuidGenerator;
 
+  private PrintWriter output;
+  private static boolean writeToLog;
+
   public Controller(Uuid serverId, Model model) {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
+    try {
+      output = new PrintWriter(new BufferedWriter(new FileWriter(ServerLog.createFilePath(), true)));
+      output.flush();
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
-
   public User userById(Uuid id) {
     return model.userById().first(id);
   }
@@ -111,10 +123,20 @@ public final class Controller implements RawController, BasicController {
       // message should
       // not change.
 
-      // Update the conversation to point to the new last message as it has
-      // changed.
+      foundConversation.firstMessage =
+          Uuid.equals(foundConversation.firstMessage, Uuid.NULL) ?
+          message.id :
+          foundConversation.firstMessage;
+
+      // Update the conversation to point to the new last message as it has changed.
 
       foundConversation.lastMessage = message.id;
+    }
+    
+    if (writeToLog) {
+      output.println("M_" + author + "_" + id + "_" + conversation +  "_" +
+            creationTime + "_" + body);
+      output.flush();
     }
 
     return message;
@@ -130,14 +152,24 @@ public final class Controller implements RawController, BasicController {
       user = new User(id, name, creationTime);
       model.add(user);
 
-      LOG.info("newUser success (user.id=%s user.name=%s user.time=%s)", id, name, creationTime);
+      LOG.info(
+          "newUser success (user.id=%s user.name=%s user.time=%s)",
+          id,
+          name,
+          creationTime);
 
     } else {
 
-      LOG.info("newUser fail - id in use (user.id=%s user.name=%s user.time=%s)",
-               id,
-               name,
-               creationTime);
+      LOG.info(
+          "newUser fail - id in use (user.id=%s user.name=%s user.time=%s)",
+          id,
+          name,
+          creationTime);
+    }
+    
+    if (writeToLog) {
+      output.println("U_" + name + "_" + user.id + "_" + creationTime);
+      output.flush();
     }
 
     return user;
@@ -251,11 +283,13 @@ public final class Controller implements RawController, BasicController {
 
     Uuid candidate;
 
-    for (candidate = uuidGenerator.make(); isIdInUse(candidate); candidate = uuidGenerator.make()) {
+    for (candidate = uuidGenerator.make();
+         isIdInUse(candidate);
+         candidate = uuidGenerator.make()) {
 
-      // Assuming that "randomUuid" is actually well implemented, this
-      // loop should never be needed, but just incase make sure that the
-      // Uuid is not actually in use before returning it.
+     // Assuming that "randomUuid" is actually well implemented, this
+     // loop should never be needed, but just incase make sure that the
+     // Uuid is not actually in use before returning it.
 
     }
 
@@ -263,15 +297,30 @@ public final class Controller implements RawController, BasicController {
   }
 
   private boolean isIdInUse(Uuid id) {
-    return model.messageById().first(id) != null || model.conversationById().first(id) != null
-        || model.userById().first(id) != null;
+    return model.messageById().first(id) != null ||
+           model.conversationById().first(id) != null ||
+           model.userById().first(id) != null;
   }
 
-  private boolean isIdFree(Uuid id) {
-    return !isIdInUse(id);
+  private boolean isIdFree(Uuid id) { return !isIdInUse(id); }
+
+  /**
+   * Getter method for writeToLog
+   * @return boolean if we should write to log or no
+   */
+  public static boolean getWriteToLog() {
+    return writeToLog;
   }
 
-  public ConversationHeader conversationHeaderById(Uuid id) {
+  /**
+   * Setter method for writeToLOg
+   * @param write the new update for writeToLog
+   */
+  public static void setWriteToLog(boolean write) {
+    writeToLog = write;
+  }
+  
+    public ConversationHeader conversationHeaderById(Uuid id) {
     return model.conversationById().first(id);
   }
 

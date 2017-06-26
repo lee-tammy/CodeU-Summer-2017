@@ -14,10 +14,7 @@
 
 package codeu.chat.client.core;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.Thread;
-import java.util.*;
+import java.util.Collection;
 
 import codeu.chat.common.BasicController;
 import codeu.chat.common.ConversationHeader;

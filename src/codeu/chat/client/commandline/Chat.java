@@ -17,7 +17,6 @@ package codeu.chat.client.commandline;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Scanner;
 import java.util.Stack;
 import java.io.IOException;
 
@@ -62,6 +61,12 @@ public final class Chat {
     final Tokenizer tokenizer = new Tokenizer(line);
     for (String token = tokenizer.next(); token != null; token = tokenizer.next()){
       args.add(token);
+    }
+    
+    if (args.size() == 0) {
+      // nothing was actually passed in, trying to get the first command 
+      // by calling args.get(0) will make the program crash  
+      return false;
     }
     final String command = args.get(0);
     args.remove(0);

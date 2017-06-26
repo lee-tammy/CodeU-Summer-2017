@@ -14,16 +14,14 @@
 
 package codeu.chat.client.core;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.io.IOException;
 
-import codeu.chat.util.Logger;
 import codeu.chat.common.BasicController;
 import codeu.chat.common.BasicView;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.User;
-import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
 
 public final class UserContext {

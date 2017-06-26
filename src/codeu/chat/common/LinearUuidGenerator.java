@@ -19,14 +19,14 @@ import codeu.chat.util.Uuid;
 public final class LinearUuidGenerator implements Uuid.Generator {
 
   private final Uuid commonRoot;
-  private final int start;
+//  private final int start;  <- this variable is not actually used?
   private final int end;
 
   private int current;
 
   public LinearUuidGenerator(Uuid root, int start, int end) {
     this.commonRoot = root;
-    this.start = start;
+//    this.start = start;
     this.end = end;
     this.current = start;
   }

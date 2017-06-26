@@ -17,6 +17,7 @@ package codeu.chat.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -39,7 +40,8 @@ public final class Time implements Comparable<Time> {
     }
   };
 
-  private static final SimpleDateFormat formatter = new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss.SSS");
+  private static final SimpleDateFormat formatter =
+      new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss.SSS");
 
   private final Date date;
 
@@ -86,6 +88,15 @@ public final class Time implements Comparable<Time> {
   @Override
   public int hashCode() {
     return new Long(inMs()).hashCode();
+  }
+  
+  public static Time parse(String s) {
+	try {
+	  return new Time(formatter.parse(s).getTime());
+	} catch (ParseException e) {
+	  e.printStackTrace();
+	}
+	  return Time.now();
   }
 
   // Difference of end and start times.
