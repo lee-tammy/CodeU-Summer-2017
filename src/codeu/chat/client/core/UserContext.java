@@ -16,7 +16,9 @@ package codeu.chat.client.core;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.io.IOException;
 
+import codeu.chat.util.Logger;
 import codeu.chat.common.BasicController;
 import codeu.chat.common.BasicView;
 import codeu.chat.common.ConversationHeader;
@@ -36,12 +38,17 @@ public final class UserContext {
     this.controller = controller;
   }
 
-  public Connection getSource(){
-    return controller.source.connect();
+  public Connection getSource() throws IOException{
+    Connection connect = ((Controller)controller).getSource().connect();
+    if(connect != null){
+      return connect;
+    }else{
+      throw new IOException();
+    }
   }
   
   public Controller getController(){
-    return controller;
+    return (Controller)controller;
   }
   
   public ConversationContext start(String name) {

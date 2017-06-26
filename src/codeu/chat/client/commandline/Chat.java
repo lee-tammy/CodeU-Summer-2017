@@ -320,7 +320,7 @@ public final class Chat {
     panel.register("i-add", new Panel.Command(){
       @Override
       public void invoke(Scanner args){
-        boolean isUser = true;
+        Type type = Type.USER;
         int argNum = 0;
   
         while(args.hasNextLine()){
@@ -328,26 +328,38 @@ public final class Chat {
           argNum++;
         }
 
-        if(argNum == 2){
-
+        if(argNum == 2){ 
+          
           // Determines if an user or conversation will be added to the interest
           // system
-          String interestType = args.nextLine().toLowerCase().trim();
-          if(interestType == "u"){
-            isUser = true;
-          }else if(interestType == "c"){
-            isUser = false;
+          String firstArg = args.nextLine().toLowerCase().trim();
+          // Determines if the username or conversation name exists
+          final String secondArg = args.nextLine().toLowerCase().trim();
+          final UserContext userInterest = findUser(secondArg, context); 
+          final Uuid userId = user.user.id;         
+          final ConversationContext convoInterest = find(secondArg, user);
+
+          if(firstArg == "u"){
+            type = Type.USER;
+            if(userInterest != null){
+              user.getController().newInterest(userId, userInterest.user.id, 
+                  user, type);
+            }else{
+              System.out.format("ERROR: '%s' does not exist", userInterest);
+            }
+          }else if(firstArg == "c"){
+            if(convoInterest != null){
+              type = Type.CONVERSATION;
+              user.getController().newInterest(userId,
+                  convoInterest.conversation.id, user, type);  
+            }else{
+              System.out.format("ERROR: '%s' does not exist", convoInterest);
+            }
+
           }else{
             System.out.println("ERROR: Wrong format");
             return;
           }
-  
-          // Determines if the username or conversation name exists
-          final String interestObj = args.nextLine().toLowerCase().trim();
-          final UserContext userInterest = findUser(interestObj, context);
-          final ConversationContext convoInterest = find(interestObj, user);
-          user.getController().newInterest(user, context, isUser, interestObj,
-              userInterest, convoInterest);
                   
         }else{
           System.out.println("ERROR: Wrong format");
@@ -363,7 +375,7 @@ public final class Chat {
     panel.register("i-remove", new Panel.Command(){
       @Override
       public void invoke(Scanner args){
-        boolean isUser = true;
+        Type type = Type.USER;
         int argNum = 0;        
 
         while(args.hasNextLine()){
@@ -373,21 +385,33 @@ public final class Chat {
 
         if(argNum == 2){
  
-          String interestType = args.nextLine().toLowerCase().trim();
-          if(interestType == "u"){
-            isUser = true;
-          }else if(interestType == "c"){
-            isUser = false;
+          String firstArg = args.nextLine().toLowerCase().trim();
+          final String secondArg = args.nextLine().toLowerCase().trim();
+          final UserContext userInterest = findUser(secondArg, context);
+          final ConversationContext convoInterest = find(secondArg, user);
+          final Uuid userId = user.user.id;
+
+          if(firstArg == "u"){
+            type = Type.USER;
+            if(userInterest != null){
+              user.getController().removeInterest(userId, userInterest.user.id,
+                  user);
+            }else{
+              System.out.format("ERROR: '%s' does not exist", userInterest);
+            }
+          }else if(firstArg == "c"){
+    
+            if(convoInterest != null){
+              type = Type.CONVERSATION;
+              user.getController().removeInterest(userId,
+                  convoInterest.conversation.id, user);
+            }else{
+              System.out.format("ERROR: '%s' does not exist", convoInterest);
+            }
           }else{
             System.out.println("ERROR: Wrong format");
             return;
-          }
-
-          final String interestObj = args.nextLine().toLowerCase().trim();
-          final UserContext userInterest = findUser(interestObj, context);
-          final ConversationContext convoInterest = find(interestObj, user);
-          user.getController().removeInterest(user, isUser, interestObj,
-              userInterest, convoInterest);
+          } 
 
         }else{
           System.out.println("ERROR: Wrong format");
@@ -404,7 +428,8 @@ public final class Chat {
       @Override
       public void invoke(Scanner args){
 
-        ArrayList<InterestStatus> allInterests = user.getController().statusUpdate();
+        ArrayList<InterestStatus> allInterests = 
+            user.getController().statusUpdate(user);
         if(allInterests != null && allInterests.size() >= 1){
           System.out.println("STATUS UPDATE");
           System.out.println("===============");

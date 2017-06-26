@@ -43,6 +43,10 @@ public final class Controller implements BasicController {
     this.source = source;
   }
 
+  public ConnectionSource getSource(){
+    return source;
+  }
+
   @Override
   public Message newMessage(Uuid author, Uuid conversation, String body) {
 
@@ -117,65 +121,45 @@ public final class Controller implements BasicController {
     return response;
   }
 
-  public void newInterest(UserContext user, Context context, boolean isUser,
-      String interestObj, UserContext userInterest, ConversationContext
-      convoInterest){
-    try(final Connection connection = user.getSource()){
-      if(isUser && userInterest != null){ 
-        Serializers.INTEGER.write(connection.out(),
-        NetworkCode.NEW_INTEREST_REQUEST);
-        if(Serializers.INTEGER.read(connection.in()) ==
-            NetworkCode.NEW_INTEREST_RESPONSE){
-          Uuid.SERIALIZER.write(connection.out(), user.user.id);
-          Uuid.SERIALIZER.write(connection.out(), userInterest.user.id);
-          Type.SERIALIZER.write(connection.out(), Type.USER);
-        }
-           
-      }else if(!isUser && convoInterest != null){       
-        Serializers.INTEGER.write(connection.out(),
-        NetworkCode.NEW_INTEREST_REQUEST);
-        if(Serializers.INTEGER.read(connection.in()) ==
-            NetworkCode.NEW_INTEREST_RESPONSE){
+  public void newInterest(Uuid userId, Uuid interestId, UserContext user, Type
+      interestType){
 
-          Uuid.SERIALIZER.write(connection.out(), user.user.id);
-          Uuid.SERIALIZER.write(connection.out(),
-              convoInterest.conversation.id);  
-            Type.SERIALIZER.write(connection.out(), Type.CONVERSATION);          
-        } 
-      }else{
-        System.out.format("ERROR: '%s' does not exist", interestObj);
+    try{
+      final Connection connection = user.getSource();
+      Serializers.INTEGER.write(connection.out(),
+          NetworkCode.NEW_INTEREST_REQUEST);
+
+      if(Serializers.INTEGER.read(connection.in()) ==
+          NetworkCode.NEW_INTEREST_RESPONSE){
+        Uuid.SERIALIZER.write(connection.out(), userId);
+        Uuid.SERIALIZER.write(connection.out(), interestId);
+        Type.SERIALIZER.write(connection.out(), interestType);
       }
-        
+                 
+    }catch(Exception ex){
+      LOG.error(ex, "Exception during call on server.");
     }
   }
 
-  public void removeInterest(UserContext user, boolean isUser, String
-      interestObj, UserContext userInterest, ConversationContext convoInterest){
-    try(final Connection connection = user.getSource()){
+  public void removeInterest(Uuid userId, Uuid interestId, UserContext user){
 
-      if(isUser && userInterest != null){ 
+    try{
+        final Connection connection = user.getSource();
         Serializers.INTEGER.write(connection.out(),
             NetworkCode.REMOVE_INTEREST_REQUEST);
-        Uuid.SERIALIZER.write(connection.out(), user.user.id);
-        Uuid.SERIALIZER.write(connection.out(), userInterest.user.id);
-        Type.SERIALIZER.write(connection.out(), Type.USER); 
-           
-      }else if(!isUser && convoInterest != null){ 
-        Serializers.INTEGER.write(connection.out(),
-            NetworkCode.REMOVE_INTEREST_REQUEST);
-        Uuid.SERIALIZER.write(connection.out(), user.user.id);
-        Uuid.SERIALIZER.write(connection.out(),
-            convoInterest.conversation.id);
-        Type.SERIALIZER.write(connection.out(), Type.CONVERSATION);
-      }else{
-        System.out.format("ERROR: '%s' is not being followed", interestObj);
-      }
+        Uuid.SERIALIZER.write(connection.out(), userId);
+        Uuid.SERIALIZER.write(connection.out(), interestId);           
+    }catch(Exception ex){
+      LOG.error(ex, "Exception during call on server.");
     } 
      
   }
 
-  public ArrayList<InterestStatus> statusUpdate(){
-    try(final Connection connection = user.getSource()){
+  public ArrayList<InterestStatus> statusUpdate(UserContext user){
+    try{
+      final Connection connection = user.getSource();
+      Serializers.INTEGER.write(connection.out(),
+          NetworkCode.INTEREST_STATUS_REQUEST);
       if(Serializers.INTEGER.read(connection.in()) ==
           NetworkCode.INTEREST_STATUS_RESPONSE){
           
@@ -183,7 +167,10 @@ public final class Controller implements BasicController {
             Serializers.collection(InterestStatus.SERIALIZER).read(connection.in());
         return allInterests;
       }
-    }  
+    }catch(Exception ex){
+      LOG.error(ex, "Exception during call on server."); 
+    }
+  
     return null;
   }
 
