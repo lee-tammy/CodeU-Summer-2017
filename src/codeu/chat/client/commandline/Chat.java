@@ -334,10 +334,10 @@ public final class Chat {
       }
     });
 
-    // C-FOLLOW (follows an interest)
+    // I-ADD (adds an interest)
     //
-    // Adds a command that will allow the user to follow users and conversations
-    // in order to get updates
+    // Adds a command that will allow the user to add users and conversations
+    // as interests
     //
     panel.register("i-add", new Panel.Command() {
       @Override
@@ -377,10 +377,10 @@ public final class Chat {
       }
     });
 
-    // C-UNFOLLOW (unfollows an interest)
+    // I-REMOVE (removes an interest)
     //
-    // Adds a command that will allow the user to unfollow users and
-    // conversations to stop getting updates
+    // Adds a command that will allow the user to remove users and
+    // conversations as interests
     //
     panel.register("i-remove", new Panel.Command() {
       @Override
@@ -416,10 +416,9 @@ public final class Chat {
       }
     });
 
-    // C-STATUS (status update)
+    // STATUS-UPDATE (status update)
     //
-    // Adds a command that will report the status updates of the followed users
-    // and conversations
+    // Adds a command that will report the status updates of the interests
     //
     panel.register("status-update", new Panel.Command() {
       @Override
