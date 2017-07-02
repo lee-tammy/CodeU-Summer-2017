@@ -30,6 +30,7 @@ import codeu.chat.common.RandomUuidGenerator;
 import codeu.chat.common.RawController;
 import codeu.chat.common.Type;
 import codeu.chat.common.User;
+import codeu.chat.common.UserType;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
@@ -66,7 +67,7 @@ public final class Controller implements RawController, BasicController {
 
   @Override
   public User newUser(String name) {
-    return newUser(createId(), name, Time.now());
+    return newUser(createId(), name, Time.now(), UserType.NOTSET);
   }
 
   @Override
@@ -143,20 +144,21 @@ public final class Controller implements RawController, BasicController {
   }
 
   @Override
-  public User newUser(Uuid id, String name, Time creationTime) {
+  public User newUser(Uuid id, String name, Time creationTime, UserType ut) {
 
     User user = null;
 
     if (isIdFree(id)) {
 
-      user = new User(id, name, creationTime);
+      user = new User(id, name, creationTime, ut);
       model.add(user);
 
       LOG.info(
-          "newUser success (user.id=%s user.name=%s user.time=%s)",
+          "newUser success (user.id=%s user.name=%s user.time=%s user.ut=%s)",
           id,
           name,
-          creationTime);
+          creationTime,
+          ut);
 
     } else {
 
@@ -168,7 +170,7 @@ public final class Controller implements RawController, BasicController {
     }
     
     if (writeToLog) {
-      output.println("U_" + name + "_" + user.id + "_" + creationTime);
+      output.println("U_" + name + "_" + user.id + "_" + creationTime + "_" + user.ut);
       output.flush();
     }
 

@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import codeu.chat.common.UserType;
 import codeu.chat.server.Controller;
 
 public final class ServerLog {
@@ -91,7 +92,8 @@ public final class ServerLog {
 
       } else if (commandType == 'U') {
         // parse a user
-        controller.newUser(Uuid.parse(ParArr[2]), ParArr[1], stringToTime(ParArr[3]) );
+        controller.newUser(Uuid.parse(ParArr[2]), ParArr[1], stringToTime(ParArr[3]), 
+        		           UserType.fromId(Integer.parseInt(ParArr[4])));
 
       } else if (commandType == 'C') {
         // parse a conversation

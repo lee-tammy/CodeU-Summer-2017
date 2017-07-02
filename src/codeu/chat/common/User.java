@@ -23,6 +23,7 @@ import codeu.chat.util.Serializer;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
+import codeu.chat.common.UserType;
 
 public final class User {
 
@@ -41,7 +42,8 @@ public final class User {
 
       return new User(Uuid.SERIALIZER.read(in),
                       Serializers.STRING.read(in),
-                      Time.SERIALIZER.read(in));
+                      Time.SERIALIZER.read(in)
+                      UserType.SERIALIZER.read(in));
 
     }
   };
@@ -49,12 +51,14 @@ public final class User {
   public final Uuid id;
   public final String name;
   public final Time creation;
+  public UserType ut;
 
-  public User(Uuid id, String name, Time creation) {
+  public User(Uuid id, String name, Time creation, UserType ut) {
 
     this.id = id;
     this.name = name;
     this.creation = creation;
+    this.ut = ut;
 
   }
 

@@ -32,6 +32,7 @@ import codeu.chat.common.Secret;
 import codeu.chat.common.Type;
 import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
+import codeu.chat.common.UserType;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.ServerLog;
@@ -313,7 +314,7 @@ public final class Server {
     User user = model.userById().first(relayUser.id());
 
     if (user == null) {
-      user = controller.newUser(relayUser.id(), relayUser.text(), relayUser.time());
+      user = controller.newUser(relayUser.id(), relayUser.text(), relayUser.time(), UserType.NOTSET);
     }
 
     ConversationHeader conversation = model.conversationById().first(relayConversation.id());
