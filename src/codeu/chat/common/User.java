@@ -27,6 +27,10 @@ import codeu.chat.common.UserType;
 
 public final class User {
 
+  public final Uuid id;
+  public final String name;
+  public final Time creation;
+  
   public static final Serializer<User> SERIALIZER = new Serializer<User>() {
     @Override
     public void write(OutputStream out, User value) throws IOException {
@@ -39,26 +43,18 @@ public final class User {
 
     @Override
     public User read(InputStream in) throws IOException {
-
       return new User(Uuid.SERIALIZER.read(in),
                       Serializers.STRING.read(in),
-                      Time.SERIALIZER.read(in)
-                      UserType.SERIALIZER.read(in));
+                      Time.SERIALIZER.read(in));
 
     }
   };
 
-  public final Uuid id;
-  public final String name;
-  public final Time creation;
-  public UserType ut;
-
-  public User(Uuid id, String name, Time creation, UserType ut) {
+  public User(Uuid id, String name, Time creation) {
 
     this.id = id;
     this.name = name;
     this.creation = creation;
-    this.ut = ut;
 
   }
 

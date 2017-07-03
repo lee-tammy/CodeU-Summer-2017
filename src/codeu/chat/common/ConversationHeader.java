@@ -17,6 +17,7 @@ package codeu.chat.common;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.LinkedHashSet;
 
 import codeu.chat.util.Serializer;
 import codeu.chat.util.Serializers;
@@ -31,7 +32,7 @@ public final class ConversationHeader {
     public void write(OutputStream out, ConversationHeader value) throws IOException {
 
       Uuid.SERIALIZER.write(out, value.id);
-      Uuid.SERIALIZER.write(out, value.owner);
+      Uuid.SERIALIZER.write(out, value.creator);
       Time.SERIALIZER.write(out, value.creation);
       Serializers.STRING.write(out, value.title);
 
@@ -49,16 +50,22 @@ public final class ConversationHeader {
   };
 
   public final Uuid id;
-  public final Uuid owner;
+  public final Uuid creator;
   public final Time creation;
   public final String title;
+  public LinkedHashSet<Uuid> owners;
+  public LinkedHashSet<Uuid> members;
 
-  public ConversationHeader(Uuid id, Uuid owner, Time creation, String title) {
+  public ConversationHeader(Uuid id, Uuid creator, Time creation, String title) {
 
     this.id = id;
-    this.owner = owner;
+    this.creator = creator;
     this.creation = creation;
     this.title = title;
+    owners = new LinkedHashSet();
+    owners.add(creator);
+    members = new LinkedHashSet();
+    members.add(creator);
 
   }
 

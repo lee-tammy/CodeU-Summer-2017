@@ -24,6 +24,7 @@ import codeu.chat.client.core.Context;
 import codeu.chat.client.core.ConversationContext;
 import codeu.chat.client.core.MessageContext;
 import codeu.chat.client.core.UserContext;
+import codeu.chat.common.ConversationPermission;
 import codeu.chat.common.InterestStatus;
 import codeu.chat.common.Type;
 import codeu.chat.util.Uuid;
@@ -552,7 +553,7 @@ public final class Chat {
         System.out.println("Conversation Info:");
         System.out.format("  Title : %s\n", conversation.conversation.title);
         System.out.format("  Id    : UUID:%s\n", conversation.conversation.id);
-        System.out.format("  Owner : %s\n", conversation.conversation.owner);
+        System.out.format("  Owner : %s\n", conversation.conversation.creator);
       }
     });
 

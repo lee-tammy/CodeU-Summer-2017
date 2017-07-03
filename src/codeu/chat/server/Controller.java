@@ -67,7 +67,7 @@ public final class Controller implements RawController, BasicController {
 
   @Override
   public User newUser(String name) {
-    return newUser(createId(), name, Time.now(), UserType.NOTSET);
+    return newUser(createId(), name, Time.now());
   }
 
   @Override
@@ -144,21 +144,19 @@ public final class Controller implements RawController, BasicController {
   }
 
   @Override
-  public User newUser(Uuid id, String name, Time creationTime, UserType ut) {
+  public User newUser(Uuid id, String name, Time creationTime) {
 
     User user = null;
 
     if (isIdFree(id)) {
 
-      user = new User(id, name, creationTime, ut);
       model.add(user);
 
       LOG.info(
           "newUser success (user.id=%s user.name=%s user.time=%s user.ut=%s)",
           id,
           name,
-          creationTime,
-          ut);
+          creationTime);
 
     } else {
 
@@ -170,7 +168,7 @@ public final class Controller implements RawController, BasicController {
     }
     
     if (writeToLog) {
-      output.println("U_" + name + "_" + user.id + "_" + creationTime + "_" + user.ut);
+      output.println("U_" + name + "_" + user.id + "_" + creationTime);
       output.flush();
     }
 
@@ -248,7 +246,7 @@ public final class Controller implements RawController, BasicController {
       Iterable<ConversationHeader> headers = model.conversationByTime().after(lastUpdate);
       List<String> createdConversations = new ArrayList<>();
       for (ConversationHeader header : headers) {
-        if (header.owner.equals(user.id)) {
+        if (header.creator.equals(user.id)) {
           createdConversations.add(header.title);
         }
       }
@@ -290,7 +288,7 @@ public final class Controller implements RawController, BasicController {
          candidate = uuidGenerator.make()) {
 
      // Assuming that "randomUuid" is actually well implemented, this
-     // loop should never be needed, but just incase make sure that the
+     // loop should never be needed, but just in case make sure that the
      // Uuid is not actually in use before returning it.
 
     }

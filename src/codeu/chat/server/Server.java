@@ -314,7 +314,7 @@ public final class Server {
     User user = model.userById().first(relayUser.id());
 
     if (user == null) {
-      user = controller.newUser(relayUser.id(), relayUser.text(), relayUser.time(), UserType.NOTSET);
+      user = controller.newUser(relayUser.id(), relayUser.text(), relayUser.time());
     }
 
     ConversationHeader conversation = model.conversationById().first(relayConversation.id());
