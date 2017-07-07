@@ -48,4 +48,5 @@ public final class NetworkCode {
       GET_CONVERSATION_HEADER_BY_ID_RESPONSE = 40,
       SERVER_INFO_REQUEST = 41,
       SERVER_INFO_RESPONSE = 42;
+      // TODO: need network codes for Conversation Permissions
 }

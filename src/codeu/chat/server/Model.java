@@ -143,6 +143,8 @@ public final class Model {
   public StoreAccessor<String, Message> messageByText() {
     return messageByText;
   }
+  
+  // TODO: add in storage for Conversation Permissions
 
   public Interest addInterest(Uuid id,
                               Uuid userId,

@@ -276,6 +276,9 @@ public final class Chat {
         System.out.println("    Exit the program.");
       }
     });
+    
+    // TODO: add in logic for ConversationPermissions
+    // I'm thinking we should add Creator/Owner/Member panels
 
     // C-LIST (list conversations)
     //

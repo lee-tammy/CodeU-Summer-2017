@@ -202,6 +202,8 @@ public final class Controller implements RawController, BasicController {
                               Time creationTime) {
     return model.addInterest(id, userId, interestId, interestType, creationTime);
   }
+  
+  //TODO: add in logic for ConversationPermissions
 
   public void removeInterest(Uuid userId, Uuid interestId) {
     model.removeInterest(userId, interestId);
