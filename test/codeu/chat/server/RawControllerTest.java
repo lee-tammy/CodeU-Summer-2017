@@ -22,7 +22,6 @@ import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.Message;
 import codeu.chat.common.RawController;
 import codeu.chat.common.User;
-import codeu.chat.common.UserType;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 

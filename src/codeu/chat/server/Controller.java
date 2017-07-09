@@ -30,7 +30,6 @@ import codeu.chat.common.RandomUuidGenerator;
 import codeu.chat.common.RawController;
 import codeu.chat.common.Type;
 import codeu.chat.common.User;
-import codeu.chat.common.UserType;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
@@ -150,10 +149,11 @@ public final class Controller implements RawController, BasicController {
 
     if (isIdFree(id)) {
 
+      user = new User(id, name, creationTime);
       model.add(user);
 
       LOG.info(
-          "newUser success (user.id=%s user.name=%s user.time=%s user.ut=%s)",
+          "newUser success (user.id=%s user.name=%s user.time=%s)",
           id,
           name,
           creationTime);

@@ -23,14 +23,9 @@ import codeu.chat.util.Serializer;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
-import codeu.chat.common.UserType;
 
 public final class User {
 
-  public final Uuid id;
-  public final String name;
-  public final Time creation;
-  
   public static final Serializer<User> SERIALIZER = new Serializer<User>() {
     @Override
     public void write(OutputStream out, User value) throws IOException {
@@ -43,12 +38,17 @@ public final class User {
 
     @Override
     public User read(InputStream in) throws IOException {
+
       return new User(Uuid.SERIALIZER.read(in),
                       Serializers.STRING.read(in),
                       Time.SERIALIZER.read(in));
 
     }
   };
+
+  public final Uuid id;
+  public final String name;
+  public final Time creation;
 
   public User(Uuid id, String name, Time creation) {
 

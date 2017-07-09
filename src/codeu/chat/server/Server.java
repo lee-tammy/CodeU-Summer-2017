@@ -32,7 +32,6 @@ import codeu.chat.common.Secret;
 import codeu.chat.common.Type;
 import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
-import codeu.chat.common.UserType;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.ServerLog;
