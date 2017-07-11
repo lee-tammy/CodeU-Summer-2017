@@ -185,6 +185,9 @@ public final class Chat {
           if (context.create(name) == null) {
             System.out.println("ERROR: Failed to create new user");
           }
+          if (findUser(name, context) != null) {
+        	System.out.println("ERROR: Username already taken");
+          }
         } else {
           System.out.println("ERROR: Missing <username>");
         }
@@ -309,6 +312,9 @@ public final class Chat {
           final ConversationContext conversation = user.start(name);
           if (conversation == null) {
             System.out.println("ERROR: Failed to create new conversation");
+          }
+          if (find(name,user) != null) {
+        	System.out.println("ERROR: Conversation name already taken");
           }
         } else {
           System.out.println("ERROR: Missing <title>");
@@ -499,6 +505,9 @@ public final class Chat {
             .println("    Add a new message to the current conversation as the current user.");
         System.out.println("  info");
         System.out.println("    Display all info about the current conversation.");
+        System.out.println("modify-access <user> <accessType>");
+        System.out.println("    Change permissions of user. <userType> is O for owner,");
+        System.out.println("    M for member, and R for remove");
         System.out.println("  back");
         System.out.println("    Go back to USER MODE.");
         System.out.println("  exit");
@@ -559,6 +568,26 @@ public final class Chat {
         System.out.format("  Owner : %s\n", conversation.conversation.creator);
       }
     });
+    
+    panel.register("modify-access", new Panel.Command() {
+	  @Override
+	  public void invoke(List<String> args) {
+	    if(args.size() >= 2) {
+		  UserContext targetUser = findUser(args.get(0).trim(), context);
+		  String accessType = args.get(1).trim();
+		  if(targetUser == null) {
+			System.out.println("ERROR: Could not find user");
+		  }
+		  else if (!accessType.equals("O") && !accessType.equals("M") && !accessType.equals("R")) {
+			System.out.println("ERROR: Please provide valid access type");
+		  }
+		  else {
+			  // actual method call here
+		  }
+	    }
+	    System.out.println("ERROR: Please provide the right number of arguments");
+	  }
+	});
 
     // Now that the panel has all its commands registered, return the panel
     // so that it can be used.

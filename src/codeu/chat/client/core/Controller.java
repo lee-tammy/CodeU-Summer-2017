@@ -173,5 +173,10 @@ public final class Controller implements BasicController {
     }
     return allInterests;
   }
+  
+  public void changeUserAccess(UserContext user, UserContext targetUser, 
+              ConversationContext conversation, String request) {
+	  
+  }
 
 }
