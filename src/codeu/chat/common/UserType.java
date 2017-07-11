@@ -13,7 +13,7 @@ public enum UserType {
   public int fId;
 
   UserType(int id) {
-	fId = id;
+    fId = id;
   }
   
   public static final Serializer<UserType> SERIALIZER = new Serializer<UserType>() {
@@ -29,10 +29,17 @@ public enum UserType {
   };
   
   public static UserType fromId(int id) {
-	return values()[id];
+    return values()[id];
   }
   
   public static int fromType(UserType ut) {
-	return ut.fId;
+    return ut.fId;
   }
+
+  // Returns true only if the permission level of ut1 is equal or
+  // "higher" than the permission level of ut2.
+  public static boolean levelCompare(UserType ut1, UserType ut2) {
+    return fromType(ut1) <= fromType(ut2);
+  }
+
 }
