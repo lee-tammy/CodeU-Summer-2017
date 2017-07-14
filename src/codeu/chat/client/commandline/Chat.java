@@ -27,6 +27,7 @@ import codeu.chat.client.core.UserContext;
 import codeu.chat.common.ConversationPermission;
 import codeu.chat.common.InterestStatus;
 import codeu.chat.common.Type;
+import codeu.chat.common.User;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.Tokenizer;
 import codeu.chat.util.Time;
@@ -573,16 +574,17 @@ public final class Chat {
 	  @Override
 	  public void invoke(List<String> args) {
 	    if(args.size() >= 2) {
-		  UserContext targetUser = findUser(args.get(0).trim(), context);
+		  User targetUser = findUser(args.get(0).trim(), context).user;
 		  String accessType = args.get(1).trim();
 		  if(targetUser == null) {
 			System.out.println("ERROR: Could not find user");
 		  }
-		  else if (!accessType.equals("O") && !accessType.equals("M") && !accessType.equals("R")) {
+		  else if (!accessType.equalsIgnoreCase("O") && !accessType.equalsIgnoreCase("M") 
+				  && !accessType.equalsIgnoreCase("R")) {
 			System.out.println("ERROR: Please provide valid access type");
 		  }
 		  else {
-			  // actual method call here
+			conversation.changeAccess(targetUser, accessType);
 		  }
 	    }
 	    System.out.println("ERROR: Please provide the right number of arguments");

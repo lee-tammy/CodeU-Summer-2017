@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.LinkedHashMap;
 
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
@@ -25,10 +26,12 @@ import codeu.chat.common.Interest;
 import codeu.chat.common.Message;
 import codeu.chat.common.Type;
 import codeu.chat.common.User;
+import codeu.chat.common.UserType;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.store.Store;
 import codeu.chat.util.store.StoreAccessor;
+import codeu.chat.common.ConversationPermission;
 
 public final class Model {
 
@@ -62,7 +65,7 @@ public final class Model {
   };
 
   private static final Comparator<String> STRING_COMPARE = String.CASE_INSENSITIVE_ORDER;
-
+  private static LinkedHashMap cp = new LinkedHashMap<Uuid, ConversationPermission>();
   private final Store<Uuid, User> userById = new Store<>(UUID_COMPARE);
   private final Store<Time, User> userByTime = new Store<>(TIME_COMPARE);
   private final Store<String, User> userByText = new Store<>(STRING_COMPARE);
@@ -70,6 +73,7 @@ public final class Model {
   private final Store<Uuid, ConversationHeader> conversationById = new Store<>(UUID_COMPARE);
   private final Store<Time, ConversationHeader> conversationByTime = new Store<>(TIME_COMPARE);
   private final Store<String, ConversationHeader> conversationByText = new Store<>(STRING_COMPARE);
+  private final Store<Uuid, Uuid> conversationToPermission = new Store<>(UUID_COMPARE);
 
   private final Store<Uuid, ConversationPayload> conversationPayloadById = new Store<>(UUID_COMPARE);
 
@@ -78,6 +82,8 @@ public final class Model {
   private final Store<String, Message> messageByText = new Store<>(STRING_COMPARE);
 
   private final Store<Uuid, Interest> interestById = new Store<>(UUID_COMPARE);
+  
+  private final Store<Uuid, ConversationPermission> permissionById = new Store<>(UUID_COMPARE);
 
   public final Map<Uuid, ArrayList<Uuid>> interests = new HashMap<>();
 
@@ -101,6 +107,25 @@ public final class Model {
 
   public StoreAccessor<String, User> userByText() {
     return userByText;
+  }
+  
+  public void changeAccess(User user, User targetUser, Uuid conversation, String access) {
+	Uuid permission = conversationToPermission.first(conversation);
+	ConversationPermission cp = permissionById.first(permission);
+	
+	// comparing permissions of the user and target user
+	if (UserType.fromType(cp.returnStatus(user.id)) < UserType.fromType(cp.returnStatus(targetUser.id))) {
+	  // entering this if statement means the user has sufficient permissions to alter target user
+	  if (access.equalsIgnoreCase("O")) {
+	    cp.addOwner(targetUser.id); 
+	  }
+	  else if (access.equalsIgnoreCase("M")) {
+		cp.addMember(targetUser.id);
+	  }
+	  else if (access.equalsIgnoreCase("R")) {
+	    cp.remove(targetUser.id);
+	  }
+	}
   }
 
   public void add(ConversationHeader conversation) {

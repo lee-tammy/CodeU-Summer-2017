@@ -48,6 +48,9 @@ public final class Controller implements BasicController {
   public Message newMessage(Uuid author, Uuid conversation, String body) {
 
     Message response = null;
+    
+    // TODO: put something here that denies access if the user doesn't have sufficient 
+    // privileges? just a thought
 
     try (final Connection connection = source.connect()) {
 
@@ -174,9 +177,30 @@ public final class Controller implements BasicController {
     return allInterests;
   }
   
-  public void changeUserAccess(UserContext user, UserContext targetUser, 
-              ConversationContext conversation, String request) {
-	  
+  @Override
+  public void changeUserAccess(User user, User targetUser, 
+              ConversationHeader conversation, String request) {
+    try (final Connection connection = this.source.connect()) {
+	  Serializers.INTEGER.write(connection.out(), NetworkCode.PRIVILEGE_REQUEST);
+	  ConversationHeader.SERIALIZER.write(connection.out(), conversation);
+	  User.SERIALIZER.write(connection.out(), targetUser);
+	  User.SERIALIZER.write(connection.out(), user);
+	  Serializers.STRING.write(connection.out(), request);
+
+	  int reply = Serializers.INTEGER.read(connection.in());
+
+	  if (reply == NetworkCode.SUFFICIENT_PRIVILEGES) {
+	    System.out.println("Changed user privilege");
+	  } else if (reply == NetworkCode.INSUFFICIENT_PRIVILEGES) {
+		System.out.println("ERROR: Insufficient privilege to complete action");
+	  } else {
+	    LOG.error("Response from server failed.");
+	  }
+	} catch (Exception ex) {
+	  System.out.println("ERROR: Exception during call on server. Check log for details.");
+	  LOG.error(ex, "Exception during call on server.");
+	}
   }
+
 
 }

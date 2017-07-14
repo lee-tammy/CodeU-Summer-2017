@@ -315,7 +315,7 @@ public final class Controller implements RawController, BasicController {
   }
 
   /**
-   * Setter method for writeToLOg
+   * Setter method for writeToLog
    * @param write the new update for writeToLog
    */
   public static void setWriteToLog(boolean write) {
@@ -324,6 +324,12 @@ public final class Controller implements RawController, BasicController {
   
     public ConversationHeader conversationHeaderById(Uuid id) {
     return model.conversationById().first(id);
+  }
+	
+  @Override
+  public void changeUserAccess(User user, User targetUser, ConversationHeader conversation,
+		  String accessType) {
+	model.changeAccess(user, targetUser, conversation.id, accessType);
   }
 
 }
