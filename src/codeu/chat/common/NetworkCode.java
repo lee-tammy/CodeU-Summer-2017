@@ -49,5 +49,6 @@ public final class NetworkCode {
       SERVER_INFO_REQUEST = 41,
       SERVER_INFO_RESPONSE = 42,
       INSUFFICIENT_PRIVILEGES = 43, // Network Codes for ca_control
-      SUFFICIENT_PRIVILEGES = 44;
+      SUFFICIENT_PRIVILEGES = 44,
+      PRIVILEGE_REQUEST = 45;
 }
