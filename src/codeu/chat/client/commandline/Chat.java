@@ -501,11 +501,13 @@ public final class Chat {
         System.out.println("  m-list");
         System.out.println("    List all messages in the current conversation.");
         System.out.println("  m-add <message>");
-        System.out
-            .println("    Add a new message to the current conversation as the current user.");
+        System.out.println("    Add a new message to the current conversation as " 
+          + "the current user.");
+        System.out.println("  u-add <user>");
+        System.out.println("    Add a user to the current conversation.");
         System.out.println("  info");
         System.out.println("    Display all info about the current conversation.");
-        System.out.println("modify-access <user> <accessType>");
+        System.out.println("  modify-access <user> <accessType>");
         System.out.println("    Change permissions of user. <userType> is O for owner,");
         System.out.println("    M for member, and R for remove");
         System.out.println("  back");
@@ -553,6 +555,8 @@ public final class Chat {
         }
       }
     });
+
+    
 
     // INFO
     //
