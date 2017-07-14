@@ -504,8 +504,9 @@ public final class Chat {
         System.out.println("  m-add <message>");
         System.out.println("    Add a new message to the current conversation as " 
           + "the current user.");
-        System.out.println("  u-add <user>");
-        System.out.println("    Add a user to the current conversation.");
+        System.out.println("  u-add <user> <M for member or O for owner> ");
+        System.out.println("    Add a user to the current conversation and " + 
+            "declare their membership."
         System.out.println("  info");
         System.out.println("    Display all info about the current conversation.");
         System.out.println("  modify-access <user> <accessType>");
@@ -594,6 +595,35 @@ public final class Chat {
 	    System.out.println("ERROR: Please provide the right number of arguments");
 	  }
 	});
+  
+    // U-ADD 
+    //
+    // Add a user to current conversation
+    //
+    panel.register("u-add", new Panel.Command(){
+      @Override
+      public void invoke(List<String> args){
+        final int argSize = args.size();
+        if(argSize == 2 || argSize == 1){
+          final User addUser = findUser(args.get(0), context).user;
+          final String memberBit = args.get(1).trim();
+          if(addUser != null){
+            if(argSize == 2 && (memberBit.equalsIgnoreCase("O") ||
+              memberBit.equalsIgnoreCase("M"))){
+              
+              //Call method here
+            }else{
+              System.out.format("ERROR: '%s' is not a valid access type",
+                  memberBit);
+            }
+          }else{
+            System.out.format("ERROR: '%s' does not exist", addUser);
+          }
+        }else{
+          System.out.println("ERROR: Wrong format");
+        }
+      }
+    }); 
 
     // Now that the panel has all its commands registered, return the panel
     // so that it can be used.

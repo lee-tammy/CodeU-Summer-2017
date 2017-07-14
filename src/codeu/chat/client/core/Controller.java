@@ -202,5 +202,12 @@ public final class Controller implements BasicController {
 	}
   }
 
+  public void addUserToConvo(User user, User addUser, String memberBit){
+    try(final Connection connection = this.source.connect()){
+    }catch(Exception ex){
+      LOG.error(ex, "Exception during call on server.");
+    }
+  } 
+
 
 }
