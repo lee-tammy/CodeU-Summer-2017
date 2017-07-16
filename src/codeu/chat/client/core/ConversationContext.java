@@ -14,17 +14,17 @@
 
 package codeu.chat.client.core;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-
 import codeu.chat.common.BasicController;
 import codeu.chat.common.BasicView;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.Message;
 import codeu.chat.common.User;
+import codeu.chat.common.UserType;
 import codeu.chat.util.Uuid;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
 
 public final class ConversationContext {
 
@@ -34,10 +34,8 @@ public final class ConversationContext {
   private final BasicView view;
   private final BasicController controller;
 
-  public ConversationContext(User user,
-                             ConversationHeader conversation,
-                             BasicView view,
-                             BasicController controller) {
+  public ConversationContext(
+      User user, ConversationHeader conversation, BasicView view, BasicController controller) {
 
     this.user = user;
     this.conversation = conversation;
@@ -47,13 +45,9 @@ public final class ConversationContext {
 
   public MessageContext add(String messageBody) {
 
-    final Message message = controller.newMessage(user.id,
-                                                  conversation.id,
-                                                  messageBody);
+    final Message message = controller.newMessage(user.id, conversation.id, messageBody);
 
-    return message == null ?
-        null :
-        new MessageContext(message, view);
+    return message == null ? null : new MessageContext(message, view);
   }
 
   public MessageContext firstMessage() {
@@ -62,9 +56,7 @@ public final class ConversationContext {
     // a new copy.
     final ConversationPayload updated = getUpdated();
 
-    return updated == null ?
-        null :
-        getMessage(updated.firstMessage);
+    return updated == null ? null : getMessage(updated.firstMessage);
   }
 
   public MessageContext lastMessage() {
@@ -73,9 +65,7 @@ public final class ConversationContext {
     // a new copy.
     final ConversationPayload updated = getUpdated();
 
-    return updated == null ?
-        null :
-        getMessage(updated.lastMessage);
+    return updated == null ? null : getMessage(updated.lastMessage);
   }
 
   private ConversationPayload getUpdated() {
@@ -88,8 +78,8 @@ public final class ConversationContext {
     final Iterator<Message> messages = view.getMessages(Arrays.asList(id)).iterator();
     return messages.hasNext() ? new MessageContext(messages.next(), view) : null;
   }
-  
-  public void changeAccess(User targetUser, String accessType) {
-    controller.changeUserAccess(user, targetUser, conversation, accessType);
+
+  public boolean changeAccess(Uuid target, UserType accessType) {
+    return controller.changeAccess(user.id, target, conversation.id, accessType);
   }
 }

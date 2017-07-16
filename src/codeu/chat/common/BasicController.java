@@ -51,7 +51,11 @@ public interface BasicController {
   //  Whether conversations can have the same title is undefined.
   ConversationHeader newConversation(String title, Uuid owner);
 
-  // method for modifying the permissions of a user in a conversation
-  void changeUserAccess(User user, User targetUser, ConversationHeader conversation, String accessType);
-
+  // CHANGE ACCESS
+  //
+  // Change the access of a target user in a given conversation. The requester must have both higher
+  // permission than the target user as well as the newAccess. The function will return true iff the
+  // function successfully changed access to the target user. If access could not be changed for any
+  // reason, the function will return false.
+  boolean changeAccess(Uuid requester, Uuid target, Uuid conversation, UserType newAccess);
 }

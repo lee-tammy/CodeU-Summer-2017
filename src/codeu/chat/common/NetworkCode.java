@@ -16,8 +16,7 @@ package codeu.chat.common;
 
 public final class NetworkCode {
 
-  public static final int
-      NO_MESSAGE = 0,
+  public static final int NO_MESSAGE = 0,
       GET_USERS_REQUEST = 1,
       GET_USERS_RESPONSE = 2,
       GET_ALL_CONVERSATIONS_REQUEST = 3,
@@ -48,7 +47,7 @@ public final class NetworkCode {
       GET_CONVERSATION_HEADER_BY_ID_RESPONSE = 40,
       SERVER_INFO_REQUEST = 41,
       SERVER_INFO_RESPONSE = 42,
-      INSUFFICIENT_PRIVILEGES = 43, // Network Codes for ca_control
-      SUFFICIENT_PRIVILEGES = 44,
-      PRIVILEGE_REQUEST = 45;
+      CHANGE_PRIVILEGE_REQUEST = 43, // Network Codes for ca_control
+      INSUFFICIENT_PRIVILEGES_RESPONSE = 44,
+      SUFFICIENT_PRIVILEGES_RESPONSE = 45;
 }
