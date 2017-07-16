@@ -111,6 +111,7 @@ public final class Model {
     conversationByTime.insert(conversation.creation, conversation);
     conversationByText.insert(conversation.title, conversation);
     conversationPayloadById.insert(conversation.id, new ConversationPayload(conversation.id));
+    permissionById.insert(permission.id, permission);
   }
 
   public StoreAccessor<Uuid, ConversationHeader> conversationById() {
