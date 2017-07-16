@@ -326,12 +326,6 @@ public final class Controller implements RawController, BasicController {
       return false;
     }
 
-    // Must be at least one level above to change someone else's access.
-    if (UserType.levelCompare(cp.status(requester), accessType) < 1) {
-      LOG.warning("Requester doesn't have permission to change access.");
-      return false;
-    }
-
     cp.changeAccess(target, accessType);
     return true;
   }

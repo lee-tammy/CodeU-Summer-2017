@@ -167,7 +167,7 @@ public final class Controller implements BasicController {
     return allInterests;
   }
 
-    public boolean changeAccess(Uuid requester, Uuid target, Uuid conversation, UserType newAccess) {
+  public boolean changeAccess(Uuid requester, Uuid target, Uuid conversation, UserType newAccess) {
     try (final Connection connection = source.connect()) {
       Serializers.INTEGER.write(connection.out(), NetworkCode.CHANGE_PRIVILEGE_REQUEST);
       Uuid.SERIALIZER.write(connection.out(), requester);
