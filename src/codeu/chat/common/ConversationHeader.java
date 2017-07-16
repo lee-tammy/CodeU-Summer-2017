@@ -14,40 +14,38 @@
 
 package codeu.chat.common;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.LinkedHashSet;
-
 import codeu.chat.util.Serializer;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public final class ConversationHeader {
 
-  public static final Serializer<ConversationHeader> SERIALIZER = new Serializer<ConversationHeader>() {
+  public static final Serializer<ConversationHeader> SERIALIZER =
+      new Serializer<ConversationHeader>() {
 
-    @Override
-    public void write(OutputStream out, ConversationHeader value) throws IOException {
+        @Override
+        public void write(OutputStream out, ConversationHeader value) throws IOException {
 
-      Uuid.SERIALIZER.write(out, value.id);
-      Uuid.SERIALIZER.write(out, value.creator);
-      Time.SERIALIZER.write(out, value.creation);
-      Serializers.STRING.write(out, value.title);
+          Uuid.SERIALIZER.write(out, value.id);
+          Uuid.SERIALIZER.write(out, value.creator);
+          Time.SERIALIZER.write(out, value.creation);
+          Serializers.STRING.write(out, value.title);
+        }
 
-    }
+        @Override
+        public ConversationHeader read(InputStream in) throws IOException {
 
-    @Override
-    public ConversationHeader read(InputStream in) throws IOException {
-
-      return new ConversationHeader(Uuid.SERIALIZER.read(in),
-                                    Uuid.SERIALIZER.read(in),
-                                    Time.SERIALIZER.read(in),
-                                    Serializers.STRING.read(in));
-
-    }
-  };
+          return new ConversationHeader(
+              Uuid.SERIALIZER.read(in),
+              Uuid.SERIALIZER.read(in),
+              Time.SERIALIZER.read(in),
+              Serializers.STRING.read(in));
+        }
+      };
 
   public final Uuid id;
   public final Uuid creator;
@@ -60,7 +58,6 @@ public final class ConversationHeader {
     this.creator = creator;
     this.creation = creation;
     this.title = title;
-
   }
 
   @Override

@@ -14,15 +14,10 @@
 
 package codeu.chat.server;
 
-import java.io.PrintWriter;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.util.ArrayList;
-import java.util.List;
-
 import codeu.chat.common.BasicController;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
+import codeu.chat.common.ConversationPermission;
 import codeu.chat.common.Interest;
 import codeu.chat.common.InterestStatus;
 import codeu.chat.common.Message;
@@ -30,14 +25,20 @@ import codeu.chat.common.RandomUuidGenerator;
 import codeu.chat.common.RawController;
 import codeu.chat.common.Type;
 import codeu.chat.common.User;
+import codeu.chat.common.UserType;
 import codeu.chat.util.Logger;
+import codeu.chat.util.ServerLog;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
-import codeu.chat.util.ServerLog;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class Controller implements RawController, BasicController {
 
-  private final static Logger.Log LOG = Logger.newLog(Controller.class);
+  private static final Logger.Log LOG = Logger.newLog(Controller.class);
 
   private final Model model;
   private final Uuid.Generator uuidGenerator;
@@ -49,12 +50,14 @@ public final class Controller implements RawController, BasicController {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
     try {
-      output = new PrintWriter(new BufferedWriter(new FileWriter(ServerLog.createFilePath(), true)));
+      output =
+          new PrintWriter(new BufferedWriter(new FileWriter(ServerLog.createFilePath(), true)));
       output.flush();
     } catch (Exception e) {
       e.printStackTrace();
     }
   }
+
   public User userById(Uuid id) {
     return model.userById().first(id);
   }
@@ -75,27 +78,26 @@ public final class Controller implements RawController, BasicController {
   }
 
   @Override
-  public Message newMessage(Uuid id,
-                            Uuid author,
-                            Uuid conversation,
-                            String body,
-                            Time creationTime) {
+  public Message newMessage(
+      Uuid id, Uuid author, Uuid conversation, String body, Time creationTime) {
 
     final User foundUser = model.userById().first(author);
-    final ConversationPayload foundConversation = model.conversationPayloadById()
-        .first(conversation);
+    final ConversationPayload foundConversation =
+        model.conversationPayloadById().first(conversation);
 
     Message message = null;
 
     if (foundUser != null && foundConversation != null && isIdFree(id)) {
 
-      message = new Message(id,
-                            Uuid.NULL,
-                            foundConversation.lastMessage,
-                            creationTime,
-                            author,
-                            body,
-                            conversation);
+      message =
+          new Message(
+              id,
+              Uuid.NULL,
+              foundConversation.lastMessage,
+              creationTime,
+              author,
+              body,
+              conversation);
       model.add(message);
       LOG.info("Message added: %s", message.id);
 
@@ -124,18 +126,18 @@ public final class Controller implements RawController, BasicController {
       // not change.
 
       foundConversation.firstMessage =
-          Uuid.equals(foundConversation.firstMessage, Uuid.NULL) ?
-          message.id :
-          foundConversation.firstMessage;
+          Uuid.equals(foundConversation.firstMessage, Uuid.NULL)
+              ? message.id
+              : foundConversation.firstMessage;
 
       // Update the conversation to point to the new last message as it has changed.
 
       foundConversation.lastMessage = message.id;
     }
-    
+
     if (writeToLog) {
-      output.println("M_" + author + "_" + id + "_" + conversation +  "_" +
-            creationTime + "_" + body);
+      output.println(
+          "M_" + author + "_" + id + "_" + conversation + "_" + creationTime + "_" + body);
       output.flush();
     }
 
@@ -152,21 +154,15 @@ public final class Controller implements RawController, BasicController {
       user = new User(id, name, creationTime);
       model.add(user);
 
-      LOG.info(
-          "newUser success (user.id=%s user.name=%s user.time=%s)",
-          id,
-          name,
-          creationTime);
+      LOG.info("newUser success (user.id=%s user.name=%s user.time=%s)", id, name, creationTime);
 
     } else {
 
       LOG.info(
           "newUser fail - id in use (user.id=%s user.name=%s user.time=%s)",
-          id,
-          name,
-          creationTime);
+          id, name, creationTime);
     }
-    
+
     if (writeToLog) {
       output.println("U_" + name + "_" + user.id + "_" + creationTime);
       output.flush();
@@ -181,10 +177,12 @@ public final class Controller implements RawController, BasicController {
     final User foundOwner = model.userById().first(owner);
 
     ConversationHeader conversation = null;
+    ConversationPermission permission = null;
 
     if (foundOwner != null && isIdFree(id)) {
       conversation = new ConversationHeader(id, owner, creationTime, title);
-      model.add(conversation);
+      permission = new ConversationPermission(id, owner);
+      model.add(conversation, permission);
       LOG.info("Conversation added: " + id);
     }
 
@@ -195,30 +193,22 @@ public final class Controller implements RawController, BasicController {
     return addInterest(userId, userId, interestId, interestType, Time.now());
   }
 
-  public Interest addInterest(Uuid id,
-                              Uuid userId,
-                              Uuid interestId,
-                              Type interestType,
-                              Time creationTime) {
+  public Interest addInterest(
+      Uuid id, Uuid userId, Uuid interestId, Type interestType, Time creationTime) {
     return model.addInterest(id, userId, interestId, interestType, creationTime);
   }
-  
+
   //TODO: add in logic for ConversationPermissions
 
   public void removeInterest(Uuid userId, Uuid interestId) {
     model.removeInterest(userId, interestId);
   }
 
-  // TODO(Adam): Create and send an ArrayList of InterestStatus objects instead
-  // of an array
-  // list of strings. Allow the client to figure out how to sort through the
-  // data.
   public List<InterestStatus> interestStatus(Uuid user) {
     List<Uuid> userInterests = model.interests.get(user);
     List<InterestStatus> result = new ArrayList<>();
     Time now = Time.now();
-    if (userInterests == null)
-      return result;
+    if (userInterests == null) return result;
     for (Uuid interestId : userInterests) {
       InterestStatus report = processInterest(interestId, now);
       if (report != null) {
@@ -228,18 +218,9 @@ public final class Controller implements RawController, BasicController {
     return result;
   }
 
-  /*
-   * Syntax guide:
-   *
-   * if type is User: U <name>: C <header title> --> for conversations created
-   * by the user U <name>: A <header title> --> for messages added to
-   * conversation by the user. if type is Conversation C <name>: <number of new
-   * messages>
-   */
   private InterestStatus processInterest(Uuid id, Time now) {
     Interest interest = model.interestById().first(id);
-    if (interest == null)
-      return null;
+    if (interest == null) return null;
     Time lastUpdate = interest.lastUpdate;
     InterestStatus result = null;
     if (interest.type == Type.USER) {
@@ -285,13 +266,11 @@ public final class Controller implements RawController, BasicController {
 
     Uuid candidate;
 
-    for (candidate = uuidGenerator.make();
-         isIdInUse(candidate);
-         candidate = uuidGenerator.make()) {
+    for (candidate = uuidGenerator.make(); isIdInUse(candidate); candidate = uuidGenerator.make()) {
 
-     // Assuming that "randomUuid" is actually well implemented, this
-     // loop should never be needed, but just in case make sure that the
-     // Uuid is not actually in use before returning it.
+      // Assuming that "randomUuid" is actually well implemented, this
+      // loop should never be needed, but just in case make sure that the
+      // Uuid is not actually in use before returning it.
 
     }
 
@@ -299,15 +278,18 @@ public final class Controller implements RawController, BasicController {
   }
 
   private boolean isIdInUse(Uuid id) {
-    return model.messageById().first(id) != null ||
-           model.conversationById().first(id) != null ||
-           model.userById().first(id) != null;
+    return model.messageById().first(id) != null
+        || model.conversationById().first(id) != null
+        || model.userById().first(id) != null;
   }
 
-  private boolean isIdFree(Uuid id) { return !isIdInUse(id); }
+  private boolean isIdFree(Uuid id) {
+    return !isIdInUse(id);
+  }
 
   /**
    * Getter method for writeToLog
+   *
    * @return boolean if we should write to log or no
    */
   public static boolean getWriteToLog() {
@@ -316,20 +298,41 @@ public final class Controller implements RawController, BasicController {
 
   /**
    * Setter method for writeToLog
+   *
    * @param write the new update for writeToLog
    */
   public static void setWriteToLog(boolean write) {
     writeToLog = write;
   }
-  
-    public ConversationHeader conversationHeaderById(Uuid id) {
+
+  public ConversationHeader conversationHeaderById(Uuid id) {
     return model.conversationById().first(id);
   }
-	
-  @Override
-  public void changeUserAccess(User user, User targetUser, ConversationHeader conversation,
-		  String accessType) {
-	model.changeAccess(user, targetUser, conversation.id, accessType);
-  }
 
+  // Changes the access of the target user to the access type.
+  // The requester must have a higher level than the target user as well as the access type.
+  // Returns true iff the operation was successful.
+  public boolean changeAccess(Uuid requester, Uuid target, Uuid conversation, UserType accessType) {
+    ConversationPermission cp = model.permissionById().first(conversation);
+
+    if (requester.equals(target)) {
+      LOG.warning("Can't change self access.");
+      return false;
+    }
+
+    // Requester must have a higher level than the target.
+    if (UserType.levelCompare(cp.status(requester), cp.status(target)) < 1) {
+      LOG.warning("Requester doesn't have permission to change access.");
+      return false;
+    }
+
+    // Must be at least one level above to change someone else's access.
+    if (UserType.levelCompare(cp.status(requester), accessType) < 1) {
+      LOG.warning("Requester doesn't have permission to change access.");
+      return false;
+    }
+
+    cp.changeAccess(target, accessType);
+    return true;
+  }
 }

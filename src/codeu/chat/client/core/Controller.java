@@ -14,25 +14,24 @@
 
 package codeu.chat.client.core;
 
-import java.util.Collection;
-
 import codeu.chat.common.BasicController;
 import codeu.chat.common.ConversationHeader;
+import codeu.chat.common.InterestStatus;
 import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
-import codeu.chat.common.User;
 import codeu.chat.common.Type;
-import codeu.chat.common.InterestStatus;
-
+import codeu.chat.common.User;
+import codeu.chat.common.UserType;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
 import codeu.chat.util.connections.ConnectionSource;
+import java.util.Collection;
 
 public final class Controller implements BasicController {
 
-  private final static Logger.Log LOG = Logger.newLog(Controller.class);
+  private static final Logger.Log LOG = Logger.newLog(Controller.class);
 
   private final ConnectionSource source;
 
@@ -40,7 +39,7 @@ public final class Controller implements BasicController {
     this.source = source;
   }
 
-  public ConnectionSource getSource(){
+  public ConnectionSource getSource() {
     return source;
   }
 
@@ -48,8 +47,8 @@ public final class Controller implements BasicController {
   public Message newMessage(Uuid author, Uuid conversation, String body) {
 
     Message response = null;
-    
-    // TODO: put something here that denies access if the user doesn't have sufficient 
+
+    // TODO: put something here that denies access if the user doesn't have sufficient
     // privileges? just a thought
 
     try (final Connection connection = source.connect()) {
@@ -98,7 +97,7 @@ public final class Controller implements BasicController {
   }
 
   @Override
-  public ConversationHeader newConversation(String title, Uuid owner)  {
+  public ConversationHeader newConversation(String title, Uuid owner) {
 
     ConversationHeader response = null;
 
@@ -121,98 +120,88 @@ public final class Controller implements BasicController {
     return response;
   }
 
-  public void newInterest(Uuid userId, Uuid interestId, Type
-      interestType){
+  public void newInterest(Uuid userId, Uuid interestId, Type interestType) {
 
     try (final Connection connection = this.source.connect()) {
-      Serializers.INTEGER.write(connection.out(),
-          NetworkCode.NEW_INTEREST_REQUEST);
+      Serializers.INTEGER.write(connection.out(), NetworkCode.NEW_INTEREST_REQUEST);
       Uuid.SERIALIZER.write(connection.out(), userId);
       Uuid.SERIALIZER.write(connection.out(), interestId);
       Type.SERIALIZER.write(connection.out(), interestType);
 
-      if(Serializers.INTEGER.read(connection.in()) !=
-          NetworkCode.NEW_INTEREST_RESPONSE){
+      if (Serializers.INTEGER.read(connection.in()) != NetworkCode.NEW_INTEREST_RESPONSE) {
         LOG.error("Response from server failed.");
       }
-                 
-    }catch(Exception ex){
+
+    } catch (Exception ex) {
       LOG.error(ex, "Exception during call on server.");
     }
   }
 
-  public void removeInterest(Uuid userId, Uuid interestId){
+  public void removeInterest(Uuid userId, Uuid interestId) {
 
     try (final Connection connection = source.connect()) {
-      Serializers.INTEGER.write(connection.out(),
-          NetworkCode.REMOVE_INTEREST_REQUEST);
+      Serializers.INTEGER.write(connection.out(), NetworkCode.REMOVE_INTEREST_REQUEST);
       Uuid.SERIALIZER.write(connection.out(), userId);
-      Uuid.SERIALIZER.write(connection.out(), interestId);           
-      if(Serializers.INTEGER.read(connection.in()) !=
-          NetworkCode.REMOVE_INTEREST_RESPONSE){
+      Uuid.SERIALIZER.write(connection.out(), interestId);
+      if (Serializers.INTEGER.read(connection.in()) != NetworkCode.REMOVE_INTEREST_RESPONSE) {
         LOG.error("Response from server failed.");
       }
-    }catch(Exception ex){
+    } catch (Exception ex) {
       LOG.error(ex, "Exception during call on server.");
-    } 
+    }
   }
 
-  public Collection<InterestStatus> statusUpdate(UserContext user){
+  public Collection<InterestStatus> statusUpdate(UserContext user) {
     Collection<InterestStatus> allInterests = null;
     try (final Connection connection = source.connect()) {
-      Serializers.INTEGER.write(connection.out(),
-          NetworkCode.INTEREST_STATUS_REQUEST);
+      Serializers.INTEGER.write(connection.out(), NetworkCode.INTEREST_STATUS_REQUEST);
       Uuid.SERIALIZER.write(connection.out(), user.user.id);
-      if(Serializers.INTEGER.read(connection.in()) ==
-          NetworkCode.INTEREST_STATUS_RESPONSE){
-        allInterests = 
-            Serializers.collection(InterestStatus.SERIALIZER).read(connection.in());
-      }
-      else {
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.INTEREST_STATUS_RESPONSE) {
+        allInterests = Serializers.collection(InterestStatus.SERIALIZER).read(connection.in());
+      } else {
         LOG.error("Response from server failed.");
       }
-    }catch(Exception ex){
-      LOG.error(ex, "Exception during call on server."); 
+    } catch (Exception ex) {
+      LOG.error(ex, "Exception during call on server.");
     }
     return allInterests;
   }
-  
-  @Override
-  public void changeUserAccess(User user, User targetUser, 
-              ConversationHeader conversation, String request) {
-    try (final Connection connection = this.source.connect()) {
-	  Serializers.INTEGER.write(connection.out(), NetworkCode.PRIVILEGE_REQUEST);
-	  ConversationHeader.SERIALIZER.write(connection.out(), conversation);
-	  User.SERIALIZER.write(connection.out(), targetUser);
-	  User.SERIALIZER.write(connection.out(), user);
-	  Serializers.STRING.write(connection.out(), request);
 
-	  int reply = Serializers.INTEGER.read(connection.in());
+    public boolean changeAccess(Uuid requester, Uuid target, Uuid conversation, UserType newAccess) {
+    try (final Connection connection = source.connect()) {
+      Serializers.INTEGER.write(connection.out(), NetworkCode.CHANGE_PRIVILEGE_REQUEST);
+      Uuid.SERIALIZER.write(connection.out(), requester);
+      Uuid.SERIALIZER.write(connection.out(), target);
+      Uuid.SERIALIZER.write(connection.out(), conversation);
+      UserType.SERIALIZER.write(connection.out(), newAccess);
 
-	  if (reply == NetworkCode.SUFFICIENT_PRIVILEGES) {
-	    System.out.println("Changed user privilege");
-	  } else if (reply == NetworkCode.INSUFFICIENT_PRIVILEGES) {
-		System.out.println("ERROR: Insufficient privilege to complete action");
-	  } else {
-	    LOG.error("Response from server failed.");
-	  }
-	} catch (Exception ex) {
-	  System.out.println("ERROR: Exception during call on server. Check log for details.");
-	  LOG.error(ex, "Exception during call on server.");
-	}
+      int reply = Serializers.INTEGER.read(connection.in());
+
+      if (reply == NetworkCode.SUFFICIENT_PRIVILEGES_RESPONSE) {
+        LOG.info("Changed user privilege");
+        return true;
+      } else if (reply == NetworkCode.INSUFFICIENT_PRIVILEGES_RESPONSE) {
+        LOG.error("Insufficient privilege to complete action");
+      } else {
+        LOG.error("Response from server failed.");
+      }
+    } catch (Exception ex) {
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server.");
+    }
+    return false;
   }
 
   public void addUserToConvo(Uuid userId, Uuid addUserId, Uuid
-      convoId, String memberBit){
+      convoId, UserType memberBit){
     try(final Connection connection = this.source.connect()){
       Uuid.SERIAZLIER.write(connection.out(), userId);
       Uuid.SERIALIZER.write(connection.out(), addUserId);
       Uuid.SERIALIZER.write(connection.out(), convoId);
-      String.SERIALIZER.write(connection.out(), memberBit);
+      UserType.SERIALIZER.write(connection.out(), memberBit);
     }catch(Exception ex){
       LOG.error(ex, "Exception during call on server.");
     }
   } 
-
 
 }
