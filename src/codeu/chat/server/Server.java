@@ -246,6 +246,19 @@ public final class Server {
       }
     });
 
+    this.commands.put(NetworkCode.ADD_USER_REQUEST, new Command(){
+      public void onMessage(InputStream in, OutputStream out) throws
+          IOException{
+        final Uuid userId = Uuid.SERIALIZER.read(in);
+        final Uuid addUserId = Uuid.SERIALIZER.read(in);
+        final Uuid convoId = Uuid.SERIALIZER.read(in);
+        final String memberBit = String.SERIALIZER.read(in);
+  
+        controller.addUser(userId, addUserId, convoId, memberBit);
+        Serializers.INTEGER.write(out, NetworkCode.ADD_USER_RESPONSE);
+      }
+    });
+
     this.timeline.scheduleNow(new Runnable() {
       @Override
       public void run() {

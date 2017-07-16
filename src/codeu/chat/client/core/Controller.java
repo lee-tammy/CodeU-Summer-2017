@@ -202,8 +202,13 @@ public final class Controller implements BasicController {
 	}
   }
 
-  public void addUserToConvo(User user, User addUser, String memberBit){
+  public void addUserToConvo(Uuid userId, Uuid addUserId, Uuid
+      convoId, String memberBit){
     try(final Connection connection = this.source.connect()){
+      Uuid.SERIAZLIER.write(connection.out(), userId);
+      Uuid.SERIALIZER.write(connection.out(), addUserId);
+      Uuid.SERIALIZER.write(connection.out(), convoId);
+      String.SERIALIZER.write(connection.out(), memberBit);
     }catch(Exception ex){
       LOG.error(ex, "Exception during call on server.");
     }
