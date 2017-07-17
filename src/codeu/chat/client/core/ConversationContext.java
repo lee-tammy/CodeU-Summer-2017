@@ -82,4 +82,8 @@ public final class ConversationContext {
   public boolean changeAccess(Uuid target, UserType accessType) {
     return controller.changeAccess(user.id, target, conversation.id, accessType);
   }
+
+  public void addUser(Uuid target, UserType memberBit){ 
+    controller.addUser(user.id, target, conversation.id, memberBit);
+  }
 }
