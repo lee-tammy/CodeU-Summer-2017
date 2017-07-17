@@ -12,7 +12,7 @@ public enum UserType {
   MEMBER(2),
   NOTSET(3);
 
-  public int fId;
+  public final int fId;
 
   UserType(int id) {
     fId = id;
@@ -44,6 +44,6 @@ public enum UserType {
   // Positive means that ut1 has a higher level than ut2.
   // Negative means that ut2 has a higher level than ut1.
   public static int levelCompare(UserType ut1, UserType ut2) {
-    return fromType(ut2) - fromType(ut1);
+    return ut2.fId - ut1.fId;
   }
 }

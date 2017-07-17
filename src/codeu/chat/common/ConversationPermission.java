@@ -46,6 +46,9 @@ public class ConversationPermission {
   }
 
   public UserType status(Uuid user) {
+    if (!users.containsKey(user)) {
+      return UserType.NOTSET;
+    }
     return users.get(user);
   }
 
