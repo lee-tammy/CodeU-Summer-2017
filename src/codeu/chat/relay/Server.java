@@ -23,7 +23,9 @@ import java.util.Queue;
 
 import codeu.chat.common.LinearUuidGenerator;
 import codeu.chat.common.Relay;
+import codeu.chat.common.Relay.Bundle.ConversationComponent;
 import codeu.chat.common.Secret;
+import codeu.chat.common.UserType;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
@@ -54,6 +56,39 @@ public final class Server implements Relay {
     public Time time() { return time; }
 
   }
+  
+  private static final class ConversationComponent implements Relay.Bundle.ConversationComponent {
+	
+	private final Uuid id;
+	private final String text;
+	private final Time time;
+	private final Uuid creator;
+	private final UserType defaultAccess;
+	
+	public ConversationComponent(Uuid id, String text, Time time, Uuid creator, UserType defaultAccess) {
+	  this.id = id;
+	  this.text = text;
+	  this.time = time;
+	  this.creator = creator;
+	  this.defaultAccess = defaultAccess;
+	}
+	
+	@Override
+	public Uuid id() { return id; }
+
+	@Override
+	public String text() { return text; }
+
+	@Override
+	public Time time() { return time; }
+
+	@Override
+	public Uuid creator() { return creator; }
+
+	@Override
+	public UserType defaultAccess() { return defaultAccess; }
+	  
+  }
 
   private static final class Bundle implements Relay.Bundle {
 
@@ -61,14 +96,14 @@ public final class Server implements Relay {
     private final Time time;
     private final Uuid team;
     private final Component user;
-    private final Component conversation;
+    private final ConversationComponent conversation;
     private final Component message;
 
     public Bundle(Uuid id,
                   Time time,
                   Uuid team,
                   Component user,
-                  Component conversation,
+                  ConversationComponent conversation,
                   Component message) {
 
       this.id = id;
@@ -93,7 +128,7 @@ public final class Server implements Relay {
     public Component user() { return user; }
 
     @Override
-    public Component conversation() { return conversation; }
+    public ConversationComponent conversation() { return conversation; }
 
     @Override
     public Component message() { return message; }
@@ -162,12 +197,17 @@ public final class Server implements Relay {
   public Relay.Bundle.Component pack(Uuid id, String text, Time time) {
     return new Component(id, text, time);
   }
+  
+  @Override
+  public Relay.Bundle.ConversationComponent pack(Uuid id, String text, Time time, Uuid creator, UserType defaultAccess) {
+  	return new ConversationComponent(id, text, time, creator, defaultAccess);
+  }
 
   @Override
   public boolean write(Uuid teamId,
                        Secret teamSecret,
                        Relay.Bundle.Component user,
-                       Relay.Bundle.Component conversation,
+                       Relay.Bundle.ConversationComponent conversation,
                        Relay.Bundle.Component message) {
 
     if (authenticate(teamId, teamSecret)) {
@@ -247,4 +287,5 @@ public final class Server implements Relay {
   private boolean authenticate(Uuid id, Secret secret) {
     return id != null && secret != null && secret.equals(teamSecrets.get(id));
   }
+
 }

@@ -22,6 +22,7 @@ import java.util.Collection;
 import codeu.chat.common.NetworkCode;
 import codeu.chat.common.Relay;
 import codeu.chat.common.Secret;
+import codeu.chat.common.UserType;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializer;
 import codeu.chat.util.Serializers;
@@ -62,6 +63,43 @@ public final class ServerFrontEnd {
       Time.SERIALIZER.write(out, value.time());
     }
   };
+  
+  private static final Serializer<Relay.Bundle.ConversationComponent> CONVERSATIONCOMPONENT_SERIALIZER =
+	      new Serializer<Relay.Bundle.ConversationComponent>() {
+
+	    @Override
+	    public Relay.Bundle.ConversationComponent read(InputStream in) throws IOException {
+
+	      final Uuid id = Uuid.SERIALIZER.read(in);
+	      final String text = Serializers.STRING.read(in);
+	      final Time time = Time.SERIALIZER.read(in);
+	      final Uuid creator = Uuid.SERIALIZER.read(in);
+	      final UserType defaultAccess = UserType.SERIALIZER.read(in);
+
+
+	      return new Relay.Bundle.ConversationComponent() {
+	        @Override
+	        public Uuid id() { return id; }
+	        @Override
+	        public String text() { return text; }
+	        @Override
+	        public Time time() { return time; }
+	        @Override
+	        public Uuid creator() { return creator; }
+	        @Override
+	        public UserType defaultAccess() { return defaultAccess; }
+	      };
+	    }
+
+	    @Override
+	    public void write(OutputStream out, Relay.Bundle.ConversationComponent value) throws IOException {
+	      Uuid.SERIALIZER.write(out, value.id());
+	      Serializers.STRING.write(out, value.text());
+	      Time.SERIALIZER.write(out, value.time());
+	      Uuid.SERIALIZER.write(out, value.creator());
+	      UserType.SERIALIZER.write(out, value.defaultAccess());
+	    }
+	  };
 
   private static final Serializer<Relay.Bundle> BUNDLE_SERIALIZER =
       new Serializer<Relay.Bundle>() {
@@ -73,7 +111,7 @@ public final class ServerFrontEnd {
       final Time time = Time.SERIALIZER.read(in);
       final Uuid team = Uuid.SERIALIZER.read(in);
       final Relay.Bundle.Component user = COMPONENT_SERIALIZER.read(in);
-      final Relay.Bundle.Component conversation = COMPONENT_SERIALIZER.read(in);
+      final Relay.Bundle.ConversationComponent conversation = CONVERSATIONCOMPONENT_SERIALIZER.read(in);
       final Relay.Bundle.Component message = COMPONENT_SERIALIZER.read(in);
 
       return new Relay.Bundle() {
@@ -86,7 +124,7 @@ public final class ServerFrontEnd {
         @Override
         public Relay.Bundle.Component user() { return user; }
         @Override
-        public Relay.Bundle.Component conversation() { return conversation; }
+        public Relay.Bundle.ConversationComponent conversation() { return conversation; }
         @Override
         public Relay.Bundle.Component message() { return message; }
       };
@@ -98,7 +136,7 @@ public final class ServerFrontEnd {
       Time.SERIALIZER.write(out, value.time());
       Uuid.SERIALIZER.write(out, value.team());
       COMPONENT_SERIALIZER.write(out, value.user());
-      COMPONENT_SERIALIZER.write(out, value.conversation());
+      CONVERSATIONCOMPONENT_SERIALIZER.write(out, value.conversation());
       COMPONENT_SERIALIZER.write(out, value.message());
     }
   };
@@ -153,7 +191,7 @@ public final class ServerFrontEnd {
     final Uuid teamId = Uuid.SERIALIZER.read(connection.in());
     final Secret teamSecret = Secret.SERIALIZER.read(connection.in());
     final Relay.Bundle.Component user = COMPONENT_SERIALIZER.read(connection.in());
-    final Relay.Bundle.Component conversation = COMPONENT_SERIALIZER.read(connection.in());
+    final Relay.Bundle.ConversationComponent conversation = CONVERSATIONCOMPONENT_SERIALIZER.read(connection.in());
     final Relay.Bundle.Component message = COMPONENT_SERIALIZER.read(connection.in());
 
     LOG.info(

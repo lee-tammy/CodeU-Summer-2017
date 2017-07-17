@@ -140,7 +140,8 @@ public final class Server {
 
             final String title = Serializers.STRING.read(in);
             final Uuid owner = Uuid.SERIALIZER.read(in);
-            final ConversationHeader conversation = controller.newConversation(title, owner);
+            final UserType defaultAccess = UserType.SERIALIZER.read(in);
+            final ConversationHeader conversation = controller.newConversation(title, owner, defaultAccess);
 
             Serializers.INTEGER.write(out, NetworkCode.NEW_CONVERSATION_RESPONSE);
             Serializers.nullable(ConversationHeader.SERIALIZER).write(out, conversation);
@@ -177,7 +178,7 @@ public final class Server {
         });
 
     // Get Conversations By Id - A client wants to get a subset of the
-    // converations from the back end. Normally this will be done after calling
+    // conversations from the back end. Normally this will be done after calling
     // Get Conversations to get all the headers and now the client wants to get
     // a subset of the payloads.
     this.commands.put(
@@ -296,10 +297,10 @@ public final class Server {
         final Uuid userId = Uuid.SERIALIZER.read(in);
         final Uuid addUserId = Uuid.SERIALIZER.read(in);
         final Uuid convoId = Uuid.SERIALIZER.read(in);
-        final String memberBit = String.SERIALIZER.read(in);
+//        final String memberBit = SERIALIZER.read(in);
+        final String memberBit = "";
   
         controller.addUser(userId, addUserId, convoId, memberBit);
-        Serializers.INTEGER.write(out, NetworkCode.ADD_USER_RESPONSE);
       }
     });
 
@@ -364,7 +365,7 @@ public final class Server {
   private void onBundle(Relay.Bundle bundle) {
 
     final Relay.Bundle.Component relayUser = bundle.user();
-    final Relay.Bundle.Component relayConversation = bundle.conversation();
+    final Relay.Bundle.ConversationComponent relayConversation = bundle.conversation();
     final Relay.Bundle.Component relayMessage = bundle.user();
 
     User user = model.userById().first(relayUser.id());
@@ -382,7 +383,8 @@ public final class Server {
       // this server's copy of the conversation.
       conversation =
           controller.newConversation(
-              relayConversation.id(), relayConversation.text(), user.id, relayConversation.time());
+              relayConversation.id(), relayConversation.text(), relayConversation.creator(), relayConversation.time(), 
+              relayConversation.defaultAccess());
     }
 
     Message message = model.messageById().first(relayMessage.id());
@@ -410,7 +412,7 @@ public final class Server {
             id,
             secret,
             relay.pack(user.id, user.name, user.creation),
-            relay.pack(conversation.id, conversation.title, conversation.creation),
+            relay.pack(conversation.id, conversation.title, conversation.creation, conversation.creator, conversation.defaultAccess),
             relay.pack(message.id, message.content, message.creation));
       }
     };

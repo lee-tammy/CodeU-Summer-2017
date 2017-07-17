@@ -18,7 +18,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import codeu.chat.common.Relay;
+import codeu.chat.common.Relay.Bundle.Component;
+import codeu.chat.common.Relay.Bundle.ConversationComponent;
 import codeu.chat.common.Secret;
+import codeu.chat.common.UserType;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 
@@ -50,7 +53,7 @@ public final class NoOpRelay implements Relay {
   public boolean write(Uuid teamId,
                        Secret teamSecret,
                        Relay.Bundle.Component user,
-                       Relay.Bundle.Component conversation,
+                       Relay.Bundle.ConversationComponent conversation,
                        Relay.Bundle.Component message) {
 
     return true;
@@ -63,5 +66,23 @@ public final class NoOpRelay implements Relay {
                                        int range) {
 
     return new ArrayList<Relay.Bundle>();
+  }
+
+  @Override
+  public ConversationComponent pack(Uuid id, String text, Time time, Uuid creator, UserType defaultAccess) {
+	return new Relay.Bundle.ConversationComponent() {
+		@Override
+		public Time time() { return time; }
+		@Override
+		public String text() { return text; }
+		@Override
+		public Uuid id() { return id; }
+		
+		@Override
+		public UserType defaultAccess() { return defaultAccess; }
+		
+		@Override
+		public Uuid creator() { return creator; }
+	};
   }
 }

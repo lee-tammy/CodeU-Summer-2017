@@ -97,7 +97,7 @@ public final class Controller implements BasicController {
   }
 
   @Override
-  public ConversationHeader newConversation(String title, Uuid owner) {
+  public ConversationHeader newConversation(String title, Uuid owner, UserType defaultAccess) {
 
     ConversationHeader response = null;
 
@@ -106,6 +106,7 @@ public final class Controller implements BasicController {
       Serializers.INTEGER.write(connection.out(), NetworkCode.NEW_CONVERSATION_REQUEST);
       Serializers.STRING.write(connection.out(), title);
       Uuid.SERIALIZER.write(connection.out(), owner);
+      UserType.SERIALIZER.write(connection.out(), defaultAccess);
 
       if (Serializers.INTEGER.read(connection.in()) == NetworkCode.NEW_CONVERSATION_RESPONSE) {
         response = Serializers.nullable(ConversationHeader.SERIALIZER).read(connection.in());
@@ -195,7 +196,7 @@ public final class Controller implements BasicController {
   public void addUserToConvo(Uuid userId, Uuid addUserId, Uuid
       convoId, UserType memberBit){
     try(final Connection connection = this.source.connect()){
-      Uuid.SERIAZLIER.write(connection.out(), userId);
+      Uuid.SERIALIZER.write(connection.out(), userId);
       Uuid.SERIALIZER.write(connection.out(), addUserId);
       Uuid.SERIALIZER.write(connection.out(), convoId);
       UserType.SERIALIZER.write(connection.out(), memberBit);

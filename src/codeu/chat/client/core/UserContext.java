@@ -53,7 +53,7 @@ public final class UserContext {
   public ConversationContext start(String name, UserType access) {
     final ConversationHeader conversation = controller.newConversation(name, user.id, access);
     return conversation == null ? null
-        : new ConversationContext(user, conversation, view, controller, access);
+        : new ConversationContext(user, conversation, view, controller);
   }
 
   public Iterable<ConversationContext> conversations() {
