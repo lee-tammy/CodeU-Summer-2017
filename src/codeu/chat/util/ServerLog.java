@@ -87,26 +87,36 @@ public final class ServerLog {
     try {
       if (commandType == 'M') {
         // parse a message
-        controller.newMessage(Uuid.parse(ParArr[2]), Uuid.parse(ParArr[1]), 
-                              Uuid.parse(ParArr[3]), ParArr[5], stringToTime(ParArr[4]) );
+        controller.newMessage( Uuid.parse(ParArr[2]), Uuid.parse(ParArr[1]), 
+                               Uuid.parse(ParArr[3]), ParArr[5], stringToTime(ParArr[4]) );
 
       } else if (commandType == 'U') {
         // parse a user
-        controller.newUser(Uuid.parse(ParArr[2]), ParArr[1], stringToTime(ParArr[3]) );
+        controller.newUser( Uuid.parse(ParArr[2]), ParArr[1], stringToTime(ParArr[3]) );
 
       } else if (commandType == 'C') {
         // parse a conversation
-    	// TODO : actually get the serverLog to store the defaultAccess UserType
-        controller.newConversation(Uuid.parse(ParArr[2]), ParArr[1], 
-                                   Uuid.parse(ParArr[3]), stringToTime(ParArr[4]), UserType.NOTSET );
+        controller.newConversation( Uuid.parse(ParArr[1]), ParArr[2], Uuid.parse(ParArr[3]),
+        		                    stringToTime(ParArr[4]), stringToUserType(ParArr[5]) );
       }
     } catch (IOException e) {
       e.printStackTrace();
     }
   }
   
-  private Time stringToTime(String s) {
-    return Time.parse(s);
+  private Time stringToTime(String time) {
+    return Time.parse(time);
+  }
+  
+  private UserType stringToUserType(String string) {
+	switch (string) {
+      case "M":
+        return UserType.MEMBER;
+      case "O":
+        return UserType.OWNER;
+      default:
+        return UserType.NOTSET;
+    }
   }
 
   private Map<Integer,String> readFile(BufferedReader br) {

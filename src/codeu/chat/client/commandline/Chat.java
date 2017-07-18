@@ -190,11 +190,11 @@ public final class Chat {
           public void invoke(List<String> args) {
             final String name = args.size() > 0 ? args.get(0).trim() : "";
             if (name.length() > 0) {
-              if (context.create(name) == null) {
-                System.out.println("ERROR: Failed to create new user");
-              }
               if (findUser(name, context) != null) {
                 System.out.println("ERROR: Username already taken");
+              }
+              if (context.create(name) == null) {
+                System.out.println("ERROR: Failed to create new user");
               }
             } else {
               System.out.println("ERROR: Missing <username>");
@@ -273,8 +273,8 @@ public final class Chat {
                 "    List all conversations that the current user can interact with.");
             System.out.println("  c-add <title> <default permission>");
             System.out.println(
-                "    Add a new conversation with the given title and join it as the current user. Specify"
-                + " default member/owner permission when a user is added");
+                "    Add a new conversation with the given title and join it as the current user. "
+                + "     Specify default member/owner permission when a user is added");
             System.out.println("  c-join <title>");
             System.out.println("    Join the conversation as the current user.");
             System.out.println("  i-add <u for user or c for conversation> <username or title>.");
@@ -340,7 +340,6 @@ public final class Chat {
               if (find(name, user) != null) {
                 System.out.println("ERROR: Conversation name already taken");
               }
-              
               final ConversationContext conversation = user.start(name, access);
               if (conversation == null) {
                 System.out.println("ERROR: Failed to create new conversation");
@@ -544,7 +543,8 @@ public final class Chat {
                 "    Add a new message to the current conversation as " + "the current user.");
             System.out.println("  u-add <user> <M for member or O for owner> ");
             System.out.println(
-                "    Add a user to the current conversation and " + "declare their membership.");
+                "    Add a user to the current conversation and " + "declare their membership."
+                		+ "    Second argument is option if default membership is desired.");
             System.out.println("  info");
             System.out.println("    Display all info about the current conversation.");
             System.out.println("  modify-access <user> <accessType>");
@@ -592,7 +592,10 @@ public final class Chat {
         new Panel.Command() {
           @Override
           public void invoke(List<String> args) {
-            final String message = args.size() > 0 ? args.get(0).trim() : "";
+        	String message = args.size() > 0 ? args.get(0) : "";
+            for(int i = 1; i < args.size(); i++) {
+              message += " " + args.get(i);
+            }
             if (message.length() > 0) {
               conversation.add(message);
             } else {
@@ -671,7 +674,7 @@ public final class Chat {
             final int argSize = args.size();
             if (argSize == 2 || argSize == 1) {
               final User addUser = findUser(args.get(0), context).user;
-              final String arg2 = args.get(1).trim();
+              final String arg2 = args.size() == 2 ? args.get(1).trim() : "";
               UserType memberBit = null;
               if (addUser != null) {
                 if (argSize == 2){
