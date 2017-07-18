@@ -58,4 +58,12 @@ public interface BasicController {
   // function successfully changed access to the target user. If access could not be changed for any
   // reason, the function will return false.
   boolean changeAccess(Uuid requester, Uuid target, Uuid conversation, UserType newAccess);
+  
+  // ADD USER
+  //
+  // Add a user with access type to the current conversation. 
+  // The requester must be a creator or owner in order to have the permission 
+  // to add a user. If the access type is not specified, the default access 
+  // type will be assigned to the added user.
+  void addUser(Uuid requester, Uuid target, Uuid conversation, UserType memberBit);
 }

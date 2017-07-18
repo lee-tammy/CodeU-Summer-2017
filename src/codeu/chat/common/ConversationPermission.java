@@ -60,4 +60,9 @@ public class ConversationPermission {
   public void changeAccess(Uuid user, UserType newType) {
     users.put(user, newType);
   }
+  
+  public Map<Uuid, UserType> getMap(){
+    return users;
+  }
+ 
 }

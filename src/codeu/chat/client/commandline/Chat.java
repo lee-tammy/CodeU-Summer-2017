@@ -670,15 +670,21 @@ public final class Chat {
             final int argSize = args.size();
             if (argSize == 2 || argSize == 1) {
               final User addUser = findUser(args.get(0), context).user;
-              final String memberBit = args.get(1).trim();
+              final String arg2 = args.get(1).trim();
+              UserType memberBit = null;
               if (addUser != null) {
-                if (argSize == 2
-                    && (memberBit.equalsIgnoreCase("O") || memberBit.equalsIgnoreCase("M"))) {
-
-                  //Call method here
-                } else {
-                  System.out.format("ERROR: '%s' is not a valid access type", memberBit);
+                if (argSize == 2){
+                  if(arg2.equalsIgnoreCase("O")){
+                    memberBit = UserType.OWNER;
+                  }else if(arg2.equalsIgnoreCase("M")){
+                    memberBit = UserType.MEMBER;
+                  }else{
+                    System.out.format("ERROR: '%s' is not a valid access type", 
+                        memberBit);
+                    return;
+                  }
                 }
+                conversation.addUser(addUser.id, memberBit); 
               } else {
                 System.out.format("ERROR: '%s' does not exist", addUser);
               }

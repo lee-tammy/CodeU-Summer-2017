@@ -71,6 +71,8 @@ public final class Model {
   private final Store<Uuid, ConversationHeader> conversationById = new Store<>(UUID_COMPARE);
   private final Store<Time, ConversationHeader> conversationByTime = new Store<>(TIME_COMPARE);
   private final Store<String, ConversationHeader> conversationByText = new Store<>(STRING_COMPARE);
+  private final Store<Uuid, Uuid> conversationToPermission = new Store<>(UUID_COMPARE);
+
   private final Store<Uuid, ConversationPayload> conversationPayloadById =
       new Store<>(UUID_COMPARE);
 

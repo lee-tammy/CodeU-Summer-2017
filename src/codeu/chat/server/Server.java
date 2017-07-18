@@ -297,9 +297,8 @@ public final class Server {
         final Uuid userId = Uuid.SERIALIZER.read(in);
         final Uuid addUserId = Uuid.SERIALIZER.read(in);
         final Uuid convoId = Uuid.SERIALIZER.read(in);
-//        final String memberBit = SERIALIZER.read(in);
-        final String memberBit = "";
-  
+        final UserType memberBit = UserType.SERIALIZER.read(in);
+          
         controller.addUser(userId, addUserId, convoId, memberBit);
       }
     });

@@ -193,13 +193,15 @@ public final class Controller implements BasicController {
     return false;
   }
 
-  public void addUserToConvo(Uuid userId, Uuid addUserId, Uuid
+  public void addUser(Uuid userId, Uuid addUserId, Uuid
       convoId, UserType memberBit){
     try(final Connection connection = this.source.connect()){
+      Serializers.INTEGER.write(connection.out(), NetworkCode.ADD_USER_REQUEST);
       Uuid.SERIALIZER.write(connection.out(), userId);
       Uuid.SERIALIZER.write(connection.out(), addUserId);
       Uuid.SERIALIZER.write(connection.out(), convoId);
       UserType.SERIALIZER.write(connection.out(), memberBit);
+           
     }catch(Exception ex){
       LOG.error(ex, "Exception during call on server.");
     }

@@ -35,6 +35,8 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class Controller implements RawController, BasicController {
 
@@ -336,7 +338,44 @@ public final class Controller implements RawController, BasicController {
     return true;
   }
 
-  public void addUser(Uuid userId, Uuid addUserId, Uuid convoId, String memberBit) {
-	// TODO Auto-generated method stub
-  }
+
+  /*
+   * Adds a user to the current conversation with the specified access type. 
+   */
+  public void addUser(Uuid requester, Uuid target, Uuid conversation, UserType memberBit){
+    ConversationPermission cp = model.permissionById().first(conversation);
+    Map<Uuid, UserType> map = cp.getMap();
+    
+    // Requester can not add user that is already in the current conversation
+    if(map.containsKey(target)){
+      LOG.warning("User has already been added to the conversation");
+      return;
+    }
+
+    // Requester can not add users with  member access type
+    if(cp.status(requester) == UserType.MEMBER){
+        LOG.warning("Requester's access type is member; can't add other users");
+        System.out.println("Can't add other users with member access type");
+        return;
+    }
+
+    
+    // Requester must have a higher access type than access type that will be
+    // assigned to the added user
+    if(memberBit != null && UserType.levelCompare(cp.status(requester), memberBit) < 1){ 
+      LOG.warning("Requester doesn't have permission to add user as that access"
+          + " type.");
+      System.out.println("User can't be added with that access type");  
+      return;
+    }
+ 
+    // If requester does not specify access type, add user with default access
+    // type
+    if(memberBit == null){
+      //cp.changeAccess(target, <defaultValue>);
+    }else{
+      cp.changeAccess(target, memberBit);
+    } 
+    
+  } 
 }

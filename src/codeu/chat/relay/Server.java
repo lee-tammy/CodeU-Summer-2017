@@ -287,5 +287,4 @@ public final class Server implements Relay {
   private boolean authenticate(Uuid id, Secret secret) {
     return id != null && secret != null && secret.equals(teamSecrets.get(id));
   }
-
 }
