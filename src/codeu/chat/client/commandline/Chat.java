@@ -337,12 +337,13 @@ public final class Chat {
             }
 
             if (name.length() > 0) {
+              if (find(name, user) != null) {
+                System.out.println("ERROR: Conversation name already taken");
+              }
+              
               final ConversationContext conversation = user.start(name, access);
               if (conversation == null) {
                 System.out.println("ERROR: Failed to create new conversation");
-              }
-              if (find(name, user) != null) {
-                System.out.println("ERROR: Conversation name already taken");
               }
             } else {
               System.out.println("ERROR: Missing <title>");
@@ -684,7 +685,7 @@ public final class Chat {
                     return;
                   }
                 }
-                conversation.addUser(addUser.id, memberBit); 
+                conversation.addUser(addUser.id, memberBit);
               } else {
                 System.out.format("ERROR: '%s' does not exist", addUser);
               }

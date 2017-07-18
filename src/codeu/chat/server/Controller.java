@@ -200,8 +200,6 @@ public final class Controller implements RawController, BasicController {
     return model.addInterest(id, userId, interestId, interestType, creationTime);
   }
 
-  //TODO: add in logic for ConversationPermissions
-
   public void removeInterest(Uuid userId, Uuid interestId) {
     model.removeInterest(userId, interestId);
   }
@@ -372,7 +370,7 @@ public final class Controller implements RawController, BasicController {
     // If requester does not specify access type, add user with default access
     // type
     if(memberBit == null){
-      //cp.changeAccess(target, <defaultValue>);
+      cp.changeAccess(target, cp.defaultAccess);
     }else{
       cp.changeAccess(target, memberBit);
     } 
