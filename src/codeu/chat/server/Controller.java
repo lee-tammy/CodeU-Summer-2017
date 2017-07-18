@@ -35,7 +35,6 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.HashMap;
 import java.util.Map;
 
 public final class Controller implements RawController, BasicController {
@@ -174,7 +173,8 @@ public final class Controller implements RawController, BasicController {
   }
 
   @Override
-  public ConversationHeader newConversation(Uuid id, String title, Uuid owner, Time creationTime, UserType defaultAccess) {
+  public ConversationHeader newConversation(
+      Uuid id, String title, Uuid owner, Time creationTime, UserType defaultAccess) {
 
     final User foundOwner = model.userById().first(owner);
 
@@ -210,7 +210,7 @@ public final class Controller implements RawController, BasicController {
     Time now = Time.now();
     if (userInterests == null) return result;
     for (Uuid interestId : userInterests) {
-      InterestStatus report = processInterest(interestId, now);
+      InterestStatus report = processInterest(interestId, user, now);
       if (report != null) {
         result.add(report);
       }
@@ -218,7 +218,7 @@ public final class Controller implements RawController, BasicController {
     return result;
   }
 
-  private InterestStatus processInterest(Uuid id, Time now) {
+  private InterestStatus processInterest(Uuid id, Uuid userId, Time now) {
     Interest interest = model.interestById().first(id);
     if (interest == null) return null;
     Time lastUpdate = interest.lastUpdate;
@@ -248,6 +248,10 @@ public final class Controller implements RawController, BasicController {
 
       result = new InterestStatus(id, createdConversations, addedConversations, user.name);
     } else if (interest.type == Type.CONVERSATION) {
+      ConversationPermission perm = model.permissionById().first(id);
+      if (UserType.levelCompare(perm.status(userId), UserType.MEMBER) < 0) {
+        return null;
+      }
       ConversationPayload payload = model.conversationPayloadById().first(id);
       String title = model.conversationById().first(id).title;
       Message last = model.messageById().first(payload.lastMessage);
@@ -336,44 +340,40 @@ public final class Controller implements RawController, BasicController {
     return true;
   }
 
-
   /*
-   * Adds a user to the current conversation with the specified access type. 
+   * Adds a user to the current conversation with the specified access type.
    */
-  public void addUser(Uuid requester, Uuid target, Uuid conversation, UserType memberBit){
+  public void addUser(Uuid requester, Uuid target, Uuid conversation, UserType memberBit) {
     ConversationPermission cp = model.permissionById().first(conversation);
     Map<Uuid, UserType> map = cp.getMap();
-    
+
     // Requester can not add user that is already in the current conversation
-    if(map.containsKey(target)){
+    if (map.containsKey(target)) {
       LOG.warning("User has already been added to the conversation");
       return;
     }
 
     // Requester can not add users with  member access type
-    if(cp.status(requester) == UserType.MEMBER){
-        LOG.warning("Requester's access type is member; can't add other users");
-        System.out.println("Can't add other users with member access type");
-        return;
-    }
-
-    
-    // Requester must have a higher access type than access type that will be
-    // assigned to the added user
-    if(memberBit != null && UserType.levelCompare(cp.status(requester), memberBit) < 1){ 
-      LOG.warning("Requester doesn't have permission to add user as that access"
-          + " type.");
-      System.out.println("User can't be added with that access type");  
+    if (cp.status(requester) == UserType.MEMBER) {
+      LOG.warning("Requester's access type is member; can't add other users");
+      System.out.println("Can't add other users with member access type");
       return;
     }
- 
+
+    // Requester must have a higher access type than access type that will be
+    // assigned to the added user
+    if (memberBit != null && UserType.levelCompare(cp.status(requester), memberBit) < 1) {
+      LOG.warning("Requester doesn't have permission to add user as that access" + " type.");
+      System.out.println("User can't be added with that access type");
+      return;
+    }
+
     // If requester does not specify access type, add user with default access
     // type
-    if(memberBit == null){
+    if (memberBit == null) {
       cp.changeAccess(target, cp.defaultAccess);
-    }else{
+    } else {
       cp.changeAccess(target, memberBit);
-    } 
-    
-  } 
+    }
+  }
 }
