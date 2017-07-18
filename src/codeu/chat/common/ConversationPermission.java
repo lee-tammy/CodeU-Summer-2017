@@ -12,6 +12,7 @@ import java.util.Map;
 public class ConversationPermission {
   public final Uuid id;
   public final Uuid creator;
+  public final UserType defaultAccess;
   private Map<Uuid, UserType> users;
 
   public static final Serializer<ConversationPermission> SERIALIZER =
@@ -20,6 +21,7 @@ public class ConversationPermission {
           Uuid.SERIALIZER.write(out, value.id);
           Uuid.SERIALIZER.write(out, value.creator);
           Serializers.map(Uuid.SERIALIZER, UserType.SERIALIZER).write(out, value.users);
+          UserType.SERIALIZER.write(out, value.defaultAccess);
         }
 
         public ConversationPermission read(InputStream in) throws IOException {
@@ -27,22 +29,25 @@ public class ConversationPermission {
           Uuid creator = Uuid.SERIALIZER.read(in);
           Map<Uuid, UserType> users =
               Serializers.map(Uuid.SERIALIZER, UserType.SERIALIZER).read(in);
-          return new ConversationPermission(id, creator);
+          UserType defaultAccess = UserType.SERIALIZER.read(in);
+          return new ConversationPermission(id, creator, defaultAccess);
         }
       };
 
   // creator is 0, owner is 1, member is 2
-  public ConversationPermission(Uuid id, Uuid creator) {
+  public ConversationPermission(Uuid id, Uuid creator, UserType defaultAccess) {
     this.id = id;
     this.creator = creator;
+    this.defaultAccess = defaultAccess;
     users = new HashMap<>();
     users.put(creator, UserType.CREATOR);
   }
 
-  public ConversationPermission(Uuid id, Uuid creator, Map<Uuid, UserType> users) {
+  public ConversationPermission(Uuid id, Uuid creator, Map<Uuid, UserType> users, UserType defaultAccess) {
     this.creator = creator;
     this.id = id;
     this.users = users;
+    this.defaultAccess = defaultAccess;
   }
 
   public UserType status(Uuid user) {

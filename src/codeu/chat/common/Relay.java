@@ -43,7 +43,7 @@ public interface Relay {
     // As there is a lot of similar information in a bundle. Component groups together
     // common fields to make the bundle interface easier to read. As a bundle is made-up
     // of three parts (user, conversation, and message) and each parts have a uuid,
-    // string, and time field it cluttered the interface. A commonent is just a wrapper
+    // string, and time field it cluttered the interface. A component is just a wrapper
     // to make the Bundle interface easier to read.
     interface Component {
 
@@ -67,6 +67,19 @@ public interface Relay {
       // this is the creation time.
       Time time();
 
+    }
+    
+    interface ConversationComponent {
+      
+      Uuid id();
+      String text();
+      Time time();
+      
+      // id of the creator of the conversation
+      Uuid creator();
+      
+      // default permissions for the conversation 
+      UserType defaultAccess();
     }
 
     // ID
@@ -93,8 +106,8 @@ public interface Relay {
 
     // CONVERSATION
     //
-    // All the infromation about the conversation that the message is part of.
-    Component conversation();
+    // All the information about the conversation that the message is part of.
+    ConversationComponent conversation();
 
     // MESSAGE
     //
@@ -109,6 +122,8 @@ public interface Relay {
   // Pack together a uuid, string, and time into a component. This is to make
   // the signature for "write" to be shorter and easier to read.
   Bundle.Component pack(Uuid id, String text, Time time);
+  
+  Bundle.ConversationComponent pack(Uuid id, String text, Time time, Uuid creator, UserType defaultAccess);
 
   // WRITE
   //
@@ -120,7 +135,7 @@ public interface Relay {
   boolean write(Uuid teamId,
                 Secret teamSecret,
                 Bundle.Component user,
-                Bundle.Component conversation,
+                Bundle.ConversationComponent conversation,
                 Bundle.Component message);
 
   // READ

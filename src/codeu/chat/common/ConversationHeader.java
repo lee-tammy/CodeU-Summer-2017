@@ -34,6 +34,7 @@ public final class ConversationHeader {
           Uuid.SERIALIZER.write(out, value.creator);
           Time.SERIALIZER.write(out, value.creation);
           Serializers.STRING.write(out, value.title);
+          UserType.SERIALIZER.write(out, value.defaultAccess);
         }
 
         @Override
@@ -43,7 +44,8 @@ public final class ConversationHeader {
               Uuid.SERIALIZER.read(in),
               Uuid.SERIALIZER.read(in),
               Time.SERIALIZER.read(in),
-              Serializers.STRING.read(in));
+              Serializers.STRING.read(in),
+              UserType.SERIALIZER.read(in));
         }
       };
 
@@ -51,13 +53,15 @@ public final class ConversationHeader {
   public final Uuid creator;
   public final Time creation;
   public final String title;
+  public final UserType defaultAccess;
 
-  public ConversationHeader(Uuid id, Uuid creator, Time creation, String title) {
+  public ConversationHeader(Uuid id, Uuid creator, Time creation, String title, UserType defaultAccess) {
 
     this.id = id;
     this.creator = creator;
     this.creation = creation;
     this.title = title;
+    this.defaultAccess = defaultAccess;
   }
 
   @Override

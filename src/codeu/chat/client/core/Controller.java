@@ -97,7 +97,7 @@ public final class Controller implements BasicController {
   }
 
   @Override
-  public ConversationHeader newConversation(String title, Uuid owner) {
+  public ConversationHeader newConversation(String title, Uuid owner, UserType defaultAccess) {
 
     ConversationHeader response = null;
 
@@ -106,6 +106,7 @@ public final class Controller implements BasicController {
       Serializers.INTEGER.write(connection.out(), NetworkCode.NEW_CONVERSATION_REQUEST);
       Serializers.STRING.write(connection.out(), title);
       Uuid.SERIALIZER.write(connection.out(), owner);
+      UserType.SERIALIZER.write(connection.out(), defaultAccess);
 
       if (Serializers.INTEGER.read(connection.in()) == NetworkCode.NEW_CONVERSATION_RESPONSE) {
         response = Serializers.nullable(ConversationHeader.SERIALIZER).read(connection.in());
@@ -167,7 +168,7 @@ public final class Controller implements BasicController {
     return allInterests;
   }
 
-    public boolean changeAccess(Uuid requester, Uuid target, Uuid conversation, UserType newAccess) {
+  public boolean changeAccess(Uuid requester, Uuid target, Uuid conversation, UserType newAccess) {
     try (final Connection connection = source.connect()) {
       Serializers.INTEGER.write(connection.out(), NetworkCode.CHANGE_PRIVILEGE_REQUEST);
       Uuid.SERIALIZER.write(connection.out(), requester);

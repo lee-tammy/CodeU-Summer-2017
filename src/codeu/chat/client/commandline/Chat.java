@@ -271,9 +271,10 @@ public final class Chat {
             System.out.println("  c-list");
             System.out.println(
                 "    List all conversations that the current user can interact with.");
-            System.out.println("  c-add <title>");
+            System.out.println("  c-add <title> <default permission>");
             System.out.println(
-                "    Add a new conversation with the given title and join it as the current user.");
+                "    Add a new conversation with the given title and join it as the current user. Specify"
+                + " default member/owner permission when a user is added");
             System.out.println("  c-join <title>");
             System.out.println("    Join the conversation as the current user.");
             System.out.println("  i-add <u for user or c for conversation> <username or title>.");
@@ -291,9 +292,6 @@ public final class Chat {
             System.out.println("    Exit the program.");
           }
         });
-
-    // TODO: add in logic for ConversationPermissions
-    // I'm thinking we should add Creator/Owner/Member panels
 
     // C-LIST (list conversations)
     //
@@ -324,13 +322,28 @@ public final class Chat {
           @Override
           public void invoke(List<String> args) {
             final String name = args.size() > 0 ? args.get(0).trim() : "";
+            String defaultAccess = args.size() > 1 ? args.get(1).trim() : "";
+            UserType access = null;
+            switch (defaultAccess) {
+              case "M":
+                access = UserType.MEMBER;
+                break;
+              case "O":
+                access = UserType.OWNER;
+                break;
+              default:
+                System.out.println("ERROR: Please provide valid default access type. 'M' for member or 'O' for owner");
+                return;
+            }
+
             if (name.length() > 0) {
-              final ConversationContext conversation = user.start(name);
-              if (conversation == null) {
-                System.out.println("ERROR: Failed to create new conversation");
-              }
               if (find(name, user) != null) {
                 System.out.println("ERROR: Conversation name already taken");
+              }
+              
+              final ConversationContext conversation = user.start(name, access);
+              if (conversation == null) {
+                System.out.println("ERROR: Failed to create new conversation");
               }
             } else {
               System.out.println("ERROR: Missing <title>");
@@ -672,7 +685,7 @@ public final class Chat {
                     return;
                   }
                 }
-                conversation.addUser(addUser.id, memberBit); 
+                conversation.addUser(addUser.id, memberBit);
               } else {
                 System.out.format("ERROR: '%s' does not exist", addUser);
               }

@@ -75,8 +75,8 @@ public final class Controller implements RawController, BasicController {
   }
 
   @Override
-  public ConversationHeader newConversation(String title, Uuid owner) {
-    return newConversation(createId(), title, owner, Time.now());
+  public ConversationHeader newConversation(String title, Uuid owner, UserType defaultAccess) {
+    return newConversation(createId(), title, owner, Time.now(), defaultAccess);
   }
 
   @Override
@@ -174,7 +174,7 @@ public final class Controller implements RawController, BasicController {
   }
 
   @Override
-  public ConversationHeader newConversation(Uuid id, String title, Uuid owner, Time creationTime) {
+  public ConversationHeader newConversation(Uuid id, String title, Uuid owner, Time creationTime, UserType defaultAccess) {
 
     final User foundOwner = model.userById().first(owner);
 
@@ -182,8 +182,8 @@ public final class Controller implements RawController, BasicController {
     ConversationPermission permission = null;
 
     if (foundOwner != null && isIdFree(id)) {
-      conversation = new ConversationHeader(id, owner, creationTime, title);
-      permission = new ConversationPermission(id, owner);
+      conversation = new ConversationHeader(id, owner, creationTime, title, defaultAccess);
+      permission = new ConversationPermission(id, owner, defaultAccess);
       model.add(conversation, permission);
       LOG.info("Conversation added: " + id);
     }
@@ -199,8 +199,6 @@ public final class Controller implements RawController, BasicController {
       Uuid id, Uuid userId, Uuid interestId, Type interestType, Time creationTime) {
     return model.addInterest(id, userId, interestId, interestType, creationTime);
   }
-
-  //TODO: add in logic for ConversationPermissions
 
   public void removeInterest(Uuid userId, Uuid interestId) {
     model.removeInterest(userId, interestId);
@@ -370,7 +368,7 @@ public final class Controller implements RawController, BasicController {
     // If requester does not specify access type, add user with default access
     // type
     if(memberBit == null){
-      //cp.changeAccess(target, <defaultValue>);
+      cp.changeAccess(target, cp.defaultAccess);
     }else{
       cp.changeAccess(target, memberBit);
     } 
