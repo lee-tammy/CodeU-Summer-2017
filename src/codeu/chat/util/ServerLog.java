@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import codeu.chat.common.UserType;
 import codeu.chat.server.Controller;
 
 public final class ServerLog {
@@ -95,8 +96,9 @@ public final class ServerLog {
 
       } else if (commandType == 'C') {
         // parse a conversation
+    	// TODO : actually get the serverLog to store the defaultAccess UserType
         controller.newConversation(Uuid.parse(ParArr[2]), ParArr[1], 
-                                   Uuid.parse(ParArr[3]), stringToTime(ParArr[4]) );
+                                   Uuid.parse(ParArr[3]), stringToTime(ParArr[4]), UserType.NOTSET );
       }
     } catch (IOException e) {
       e.printStackTrace();
