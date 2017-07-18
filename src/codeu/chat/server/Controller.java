@@ -344,10 +344,9 @@ public final class Controller implements RawController, BasicController {
    */
   public void addUser(Uuid requester, Uuid target, Uuid conversation, UserType memberBit){
     ConversationPermission cp = model.permissionById().first(conversation);
-    Map<Uuid, UserType> map = cp.getMap();
-    
+        
     // Requester can not add user that is already in the current conversation
-    if(map.containsKey(target)){
+    if(cp.userInConvo(target)){
       LOG.warning("User has already been added to the conversation");
       return;
     }
@@ -358,7 +357,6 @@ public final class Controller implements RawController, BasicController {
         System.out.println("Can't add other users with member access type");
         return;
     }
-
     
     // Requester must have a higher access type than access type that will be
     // assigned to the added user

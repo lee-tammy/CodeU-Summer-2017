@@ -56,8 +56,8 @@ public class ConversationPermission {
     users.put(user, newType);
   }
   
-  public Map<Uuid, UserType> getMap(){
-    return users;
-  }
+  public boolean userInConvo(Uuid user){
+    return users.containsKey(user);
+  } 
  
 }
