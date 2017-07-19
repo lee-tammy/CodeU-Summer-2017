@@ -187,6 +187,11 @@ public final class Controller implements RawController, BasicController {
       model.add(conversation, permission);
       LOG.info("Conversation added: " + id);
     }
+    
+    if (writeToLog) {
+        output.println("C_" + id + "_" + title + "_" + owner + "_" + creationTime + "_" + defaultAccess);
+        output.flush();
+      }
 
     return conversation;
   }
