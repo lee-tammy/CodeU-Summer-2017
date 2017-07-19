@@ -52,5 +52,6 @@ public final class NetworkCode {
       CHANGE_PRIVILEGE_REQUEST = 43, // Network Codes for ca_control
       INSUFFICIENT_PRIVILEGES_RESPONSE = 44,
       SUFFICIENT_PRIVILEGES_RESPONSE = 45,
-      ADD_USER_REQUEST = 46;
+      ADD_USER_REQUEST = 46,
+      REMOVE_USER_REQUEST = 47;
 }

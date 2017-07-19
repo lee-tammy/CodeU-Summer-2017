@@ -193,6 +193,7 @@ public final class Controller implements BasicController {
     return false;
   }
 
+
   public void addUser(Uuid userId, Uuid addUserId, Uuid
       convoId, UserType memberBit){
     try(final Connection connection = this.source.connect()){
@@ -200,11 +201,25 @@ public final class Controller implements BasicController {
       Uuid.SERIALIZER.write(connection.out(), userId);
       Uuid.SERIALIZER.write(connection.out(), addUserId);
       Uuid.SERIALIZER.write(connection.out(), convoId);
-      UserType.SERIALIZER.write(connection.out(), memberBit);
-           
+      UserType.SERIALIZER.write(connection.out(), memberBit); 
+
     }catch(Exception ex){
       LOG.error(ex, "Exception during call on server.");
     }
-  } 
+    
+  }
+
+  public void removeUser(Uuid userId, Uuid removeUserId, Uuid convoId){
+    try(final Connection connection = this.source.connect()){
+      Serializers.INTEGER.write(connection.out(),
+          NetworkCode.REMOVE_USER_REQUEST); 
+      Uuid.SERIALIZER.write(connection.out(), userId);
+      Uuid.SERIALIZER.write(connection.out(), removeUserId);
+      Uuid.SERIALIZER.write(connection.out(), convoId);
+
+    }catch(Exception ex){
+      LOG.error(ex, "Exception during call on server.");
+    }
+  }
 
 }

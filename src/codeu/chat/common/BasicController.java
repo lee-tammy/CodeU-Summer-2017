@@ -66,4 +66,10 @@ public interface BasicController {
   // to add a user. If the access type is not specified, the default access 
   // type will be assigned to the added user.
   void addUser(Uuid requester, Uuid target, Uuid conversation, UserType memberBit);
+
+  // REMOVE USER
+  //
+  // Remove a user from the current conversation. The requester must be a
+  // creater or owner in order to have the permission to remove a user.
+  void removeUser(Uuid requester, Uuid target, Uuid conversation);
 }

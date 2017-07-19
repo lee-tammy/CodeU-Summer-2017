@@ -544,12 +544,14 @@ public final class Chat {
                 "    Add a new message to the current conversation as " + "the current user.");
             System.out.println("  u-add <user> <M for member or O for owner> ");
             System.out.println(
-                "    Add a user to the current conversation and " + "declare their membership.");
-            System.out.println("  info");
-            System.out.println("    Display all info about the current conversation.");
+                "    Add a user to the current conversation and declare their membership.");
+            System.out.println("  u-remove <user>");
+            System.out.println("    Remove a user from the current conversation.");
             System.out.println("  modify-access <user> <accessType>");
             System.out.println("    Change permissions of user. <userType> is O for owner,");
             System.out.println("    M for member, and R for remove");
+            System.out.println("  info");
+            System.out.println("    Display all info about the current conversation.");
             System.out.println("  back");
             System.out.println("    Go back to USER MODE.");
             System.out.println("  exit");
@@ -661,20 +663,19 @@ public final class Chat {
 
     // U-ADD
     //
-    // Add a user to current conversation
+    // Adds a user to current conversation
     //
-    panel.register(
-        "u-add",
-        new Panel.Command() {
+    panel.register("u-add", new Panel.Command() {
           @Override
           public void invoke(List<String> args) {
             final int argSize = args.size();
             if (argSize == 2 || argSize == 1) {
               final User addUser = findUser(args.get(0), context).user;
-              final String arg2 = args.get(1).trim();
               UserType memberBit = null;
               if (addUser != null) {
                 if (argSize == 2){
+                  final String arg2 = args.get(1).trim();
+                  
                   if(arg2.equalsIgnoreCase("O")){
                     memberBit = UserType.OWNER;
                   }else if(arg2.equalsIgnoreCase("M")){
@@ -685,7 +686,9 @@ public final class Chat {
                     return;
                   }
                 }
+                
                 conversation.addUser(addUser.id, memberBit);
+                              
               } else {
                 System.out.format("ERROR: '%s' does not exist", addUser);
               }
@@ -694,6 +697,26 @@ public final class Chat {
             }
           }
         });
+
+    // U-REMOVE
+    //
+    // Removes a user to current conversation
+    //
+    panel.register("u-remove", new Panel.Command(){
+      @Override
+      public void invoke(List<String> args){
+        if(args.size() == 1){
+          final User removeUser = findUser(args.get(0), context).user;
+          if(removeUser != null){
+            conversation.removeUser(removeUser.id);
+          }else{
+            System.out.format("ERROR: '%s' does not exist", removeUser);
+          }
+        }else{
+          System.out.println("ERROR: Wrong format");
+        }
+      }
+    });
 
     // Now that the panel has all its commands registered, return the panel
     // so that it can be used.

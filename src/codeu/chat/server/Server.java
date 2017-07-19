@@ -298,8 +298,20 @@ public final class Server {
         final Uuid addUserId = Uuid.SERIALIZER.read(in);
         final Uuid convoId = Uuid.SERIALIZER.read(in);
         final UserType memberBit = UserType.SERIALIZER.read(in);
-          
+        
         controller.addUser(userId, addUserId, convoId, memberBit);
+
+      }
+    });
+
+    this.commands.put(NetworkCode.REMOVE_USER_REQUEST, new Command(){
+      public void onMessage(InputStream in, OutputStream out) throws
+          IOException{
+        final Uuid userId = Uuid.SERIALIZER.read(in);
+        final Uuid removeUserId = Uuid.SERIALIZER.read(in);
+        final Uuid convoId = Uuid.SERIALIZER.read(in);
+        
+        controller.removeUser(userId, removeUserId, convoId);
       }
     });
 

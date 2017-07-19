@@ -61,6 +61,10 @@ public class ConversationPermission {
     users.put(user, newType);
   }
   
+  public void removeUser(Uuid user){
+    users.remove(user);
+  }
+
   public boolean userInConvo(Uuid user){
     return users.containsKey(user);
   } 

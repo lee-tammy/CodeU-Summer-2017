@@ -32,6 +32,7 @@ public enum UserType {
       };
 
   public static UserType fromId(int id) {
+    System.out.println(id);
     return values()[id];
   }
 

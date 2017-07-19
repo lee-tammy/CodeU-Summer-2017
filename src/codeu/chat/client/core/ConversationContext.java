@@ -86,4 +86,8 @@ public final class ConversationContext {
   public void addUser(Uuid target, UserType memberBit){ 
     controller.addUser(user.id, target, conversation.id, memberBit);
   }
+
+  public void removeUser(Uuid target){
+    controller.removeUser(user.id, target, conversation.id);
+  }
 }
