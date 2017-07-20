@@ -90,4 +90,5 @@ public final class ConversationContext {
   public void removeUser(Uuid target){
     controller.removeUser(user.id, target, conversation.id);
   }
+ 
 }

@@ -540,7 +540,7 @@ public final class Chat {
             System.out.println("    List all messages in the current conversation.");
             System.out.println("  m-add <message>");
             System.out.println(
-                "    Add a new message to the current conversation as " + "the current user.");
+                "    Add a new message to the current conversation as " + "the current user."); 
             System.out.println("  u-add <user> <M for member or O for owner> ");
             System.out.println("    Add a user to the current conversation and" 
                 + " declare their membership. Second argument is option if" 
@@ -677,19 +677,15 @@ public final class Chat {
               final String arg2 = args.size() == 2 ? args.get(1).trim() : "";
               UserType memberBit = null;
 
-              if (addUser != null) {
-                if (argSize == 2){
-                  final String arg2 = args.get(1).trim();
-                  
-                  if(arg2.equalsIgnoreCase("O")){
-                    memberBit = UserType.OWNER;
-                  }else if(arg2.equalsIgnoreCase("M")){
-                    memberBit = UserType.MEMBER;
-                  }else{
-                    System.out.format("ERROR: '%s' is not a valid access type", 
-                        memberBit);
-                    return;
-                  }
+              if (addUser != null) {   
+                if(arg2.equalsIgnoreCase("O")){
+                  memberBit = UserType.OWNER;
+                }else if(arg2.equalsIgnoreCase("M")){
+                  memberBit = UserType.MEMBER;
+                }else{
+                  System.out.format("ERROR: '%s' is not a valid access type", 
+                      memberBit);
+                  return;
                 }
                 
                 conversation.addUser(addUser.id, memberBit);
@@ -727,4 +723,6 @@ public final class Chat {
     // so that it can be used.
     return panel;
   }
+
+ 
 }
