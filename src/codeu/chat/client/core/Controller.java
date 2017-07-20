@@ -28,6 +28,8 @@ import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
 import codeu.chat.util.connections.ConnectionSource;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class Controller implements BasicController {
 
@@ -47,9 +49,6 @@ public final class Controller implements BasicController {
   public Message newMessage(Uuid author, Uuid conversation, String body) {
 
     Message response = null;
-
-    // TODO: put something here that denies access if the user doesn't have sufficient
-    // privileges? just a thought
 
     try (final Connection connection = source.connect()) {
 
@@ -221,5 +220,18 @@ public final class Controller implements BasicController {
       LOG.error(ex, "Exception during call on server.");
     }
   }
+  
+  @Override
+  public HashMap<Uuid, UserType> getConversationPermission(Uuid id) {
+    HashMap<Uuid, UserType> hm = new HashMap<Uuid, UserType>();
+	try(final Connection connection = this.source.connect()){
+	  Serializers.INTEGER.write(connection.out(), NetworkCode.USER_LIST_REQUEST);
+      Uuid.SERIALIZER.write(connection.out(), id);
+	  hm = Serializers.HashMap(Uuid.SERIALIZER, UserType.SERIALIZER).read(connection.in());
+	}catch(Exception ex){
+	  LOG.error(ex, "Exception during call on server.");
+	}
+	return hm;
+} 
 
 }

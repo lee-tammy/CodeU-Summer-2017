@@ -29,7 +29,10 @@ import codeu.chat.util.Uuid;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.Stack;
 
 public final class Chat {
@@ -243,6 +246,15 @@ public final class Chat {
     }
     return null;
   }
+  
+  private User userById(Uuid id, Context context) {
+    for (final UserContext user : context.allUsers()) {
+	  if (user.user.id.equals(id)) {
+	          return user.user;
+	  }
+	}
+	return null;
+  }
 
   private ConversationContext find(String title, UserContext user) {
     for (final ConversationContext conversation : user.conversations()) {
@@ -251,6 +263,11 @@ public final class Chat {
       }
     }
     return null;
+  }
+  
+  private boolean hasAccess(Uuid user, ConversationContext cc) {
+	  HashMap<Uuid,UserType> hm = cc.getConversationPermission();
+	  return hm.containsKey(user);
   }
 
   private Panel createUserPanel(final UserContext user) {
@@ -273,8 +290,8 @@ public final class Chat {
                 "    List all conversations that the current user can interact with.");
             System.out.println("  c-add <title> <default permission>");
             System.out.println(
-                "    Add a new conversation with the given title and join it as the current user. "
-                + "     Specify default member/owner permission when a user is added");
+                "    Add a new conversation with the given title and join it as the current user. ");
+            System.out.println("    Specify default member/owner permission when a user is added");
             System.out.println("  c-join <title>");
             System.out.println("    Join the conversation as the current user.");
             System.out.println("  i-add <u for user or c for conversation> <username or title>.");
@@ -304,9 +321,11 @@ public final class Chat {
           @Override
           public void invoke(List<String> args) {
             for (final ConversationContext conversation : user.conversations()) {
-              System.out.format(
+              if(hasAccess(user.user.id, conversation)) {
+            	System.out.format(
                   "CONVERSATION %s (UUID:%s)\n",
                   conversation.conversation.title, conversation.conversation.id);
+              }
             }
           }
         });
@@ -366,7 +385,11 @@ public final class Chat {
               if (conversation == null) {
                 System.out.format("ERROR: No conversation with name '%s'\n", name);
               } else {
+            	if(hasAccess(user.user.id, conversation)) {
                 panels.push(createConversationPanel(conversation));
+            	} else {
+                  System.out.println("ERROR: You do not currently have access to this conversation.");
+            	}
               }
             } else {
               System.out.println("ERROR: Missing <title>");
@@ -550,6 +573,8 @@ public final class Chat {
             System.out.println("  modify-access <user> <accessType>");
             System.out.println("    Change permissions of user. <userType> is O for owner,");
             System.out.println("    M for member, and R for remove");
+            System.out.println("  u-list");
+            System.out.println("    list all users and their access levels");
             System.out.println("  info");
             System.out.println("    Display all info about the current conversation.");
             System.out.println("  back");
@@ -679,8 +704,6 @@ public final class Chat {
 
               if (addUser != null) {
                 if (argSize == 2){
-                  final String arg2 = args.get(1).trim();
-                  
                   if(arg2.equalsIgnoreCase("O")){
                     memberBit = UserType.OWNER;
                   }else if(arg2.equalsIgnoreCase("M")){
@@ -722,6 +745,26 @@ public final class Chat {
         }
       }
     });
+    
+    // U-LIST
+    //
+    // List all users and their access level in a conversation
+    panel.register(
+            "u-list",
+            new Panel.Command() {
+              @Override
+              public void invoke(List<String> args) {
+            	HashMap<Uuid, UserType> map = conversation.getConversationPermission();
+                Set<Uuid> uuids = map.keySet();
+                Iterator<Uuid> iter = uuids.iterator();
+                while (iter.hasNext()) {
+                	Uuid id = iter.next();
+                	User user = userById(id, context);
+                	System.out.format("USER %s (UUID:%s)\n", user.name, user.id);
+                	System.out.println("Permission: " + map.get(id));
+                }
+              }
+            });
 
     // Now that the panel has all its commands registered, return the panel
     // so that it can be used.

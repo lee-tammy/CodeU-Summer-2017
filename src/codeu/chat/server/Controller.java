@@ -398,4 +398,10 @@ public final class Controller implements RawController, BasicController {
     
     cp.removeUser(target);
   } 
+  
+  @Override
+  public HashMap<Uuid, UserType> getConversationPermission(Uuid id) {
+	ConversationPermission cp = model.permissionById().first(id);
+	return cp.returnMap();
+  } 
 }
