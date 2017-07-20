@@ -296,8 +296,8 @@ public final class Chat {
             System.out.println("    Join the conversation as the current user.");
             System.out.println("  i-add <u for user or c for conversation> <username or title>.");
             System.out.println("    Get updates on conversations and users.");
-            System.out.println(
-                "  i-remove <u for user or c for conversation>" + " <username or title>.");
+            System.out.println("  i-remove <u for user or c for conversation>" 
+                + " <username or title>.");
             System.out.println("    Remove interest");
             System.out.println("  status-update");
             System.out.println("    Get status of interests");
@@ -698,31 +698,34 @@ public final class Chat {
           public void invoke(List<String> args) {
             final int argSize = args.size();
             if (argSize == 2 || argSize == 1) {
-              final User addUser = findUser(args.get(0), context).user;
+              final UserContext addUser = findUser(args.get(0), context);
               final String arg2 = args.size() == 2 ? args.get(1).trim() : "";
-              UserType memberBit = null;
+              UserType memberBit = UserType.NOTSET;
 
-              if (addUser != null) {   
-                if(arg2.equalsIgnoreCase("O")){
-                  memberBit = UserType.OWNER;
-                }else if(arg2.equalsIgnoreCase("M")){
-                  memberBit = UserType.MEMBER;
-                }else{
-                  System.out.format("ERROR: '%s' is not a valid access type", 
-                      memberBit);
-                  return;
-
+              if (addUser != null) {  
+                if(argSize == 2){ 
+                  switch(arg2){
+                    case "M":
+                      memberBit = UserType.MEMBER;
+                      break;
+                    case "O":
+                      memberBit = UserType.OWNER;
+                      break;
+                    default:
+                      System.out.print("ERROR: Invalid access type");
+                  } 
                 }
-                
-                conversation.addUser(addUser.id, memberBit);
-                              
+                String message = conversation.addUser(addUser.user.id, memberBit);
+                System.out.print(message);
               } else {
-                System.out.format("ERROR: '%s' does not exist", addUser);
+                System.out.print("ERROR: User does not exist");
               }
             } else {
-              System.out.println("ERROR: Wrong format");
+              System.out.print("ERROR: Wrong format");
             }
+            System.out.println();
           }
+          
         });
 
     // U-REMOVE
@@ -733,15 +736,17 @@ public final class Chat {
       @Override
       public void invoke(List<String> args){
         if(args.size() == 1){
-          final User removeUser = findUser(args.get(0), context).user;
+          final UserContext removeUser = findUser(args.get(0), context);
           if(removeUser != null){
-            conversation.removeUser(removeUser.id);
+            String message = conversation.removeUser(removeUser.user.id);
+            System.out.print(message);
           }else{
-            System.out.format("ERROR: '%s' does not exist", removeUser);
+            System.out.print("ERROR: User does not exist");
           }
         }else{
-          System.out.println("ERROR: Wrong format");
+          System.out.print("ERROR: Wrong format");
         }
+        System.out.println();
       }
     });
     

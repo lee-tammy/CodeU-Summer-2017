@@ -193,8 +193,11 @@ public final class Controller implements BasicController {
   }
 
 
-  public void addUser(Uuid userId, Uuid addUserId, Uuid
+  public String addUser(Uuid userId, Uuid addUserId, Uuid
       convoId, UserType memberBit){
+
+    String message = "";
+
     try(final Connection connection = this.source.connect()){
       Serializers.INTEGER.write(connection.out(), NetworkCode.ADD_USER_REQUEST);
       Uuid.SERIALIZER.write(connection.out(), userId);
@@ -202,13 +205,20 @@ public final class Controller implements BasicController {
       Uuid.SERIALIZER.write(connection.out(), convoId);
       UserType.SERIALIZER.write(connection.out(), memberBit); 
 
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.ADD_USER_RESPONSE) {
+        message = Serializers.STRING.read(connection.in());
+      } else {
+        LOG.error("Response from server failed.");
+      }
+
     }catch(Exception ex){
       LOG.error(ex, "Exception during call on server.");
     }
-    
+    return message;
   }
 
-  public void removeUser(Uuid userId, Uuid removeUserId, Uuid convoId){
+  public String removeUser(Uuid userId, Uuid removeUserId, Uuid convoId){
+    String message = "";
     try(final Connection connection = this.source.connect()){
       Serializers.INTEGER.write(connection.out(),
           NetworkCode.REMOVE_USER_REQUEST); 
@@ -216,9 +226,14 @@ public final class Controller implements BasicController {
       Uuid.SERIALIZER.write(connection.out(), removeUserId);
       Uuid.SERIALIZER.write(connection.out(), convoId);
 
+      if(Serializers.INTEGER.read(connection.in()) ==
+          NetworkCode.REMOVE_USER_RESPONSE){
+        message = Serializers.STRING.read(connection.in());
+      }
     }catch(Exception ex){
       LOG.error(ex, "Exception during call on server.");
-    }
+    } 
+    return message;
   }
   
   @Override

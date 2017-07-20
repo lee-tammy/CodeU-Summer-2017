@@ -68,7 +68,7 @@ public interface BasicController {
   // The requester must be a creator or owner in order to have the permission 
   // to add a user. If the access type is not specified, the default access 
   // type will be assigned to the added user.
-  void addUser(Uuid requester, Uuid target, Uuid conversation, UserType memberBit);
+  String addUser(Uuid requester, Uuid target, Uuid conversation, UserType memberBit);
 
   // GET CONVERSATION PERMISSION
   //
@@ -80,7 +80,7 @@ public interface BasicController {
   //
   // Removes specified user from specified conversation
   // if the user performing the action has adequate privileges 
-  void removeUser(Uuid id, Uuid target, Uuid id2);
+  String removeUser(Uuid id, Uuid target, Uuid id2);
   
   
 }

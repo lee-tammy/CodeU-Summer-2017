@@ -84,12 +84,12 @@ public final class ConversationContext {
     return controller.changeAccess(user.id, target, conversation.id, accessType);
   }
 
-  public void addUser(Uuid target, UserType memberBit){ 
-    controller.addUser(user.id, target, conversation.id, memberBit);
+  public String addUser(Uuid target, UserType memberBit){ 
+    return controller.addUser(user.id, target, conversation.id, memberBit);
   }
 
-  public void removeUser(Uuid target){
-    controller.removeUser(user.id, target, conversation.id);
+  public String removeUser(Uuid target){
+    return controller.removeUser(user.id, target, conversation.id);
   }
   
   public HashMap<Uuid, UserType> getConversationPermission() {

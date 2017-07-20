@@ -345,19 +345,25 @@ public final class Controller implements RawController, BasicController {
   /*
    * Adds a user to the current conversation with the specified access type. 
    */
-  public void addUser(Uuid requester, Uuid target, Uuid conversation, UserType memberBit){
+  public String addUser(Uuid requester, Uuid target, Uuid conversation, UserType memberBit){
     ConversationPermission cp = model.permissionById().first(conversation);
         
+    // Cannot add themself
+    if(requester.equals(target)){
+      LOG.warning("Can't add yourself to current conversation");
+      return "Can not add yourself.";
+    }
+
     // Requester can not add user that is already in the current conversation
     if(cp.userInConvo(target)){
       LOG.warning("User has already been added to the conversation.");
-      return;
+      return "User had already been added.";
     }
 
     // Requester can not add users with  member access type
     if(cp.status(requester) == UserType.MEMBER){
       LOG.warning("Requester's access type is member; can't add other users.");        
-      return;
+      return "Can not add with member access type.";
     }
     
     // Requester must have a higher access type than access type that will be
@@ -366,42 +372,53 @@ public final class Controller implements RawController, BasicController {
       LOG.warning("Requester doesn't have permission to add user as that access"
           + " type.");
        
-      return;
+      return "You do not have permission to add the user.";
     }
  
     // If requester does not specify access type, add user with default access
     // type
-    if(memberBit == null){
+    if(memberBit == UserType.NOTSET){
       cp.changeAccess(target, cp.defaultAccess);
     }else{
       cp.changeAccess(target, memberBit);
     } 
+    return "User added successfully.";
 
   }
 
   /*
    * Removes a user from the current conversation.
    */
-  public void removeUser(Uuid requester, Uuid target, Uuid conversation){
+  public String removeUser(Uuid requester, Uuid target, Uuid conversation){
     ConversationPermission cp = model.permissionById().first(conversation);
     
+    // Cannot remove a user if they do not exist in the current conversation
     if(!cp.userInConvo(target)){
       LOG.warning("User is not a member of the current conversation");
-      return;
+      return "User does not exist in the conversation.";
     }
     
+    // Requester with member access type cannot remove other users 
     if(cp.status(requester) == UserType.MEMBER){
-      LOG.warning("Requester doesn't have permission to add user as that access"
+      LOG.warning("Requester doesn't have permission to remove user as that access"
           + " type.");
-      return;
+      return "Can not remove with member access type.";
+    }
+
+    // Requester must have a higher access type than target
+    if(UserType.levelCompare(cp.status(requester), cp.status(target)) < 1){
+      LOG.warning("Requester doesn't have permission to remove user as that access"
+          + " type.");
+      return "You do not have permission to remove the user.";
     }
     
     cp.removeUser(target);
+    return "User removed successfully.";
   } 
   
   @Override
   public HashMap<Uuid, UserType> getConversationPermission(Uuid id) {
-	ConversationPermission cp = model.permissionById().first(id);
+	  ConversationPermission cp = model.permissionById().first(id);
 	return cp.returnMap();
   } 
 }

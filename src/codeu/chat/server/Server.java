@@ -300,8 +300,11 @@ public final class Server {
         final Uuid convoId = Uuid.SERIALIZER.read(in);
         final UserType memberBit = UserType.SERIALIZER.read(in);
         
-        controller.addUser(userId, addUserId, convoId, memberBit);
+        String message = controller.addUser(userId, addUserId, convoId, memberBit);
 
+        Serializers.INTEGER.write(out, NetworkCode.ADD_USER_RESPONSE);
+        Serializers.STRING.write(out, message);
+        
       }
     });
 
@@ -312,7 +315,10 @@ public final class Server {
         final Uuid removeUserId = Uuid.SERIALIZER.read(in);
         final Uuid convoId = Uuid.SERIALIZER.read(in);
         
-        controller.removeUser(userId, removeUserId, convoId);
+        String message = controller.removeUser(userId, removeUserId, convoId);
+
+        Serializers.INTEGER.write(out, NetworkCode.REMOVE_USER_RESPONSE);
+        Serializers.STRING.write(out, message);
       }
     });
     
