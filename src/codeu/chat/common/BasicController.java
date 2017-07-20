@@ -14,6 +14,9 @@
 
 package codeu.chat.common;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import codeu.chat.util.Uuid;
 
 // BASIC CONTROLLER
@@ -67,9 +70,17 @@ public interface BasicController {
   // type will be assigned to the added user.
   void addUser(Uuid requester, Uuid target, Uuid conversation, UserType memberBit);
 
+  // GET CONVERSATION PERMISSION
+  //
+  // Returns the list of users in a conversation along with their 
+  // level of access. 
+  HashMap<Uuid, UserType> getConversationPermission(Uuid id);
+
   // REMOVE USER
   //
-  // Remove a user from the current conversation. The requester must be a
-  // creater or owner in order to have the permission to remove a user.
-  void removeUser(Uuid requester, Uuid target, Uuid conversation);
+  // Removes specified user from specified conversation
+  // if the user performing the action has adequate privileges 
+  void removeUser(Uuid id, Uuid target, Uuid id2);
+  
+  
 }

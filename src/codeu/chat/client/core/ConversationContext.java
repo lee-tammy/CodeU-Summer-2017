@@ -24,6 +24,7 @@ import codeu.chat.common.UserType;
 import codeu.chat.util.Uuid;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 
 public final class ConversationContext {
@@ -90,5 +91,8 @@ public final class ConversationContext {
   public void removeUser(Uuid target){
     controller.removeUser(user.id, target, conversation.id);
   }
- 
+  
+  public HashMap<Uuid, UserType> getConversationPermission() {
+	  return controller.getConversationPermission(conversation.id);
+  }
 }

@@ -144,7 +144,7 @@ public final class Server implements Relay {
   // Okay, some reasoning behind why I'm using a statically initialized linear
   // generator for the ids for the relay server.
   //
-  //   Point A : The ids only need to be uniqiue for a single run time of the
+  //   Point A : The ids only need to be unique for a single run time of the
   //             relay. Ids from the relay are only used as a position into its
   //             history. If it repeats an id its not a problem.
   //

@@ -25,6 +25,7 @@ import codeu.chat.common.ServerInfo;
 import codeu.chat.common.Type;
 import codeu.chat.common.User;
 import codeu.chat.common.UserType;
+import codeu.chat.server.Server.Command;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.ServerLog;
@@ -41,7 +42,7 @@ import java.util.Map;
 
 public final class Server {
 
-  private interface Command {
+  public interface Command {
     void onMessage(InputStream in, OutputStream out) throws IOException;
   }
 
@@ -313,6 +314,16 @@ public final class Server {
         
         controller.removeUser(userId, removeUserId, convoId);
       }
+    });
+    
+    this.commands.put(NetworkCode.USER_LIST_REQUEST, new Command() {
+	  @Override
+	  public void onMessage(InputStream in, OutputStream out) throws IOException {
+	    final Uuid cpID = Uuid.SERIALIZER.read(in);
+	    Serializers.HashMap(Uuid.SERIALIZER, UserType.SERIALIZER).write
+	        (out, controller.getConversationPermission(cpID));
+	  }
+    	
     });
 
     this.timeline.scheduleNow(

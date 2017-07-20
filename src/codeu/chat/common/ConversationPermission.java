@@ -68,5 +68,9 @@ public class ConversationPermission {
   public boolean userInConvo(Uuid user){
     return users.containsKey(user);
   } 
+  
+  public HashMap<Uuid, UserType> returnMap() {
+	  return (HashMap<Uuid, UserType>) users;
+  }
  
 }
