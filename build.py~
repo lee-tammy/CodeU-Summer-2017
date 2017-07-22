@@ -118,7 +118,7 @@ def run(config, start_class_path, arguments):
 
   print ('Running: ['),
   for x in command :
-    print (x),
+    print x,
   print (']')
   print('Run %s' % ('PASSED' if subprocess.call(command) == 0 else 'FAILED'))
 
