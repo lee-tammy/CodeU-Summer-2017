@@ -594,21 +594,24 @@ public final class Chat {
         new Panel.Command() {
           @Override
           public void invoke(List<String> args) {
-            System.out.println("--- start of conversation ---");
-            for (MessageContext message = conversation.firstMessage();
-                message != null;
-                message = message.next()) {
-              System.out.println();
-              System.out.format("USER : %s\n", message.message.author);
-              System.out.format("SENT : %s\n", message.message.creation);
-              System.out.println();
-              System.out.println(message.message.content);
-              System.out.println();
-            }
-            System.out.println("---  end of conversation  ---");
+            if(hasAccess(conversation.getUser(), conversation)) {
+            	System.out.println("--- start of conversation ---");
+            	for (MessageContext message = conversation.firstMessage();
+            			message != null;
+            			message = message.next()) {
+            		System.out.println();
+            		System.out.format("USER : %s\n", message.message.author);
+            		System.out.format("SENT : %s\n", message.message.creation);
+            		System.out.println();
+            		System.out.println(message.message.content);
+            		System.out.println();
+            	}
+            	System.out.println("---  end of conversation  ---");
+              } else {
+            	  System.out.println("ERROR: you no longer have access to this conversation");
+              }
           }
         });
-
     // M-ADD (add message)
     //
     // Add a command to add a new message to the current conversation when the
@@ -623,10 +626,12 @@ public final class Chat {
             for(int i = 1; i < args.size(); i++) {
               message += " " + args.get(i);
             }
-            if (message.length() > 0) {
-              conversation.add(message);
-            } else {
+            if (message.length() < 0) {
               System.out.println("ERROR: Messages must contain text");
+            } if(hasAccess(conversation.getUser(),conversation))
+              conversation.add(message);
+            else {
+              System.out.println("ERROR: you no longer have access to this conversation");
             }
           }
         });

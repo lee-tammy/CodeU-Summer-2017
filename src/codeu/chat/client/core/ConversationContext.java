@@ -93,6 +93,10 @@ public final class ConversationContext {
   }
   
   public HashMap<Uuid, UserType> getConversationPermission() {
-	  return controller.getConversationPermission(conversation.id);
+	return controller.getConversationPermission(conversation.id);
+  }
+  
+  public Uuid getUser() {
+	return user.id;
   }
 }
