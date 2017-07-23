@@ -35,6 +35,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 public final class Controller implements RawController, BasicController {
@@ -173,8 +174,7 @@ public final class Controller implements RawController, BasicController {
   }
 
   @Override
-  public ConversationHeader newConversation(
-      Uuid id, String title, Uuid owner, Time creationTime, UserType defaultAccess) {
+  public ConversationHeader newConversation(Uuid id, String title, Uuid owner, Time creationTime, UserType defaultAccess) {
 
     final User foundOwner = model.userById().first(owner);
 
@@ -345,38 +345,45 @@ public final class Controller implements RawController, BasicController {
     return true;
   }
 
+
   /*
-   * Adds a user to the current conversation with the specified access type.
+   * Adds a user to the current conversation with the specified access type. 
    */
-  public void addUser(Uuid requester, Uuid target, Uuid conversation, UserType memberBit) {
+  public String addUser(Uuid requester, Uuid target, Uuid conversation, UserType memberBit){
     ConversationPermission cp = model.permissionById().first(conversation);
-    Map<Uuid, UserType> map = cp.getMap();
+        
+    // Cannot add themself
+    if(requester.equals(target)){
+      LOG.warning("Can't add yourself to current conversation");
+      return "Can not add yourself.";
+    }
 
     // Requester can not add user that is already in the current conversation
-    if (map.containsKey(target)) {
-      LOG.warning("User has already been added to the conversation");
-      return;
+    if(cp.userInConvo(target)){
+      LOG.warning("User has already been added to the conversation.");
+      return "User had already been added.";
     }
 
     // Requester can not add users with  member access type
-    if (cp.status(requester) == UserType.MEMBER) {
-      LOG.warning("Requester's access type is member; can't add other users");
-      System.out.println("Can't add other users with member access type");
-      return;
+    if(cp.status(requester) == UserType.MEMBER){
+      LOG.warning("Requester's access type is member; can't add other users.");        
+      return "Can not add with member access type.";
     }
-
+    
     // Requester must have a higher access type than access type that will be
     // assigned to the added user
-    if (memberBit != null && UserType.levelCompare(cp.status(requester), memberBit) < 1) {
-      LOG.warning("Requester doesn't have permission to add user as that access" + " type.");
-      System.out.println("User can't be added with that access type");
-      return;
+    if(memberBit != null && UserType.levelCompare(cp.status(requester), memberBit) < 1){ 
+      LOG.warning("Requester doesn't have permission to add user as that access"
+          + " type.");
+       
+      return "You do not have permission to add the user.";
     }
-
+ 
     // If requester does not specify access type, add user with default access
     // type
+    if(memberBit == UserType.NOTSET){
       cp.changeAccess(target, cp.defaultAccess);
-    } else {
+    }else{
       cp.changeAccess(target, memberBit);
     } 
     return "User added successfully.";

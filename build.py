@@ -116,10 +116,10 @@ def run(config, start_class_path, arguments):
   command += [ start_class_path ]
   command += arguments
 
-  print ('Running: ['),
+  print 'Running: [',
   for x in command :
-    print (x),
-  print (']')
+    print x,
+  print ']'
   print('Run %s' % ('PASSED' if subprocess.call(command) == 0 else 'FAILED'))
 
 
