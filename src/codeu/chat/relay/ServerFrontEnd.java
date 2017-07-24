@@ -64,7 +64,7 @@ public final class ServerFrontEnd {
     }
   };
   
-  private static final Serializer<Relay.Bundle.ConversationComponent> CONVERSATIONCOMPONENT_SERIALIZER =
+  private static final Serializer<Relay.Bundle.ConversationComponent> CONVERSATION_COMPONENT_SERIALIZER =
 	      new Serializer<Relay.Bundle.ConversationComponent>() {
 
 	    @Override
@@ -111,7 +111,7 @@ public final class ServerFrontEnd {
       final Time time = Time.SERIALIZER.read(in);
       final Uuid team = Uuid.SERIALIZER.read(in);
       final Relay.Bundle.Component user = COMPONENT_SERIALIZER.read(in);
-      final Relay.Bundle.ConversationComponent conversation = CONVERSATIONCOMPONENT_SERIALIZER.read(in);
+      final Relay.Bundle.ConversationComponent conversation = CONVERSATION_COMPONENT_SERIALIZER.read(in);
       final Relay.Bundle.Component message = COMPONENT_SERIALIZER.read(in);
 
       return new Relay.Bundle() {
@@ -136,7 +136,7 @@ public final class ServerFrontEnd {
       Time.SERIALIZER.write(out, value.time());
       Uuid.SERIALIZER.write(out, value.team());
       COMPONENT_SERIALIZER.write(out, value.user());
-      CONVERSATIONCOMPONENT_SERIALIZER.write(out, value.conversation());
+      CONVERSATION_COMPONENT_SERIALIZER.write(out, value.conversation());
       COMPONENT_SERIALIZER.write(out, value.message());
     }
   };
@@ -179,7 +179,7 @@ public final class ServerFrontEnd {
     LOG.info("Reading result.size=%d", result.size());
 
     Serializers.INTEGER.write(connection.out(), NetworkCode.RELAY_READ_RESPONSE);
-    Serializers.collection(BUNDLE_SERIALIZER).write(connection.out(), result);
+    Serializers.COLLECTION(BUNDLE_SERIALIZER).write(connection.out(), result);
 
     LOG.info("Handling Read Message - end");
   }
@@ -191,7 +191,7 @@ public final class ServerFrontEnd {
     final Uuid teamId = Uuid.SERIALIZER.read(connection.in());
     final Secret teamSecret = Secret.SERIALIZER.read(connection.in());
     final Relay.Bundle.Component user = COMPONENT_SERIALIZER.read(connection.in());
-    final Relay.Bundle.ConversationComponent conversation = CONVERSATIONCOMPONENT_SERIALIZER.read(connection.in());
+    final Relay.Bundle.ConversationComponent conversation = CONVERSATION_COMPONENT_SERIALIZER.read(connection.in());
     final Relay.Bundle.Component message = COMPONENT_SERIALIZER.read(connection.in());
 
     LOG.info(

@@ -29,9 +29,9 @@ import codeu.chat.util.Uuid;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 
@@ -266,7 +266,7 @@ public final class Chat {
   }
   
   private boolean hasAccess(Uuid user, ConversationContext cc) {
-	  HashMap<Uuid,UserType> hm = cc.getConversationPermission();
+	  Map<Uuid,UserType> hm = cc.getConversationPermission();
 	  return hm.containsKey(user);
   }
 
@@ -763,7 +763,7 @@ public final class Chat {
             new Panel.Command() {
               @Override
               public void invoke(List<String> args) {
-            	HashMap<Uuid, UserType> map = conversation.getConversationPermission();
+            	Map<Uuid, UserType> map = conversation.getConversationPermission();
                 Set<Uuid> uuids = map.keySet();
                 Iterator<Uuid> iter = uuids.iterator();
                 while (iter.hasNext()) {

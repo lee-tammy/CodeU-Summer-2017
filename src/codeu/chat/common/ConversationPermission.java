@@ -20,7 +20,7 @@ public class ConversationPermission {
         public void write(OutputStream out, ConversationPermission value) throws IOException {
           Uuid.SERIALIZER.write(out, value.id);
           Uuid.SERIALIZER.write(out, value.creator);
-          Serializers.map(Uuid.SERIALIZER, UserType.SERIALIZER).write(out, value.users);
+          Serializers.MAP(Uuid.SERIALIZER, UserType.SERIALIZER).write(out, value.users);
           UserType.SERIALIZER.write(out, value.defaultAccess);
         }
 
@@ -28,9 +28,9 @@ public class ConversationPermission {
           Uuid id = Uuid.SERIALIZER.read(in);
           Uuid creator = Uuid.SERIALIZER.read(in);
           Map<Uuid, UserType> users =
-              Serializers.map(Uuid.SERIALIZER, UserType.SERIALIZER).read(in);
+              Serializers.MAP(Uuid.SERIALIZER, UserType.SERIALIZER).read(in);
           UserType defaultAccess = UserType.SERIALIZER.read(in);
-          return new ConversationPermission(id, creator, defaultAccess);
+          return new ConversationPermission(id, creator, users, defaultAccess);
         }
       };
 

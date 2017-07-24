@@ -15,9 +15,9 @@ public class InterestStatus {
     public void write(OutputStream out, InterestStatus value) throws IOException {
       Uuid.SERIALIZER.write(out, value.id);
       Serializers.INTEGER.write(out, value.unreadMessages);
-      Serializers.nullable(Serializers.collection(Serializers.STRING))
+      Serializers.NULLABLE(Serializers.COLLECTION(Serializers.STRING))
           .write(out, value.newConversations);
-      Serializers.nullable(Serializers.collection(Serializers.STRING))
+      Serializers.NULLABLE(Serializers.COLLECTION(Serializers.STRING))
           .write(out, value.addedConversations);
       Type.SERIALIZER.write(out, value.type);
       Serializers.STRING.write(out, value.name);
@@ -27,9 +27,9 @@ public class InterestStatus {
       Uuid id = Uuid.SERIALIZER.read(in);
       int unreadMessages = Serializers.INTEGER.read(in);
       List<String> newConversations = (List<String>) Serializers
-          .nullable(Serializers.collection(Serializers.STRING)).read(in);
+          .NULLABLE(Serializers.COLLECTION(Serializers.STRING)).read(in);
       List<String> addedConversations = (List<String>) Serializers
-          .nullable(Serializers.collection(Serializers.STRING)).read(in);
+          .NULLABLE(Serializers.COLLECTION(Serializers.STRING)).read(in);
       Type type = Type.SERIALIZER.read(in);
       String name = Serializers.STRING.read(in);
       return new InterestStatus(id,

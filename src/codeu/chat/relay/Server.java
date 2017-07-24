@@ -23,7 +23,6 @@ import java.util.Queue;
 
 import codeu.chat.common.LinearUuidGenerator;
 import codeu.chat.common.Relay;
-import codeu.chat.common.Relay.Bundle.ConversationComponent;
 import codeu.chat.common.Secret;
 import codeu.chat.common.UserType;
 import codeu.chat.util.Logger;

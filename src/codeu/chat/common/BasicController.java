@@ -14,7 +14,6 @@
 
 package codeu.chat.common;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import codeu.chat.util.Uuid;
@@ -74,7 +73,7 @@ public interface BasicController {
   //
   // Returns the list of users in a conversation along with their 
   // level of access. 
-  HashMap<Uuid, UserType> getConversationPermission(Uuid id);
+  Map<Uuid, UserType> getConversationPermission(Uuid id);
 
   // REMOVE USER
   //

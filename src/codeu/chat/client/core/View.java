@@ -59,7 +59,7 @@ final class View implements BasicView {
       Serializers.INTEGER.write(connection.out(), NetworkCode.GET_USERS_REQUEST);
 
       if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_USERS_RESPONSE) {
-        users.addAll(Serializers.collection(User.SERIALIZER).read(connection.in()));
+        users.addAll(Serializers.COLLECTION(User.SERIALIZER).read(connection.in()));
       } else {
         LOG.error("Response from server failed.");
       }
@@ -83,7 +83,7 @@ final class View implements BasicView {
 
       if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_ALL_CONVERSATIONS_RESPONSE) {
         summaries
-            .addAll(Serializers.collection(ConversationHeader.SERIALIZER).read(connection.in()));
+            .addAll(Serializers.COLLECTION(ConversationHeader.SERIALIZER).read(connection.in()));
       } else {
         LOG.error("Response from server failed.");
       }
@@ -104,12 +104,12 @@ final class View implements BasicView {
     try (final Connection connection = source.connect()) {
 
       Serializers.INTEGER.write(connection.out(), NetworkCode.GET_CONVERSATIONS_BY_ID_REQUEST);
-      Serializers.collection(Uuid.SERIALIZER).write(connection.out(), ids);
+      Serializers.COLLECTION(Uuid.SERIALIZER).write(connection.out(), ids);
 
       if (Serializers.INTEGER
           .read(connection.in()) == NetworkCode.GET_CONVERSATIONS_BY_ID_RESPONSE) {
         conversations
-            .addAll(Serializers.collection(ConversationPayload.SERIALIZER).read(connection.in()));
+            .addAll(Serializers.COLLECTION(ConversationPayload.SERIALIZER).read(connection.in()));
       } else {
         LOG.error("Response from server failed.");
       }
@@ -129,10 +129,10 @@ final class View implements BasicView {
     try (final Connection connection = source.connect()) {
 
       Serializers.INTEGER.write(connection.out(), NetworkCode.GET_MESSAGES_BY_ID_REQUEST);
-      Serializers.collection(Uuid.SERIALIZER).write(connection.out(), ids);
+      Serializers.COLLECTION(Uuid.SERIALIZER).write(connection.out(), ids);
 
       if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_MESSAGES_BY_ID_RESPONSE) {
-        messages.addAll(Serializers.collection(Message.SERIALIZER).read(connection.in()));
+        messages.addAll(Serializers.COLLECTION(Message.SERIALIZER).read(connection.in()));
       } else {
         LOG.error("Response from server failed.");
       }

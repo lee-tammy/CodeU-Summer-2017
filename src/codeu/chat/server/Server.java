@@ -25,7 +25,6 @@ import codeu.chat.common.ServerInfo;
 import codeu.chat.common.Type;
 import codeu.chat.common.User;
 import codeu.chat.common.UserType;
-import codeu.chat.server.Server.Command;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.ServerLog;
@@ -110,7 +109,7 @@ public final class Server {
             final Message message = controller.newMessage(author, conversation, content);
 
             Serializers.INTEGER.write(out, NetworkCode.NEW_MESSAGE_RESPONSE);
-            Serializers.nullable(Message.SERIALIZER).write(out, message);
+            Serializers.NULLABLE(Message.SERIALIZER).write(out, message);
 
             timeline.scheduleNow(createSendToRelayEvent(author, conversation, message.id));
           }
@@ -127,7 +126,7 @@ public final class Server {
             final User user = controller.newUser(name);
 
             Serializers.INTEGER.write(out, NetworkCode.NEW_USER_RESPONSE);
-            Serializers.nullable(User.SERIALIZER).write(out, user);
+            Serializers.NULLABLE(User.SERIALIZER).write(out, user);
           }
         });
 
@@ -145,7 +144,7 @@ public final class Server {
             final ConversationHeader conversation = controller.newConversation(title, owner, defaultAccess);
 
             Serializers.INTEGER.write(out, NetworkCode.NEW_CONVERSATION_RESPONSE);
-            Serializers.nullable(ConversationHeader.SERIALIZER).write(out, conversation);
+            Serializers.NULLABLE(ConversationHeader.SERIALIZER).write(out, conversation);
           }
         });
 
@@ -159,7 +158,7 @@ public final class Server {
             final Collection<User> users = view.getUsers();
 
             Serializers.INTEGER.write(out, NetworkCode.GET_USERS_RESPONSE);
-            Serializers.collection(User.SERIALIZER).write(out, users);
+            Serializers.COLLECTION(User.SERIALIZER).write(out, users);
           }
         });
 
@@ -174,7 +173,7 @@ public final class Server {
             final Collection<ConversationHeader> conversations = view.getConversations();
 
             Serializers.INTEGER.write(out, NetworkCode.GET_ALL_CONVERSATIONS_RESPONSE);
-            Serializers.collection(ConversationHeader.SERIALIZER).write(out, conversations);
+            Serializers.COLLECTION(ConversationHeader.SERIALIZER).write(out, conversations);
           }
         });
 
@@ -188,11 +187,11 @@ public final class Server {
           @Override
           public void onMessage(InputStream in, OutputStream out) throws IOException {
 
-            final Collection<Uuid> ids = Serializers.collection(Uuid.SERIALIZER).read(in);
+            final Collection<Uuid> ids = Serializers.COLLECTION(Uuid.SERIALIZER).read(in);
             final Collection<ConversationPayload> conversations = view.getConversationPayloads(ids);
 
             Serializers.INTEGER.write(out, NetworkCode.GET_CONVERSATIONS_BY_ID_RESPONSE);
-            Serializers.collection(ConversationPayload.SERIALIZER).write(out, conversations);
+            Serializers.COLLECTION(ConversationPayload.SERIALIZER).write(out, conversations);
           }
         });
 
@@ -230,11 +229,11 @@ public final class Server {
           @Override
           public void onMessage(InputStream in, OutputStream out) throws IOException {
 
-            final Collection<Uuid> ids = Serializers.collection(Uuid.SERIALIZER).read(in);
+            final Collection<Uuid> ids = Serializers.COLLECTION(Uuid.SERIALIZER).read(in);
             final Collection<Message> messages = view.getMessages(ids);
 
             Serializers.INTEGER.write(out, NetworkCode.GET_MESSAGES_BY_ID_RESPONSE);
-            Serializers.collection(Message.SERIALIZER).write(out, messages);
+            Serializers.COLLECTION(Message.SERIALIZER).write(out, messages);
           }
         });
 
@@ -268,7 +267,7 @@ public final class Server {
           public void onMessage(InputStream in, OutputStream out) throws IOException {
             final Uuid userId = Uuid.SERIALIZER.read(in);
             Serializers.INTEGER.write(out, NetworkCode.INTEREST_STATUS_RESPONSE);
-            Serializers.collection(InterestStatus.SERIALIZER)
+            Serializers.COLLECTION(InterestStatus.SERIALIZER)
                 .write(out, controller.interestStatus(userId));
           }
         });
@@ -326,7 +325,7 @@ public final class Server {
 	  @Override
 	  public void onMessage(InputStream in, OutputStream out) throws IOException {
 	    final Uuid cpID = Uuid.SERIALIZER.read(in);
-	    Serializers.HashMap(Uuid.SERIALIZER, UserType.SERIALIZER).write
+	    Serializers.MAP(Uuid.SERIALIZER, UserType.SERIALIZER).write
 	        (out, controller.getConversationPermission(cpID));
 	  }
     	

@@ -130,7 +130,7 @@ public final class Serializers {
     }
   };
 
-  public static <T> Serializer<Collection<T>> collection(final Serializer<T> serializer) {
+  public static <T> Serializer<Collection<T>> COLLECTION(final Serializer<T> serializer) {
 
     return new Serializer<Collection<T>>() {
 
@@ -154,7 +154,7 @@ public final class Serializers {
     };
   }
 
-  public static <K, V> Serializer<Map<K, V>> map(final Serializer<K> keySerializer, final Serializer<V> valueSerializer) {
+  public static <K, V> Serializer<Map<K, V>> MAP(final Serializer<K> keySerializer, final Serializer<V> valueSerializer) {
     return new Serializer<Map<K, V>>() {
 
       @Override
@@ -167,15 +167,15 @@ public final class Serializers {
           keys.add(x);
           values.add(v);
         }
-        Serializers.collection(keySerializer).write(out, keys);
-        Serializers.collection(valueSerializer).write(out, values);
+        Serializers.COLLECTION(keySerializer).write(out, keys);
+        Serializers.COLLECTION(valueSerializer).write(out, values);
       }
 
       @Override
       public Map<K, V> read(InputStream in) throws IOException {
         final int size = INTEGER.read(in);
-        List<K> keys = new ArrayList<>(Serializers.collection(keySerializer).read(in));
-        List<V> values = new ArrayList<>(Serializers.collection(valueSerializer).read(in));
+        List<K> keys = new ArrayList<>(Serializers.COLLECTION(keySerializer).read(in));
+        List<V> values = new ArrayList<>(Serializers.COLLECTION(valueSerializer).read(in));
         Map<K, V> hashMap = new HashMap<>(size);
         for (int i = 0; i < size; i++) {
           hashMap.put(keys.get(i), values.get(i));
@@ -184,39 +184,8 @@ public final class Serializers {
       }
     };
   }
-  
-  public static <K, V> Serializer<HashMap<K, V>> HashMap(final Serializer<K> keySerializer, final Serializer<V> valueSerializer) {
-	    return new Serializer<HashMap<K, V>>() {
 
-	      @Override
-	      public void write(OutputStream out, HashMap<K, V> value) throws IOException {
-	        INTEGER.write(out, value.size());
-	        Collection<K> keys = new ArrayList<>(value.size());
-	        Collection<V> values = new ArrayList<>(value.size());
-	        for (final K x : value.keySet()) {
-	          V v = value.get(x);
-	          keys.add(x);
-	          values.add(v);
-	        }
-	        Serializers.collection(keySerializer).write(out, keys);
-	        Serializers.collection(valueSerializer).write(out, values);
-	      }
-
-	      @Override
-	      public HashMap<K, V> read(InputStream in) throws IOException {
-	        final int size = INTEGER.read(in);
-	        List<K> keys = new ArrayList<>(Serializers.collection(keySerializer).read(in));
-	        List<V> values = new ArrayList<>(Serializers.collection(valueSerializer).read(in));
-	        HashMap<K, V> hashMap = new HashMap<>(size);
-	        for (int i = 0; i < size; i++) {
-	          hashMap.put(keys.get(i), values.get(i));
-	        }
-	        return hashMap;
-	      }
-	    };
-	  }
-
-  public static <T> Serializer<T> nullable(final Serializer<T> serializer) {
+  public static <T> Serializer<T> NULLABLE(final Serializer<T> serializer) {
 
     final int NO_VALUE = 0x00;
     final int YES_VALUE = 0xFF;

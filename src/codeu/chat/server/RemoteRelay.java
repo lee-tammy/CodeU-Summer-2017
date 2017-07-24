@@ -212,7 +212,7 @@ public final class RemoteRelay implements Relay {
       Serializers.INTEGER.write(connection.out(), range);
 
       if (Serializers.INTEGER.read(connection.in()) == NetworkCode.RELAY_READ_RESPONSE) {
-        result.addAll(Serializers.collection(BUNDLE_SERIALIZER).read(connection.in()));
+        result.addAll(Serializers.COLLECTION(BUNDLE_SERIALIZER).read(connection.in()));
       } else {
         LOG.error("Server did not handle RELAY_READ_REQUEST");
       }
