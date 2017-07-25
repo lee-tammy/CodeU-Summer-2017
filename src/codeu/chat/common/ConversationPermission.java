@@ -34,7 +34,6 @@ public class ConversationPermission {
         }
       };
 
-  // creator is 0, owner is 1, member is 2
   public ConversationPermission(Uuid id, Uuid creator, UserType defaultAccess) {
     this.id = id;
     this.creator = creator;
@@ -66,11 +65,11 @@ public class ConversationPermission {
     users.remove(user);
   }
 
-  public boolean userInConvo(Uuid user) {
+  public boolean containsUser(Uuid user) {
     return users.containsKey(user);
   }
 
-  public HashMap<Uuid, UserType> returnMap() {
-    return (HashMap<Uuid, UserType>) users;
+  public Map<Uuid, UserType> getUsers() {
+    return users;
   }
 }

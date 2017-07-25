@@ -31,19 +31,26 @@ public enum UserType {
         }
       };
 
-  public static UserType fromId(int id) {
-    return values()[id];
+  // this method is only for serialization purposes    
+  private static UserType fromId(int id) {
+    UserType ut = null; 
+    try {
+      ut = values()[id];
+    } catch (ArrayIndexOutOfBoundsException e) {
+      System.out.print("Error: invalid UserType int value");
+      throw new IllegalArgumentException();
+    }
+    return ut;
   }
-
-  public static int fromType(UserType ut) {
-    return ut.fId;
-  }
-
-  // Returns the level comparison of two UserType(s).
-  // Zero means that the two levels are equal.
-  // Positive means that ut1 has a higher level than ut2.
-  // Negative means that ut2 has a higher level than ut1.
-  public static int levelCompare(UserType ut1, UserType ut2) {
-    return ut2.fId - ut1.fId;
+  
+  // returns true if the user has manager access for the target UserType
+  public static boolean hasManagerAccess(UserType user, UserType target) {
+	if (user == UserType.CREATOR || target == UserType.NOTSET) {
+	  return true;
+	}
+	if (user == UserType.OWNER && target == UserType.MEMBER) {
+	  return true;
+	}
+	return false;
   }
 }

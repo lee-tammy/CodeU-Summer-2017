@@ -35,7 +35,6 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.HashMap;
 import java.util.Map;
 
 public final class Controller implements RawController, BasicController {
@@ -254,7 +253,7 @@ public final class Controller implements RawController, BasicController {
       result = new InterestStatus(id, createdConversations, addedConversations, user.name);
     } else if (interest.type == Type.CONVERSATION) {
       ConversationPermission perm = model.permissionById().first(id);
-      if (UserType.levelCompare(perm.status(userId), UserType.MEMBER) < 0) {
+      if (!perm.containsUser(userId)) {
         return null;
       }
       ConversationPayload payload = model.conversationPayloadById().first(id);
@@ -321,6 +320,7 @@ public final class Controller implements RawController, BasicController {
   // Changes the access of the target user to the access type.
   // The requester must have a higher level than the target user as well as the access type.
   // Returns true iff the operation was successful.
+  @Override
   public boolean changeAccess(Uuid requester, Uuid target, Uuid conversation, UserType accessType) {
     ConversationPermission cp = model.permissionById().first(conversation);
 
@@ -330,13 +330,13 @@ public final class Controller implements RawController, BasicController {
     }
 
     // Requester must have a higher level than the target.
-    if (UserType.levelCompare(cp.status(requester), cp.status(target)) < 1) {
+    if (!UserType.hasManagerAccess(cp.status(requester), cp.status(target))) {
       LOG.warning("Requester doesn't have permission to change access.");
       return false;
     }
 
     // Must be at least one level above to change someone else's access.
-    if (UserType.levelCompare(cp.status(requester), accessType) < 1) {
+    if (!UserType.hasManagerAccess(cp.status(requester), accessType)) {
       LOG.warning("Requester doesn't have permission to change access.");
       return false;
     }
@@ -349,6 +349,7 @@ public final class Controller implements RawController, BasicController {
   /*
    * Adds a user to the current conversation with the specified access type. 
    */
+  @Override
   public String addUser(Uuid requester, Uuid target, Uuid conversation, UserType memberBit){
     ConversationPermission cp = model.permissionById().first(conversation);
         
@@ -359,7 +360,7 @@ public final class Controller implements RawController, BasicController {
     }
 
     // Requester can not add user that is already in the current conversation
-    if(cp.userInConvo(target)){
+    if(cp.containsUser(target)){
       LOG.warning("User has already been added to the conversation.");
       return "User had already been added.";
     }
@@ -372,7 +373,7 @@ public final class Controller implements RawController, BasicController {
     
     // Requester must have a higher access type than access type that will be
     // assigned to the added user
-    if(memberBit != null && UserType.levelCompare(cp.status(requester), memberBit) < 1){ 
+    if(memberBit != null && !UserType.hasManagerAccess(cp.status(requester), memberBit)){ 
       LOG.warning("Requester doesn't have permission to add user as that access"
           + " type.");
        
@@ -393,11 +394,12 @@ public final class Controller implements RawController, BasicController {
   /*
    * Removes a user from the current conversation.
    */
+  @Override
   public String removeUser(Uuid requester, Uuid target, Uuid conversation){
     ConversationPermission cp = model.permissionById().first(conversation);
     
     // Cannot remove a user if they do not exist in the current conversation
-    if(!cp.userInConvo(target)){
+    if(!cp.containsUser(target)){
       LOG.warning("User is not a member of the current conversation");
       return "User does not exist in the conversation.";
     }
@@ -410,7 +412,7 @@ public final class Controller implements RawController, BasicController {
     }
 
     // Requester must have a higher access type than target
-    if(UserType.levelCompare(cp.status(requester), cp.status(target)) < 1){
+    if(UserType.hasManagerAccess(cp.status(requester), cp.status(target))){
       LOG.warning("Requester doesn't have permission to remove user as that access"
           + " type.");
       return "You do not have permission to remove the user.";
@@ -421,8 +423,8 @@ public final class Controller implements RawController, BasicController {
   } 
   
   @Override
-  public HashMap<Uuid, UserType> getConversationPermission(Uuid id) {
+  public Map<Uuid, UserType> getConversationPermission(Uuid id) {
 	  ConversationPermission cp = model.permissionById().first(id);
-	return cp.returnMap();
+	return cp.getUsers();
   } 
 }
