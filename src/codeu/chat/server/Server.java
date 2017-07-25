@@ -139,6 +139,17 @@ public final class Server {
       }
     });
 
+    this.commands.put(NetworkCode.REMOVE_CONVERSATION_REQUEST, new Command(){
+      @Override
+      public void onMessage(InputStream in, OutputStream out)throws IOException{
+       
+        final ConversationHeader conversation = 
+            Serializers.nullable(ConversationHeader.SERIALIZER).read(in);
+        
+        controller.removeConversation(conversation);
+      }
+    });
+
     // Get Users - A client wants to get all the users from the back end.
     this.commands.put(NetworkCode.GET_USERS_REQUEST, new Command() {
       @Override

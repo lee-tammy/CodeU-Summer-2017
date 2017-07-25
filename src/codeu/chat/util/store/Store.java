@@ -67,6 +67,10 @@ public final class Store<KEY, VALUE> implements StoreAccessor<KEY, VALUE> {
     }
   }
 
+  public void remove(KEY key){
+    index.remove(key);
+  }
+
   @Override
   public VALUE first(KEY key) {
     final StoreLink<KEY, VALUE> link = index.get(key);

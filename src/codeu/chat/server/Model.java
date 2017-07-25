@@ -110,6 +110,13 @@ public final class Model {
     conversationPayloadById.insert(conversation.id, new ConversationPayload(conversation.id));
   }
 
+  public void remove(ConversationHeader conversation){
+    conversationById.remove(conversation.id);
+    conversationByTime.remove(conversation.creation);
+    conversationByText.remove(conversation.title);
+    conversationPayloadById.remove(conversation.id);
+  }
+
   public StoreAccessor<Uuid, ConversationHeader> conversationById() {
     return conversationById;
   }
