@@ -141,7 +141,8 @@ public final class Server {
             final String title = Serializers.STRING.read(in);
             final Uuid owner = Uuid.SERIALIZER.read(in);
             final UserType defaultAccess = UserType.SERIALIZER.read(in);
-            final ConversationHeader conversation = controller.newConversation(title, owner, defaultAccess);
+            final ConversationHeader conversation =
+                controller.newConversation(title, owner, defaultAccess);
 
             Serializers.INTEGER.write(out, NetworkCode.NEW_CONVERSATION_RESPONSE);
             Serializers.NULLABLE(ConversationHeader.SERIALIZER).write(out, conversation);
@@ -255,7 +256,7 @@ public final class Server {
         new Command() {
           public void onMessage(InputStream in, OutputStream out) throws IOException {
             final Uuid userId = Uuid.SERIALIZER.read(in);
-            final Uuid interestId = Uuid.SERIALIZER.read(in);  
+            final Uuid interestId = Uuid.SERIALIZER.read(in);
             controller.removeInterest(userId, interestId);
             Serializers.INTEGER.write(out, NetworkCode.REMOVE_INTEREST_RESPONSE);
           }
@@ -291,45 +292,47 @@ public final class Server {
           }
         });
 
-    this.commands.put(NetworkCode.ADD_USER_REQUEST, new Command(){
-      public void onMessage(InputStream in, OutputStream out) throws
-          IOException{
-        final Uuid userId = Uuid.SERIALIZER.read(in);
-        final Uuid addUserId = Uuid.SERIALIZER.read(in);
-        final Uuid convoId = Uuid.SERIALIZER.read(in);
-        final UserType memberBit = UserType.SERIALIZER.read(in);
-        
-        String message = controller.addUser(userId, addUserId, convoId, memberBit);
+    this.commands.put(
+        NetworkCode.ADD_USER_REQUEST,
+        new Command() {
+          public void onMessage(InputStream in, OutputStream out) throws IOException {
+            final Uuid userId = Uuid.SERIALIZER.read(in);
+            final Uuid addUserId = Uuid.SERIALIZER.read(in);
+            final Uuid convoId = Uuid.SERIALIZER.read(in);
+            final UserType memberBit = UserType.SERIALIZER.read(in);
 
-        Serializers.INTEGER.write(out, NetworkCode.ADD_USER_RESPONSE);
-        Serializers.STRING.write(out, message);
-        
-      }
-    });
+            String message = controller.addUser(userId, addUserId, convoId, memberBit);
 
-    this.commands.put(NetworkCode.REMOVE_USER_REQUEST, new Command(){
-      public void onMessage(InputStream in, OutputStream out) throws
-          IOException{
-        final Uuid userId = Uuid.SERIALIZER.read(in);
-        final Uuid removeUserId = Uuid.SERIALIZER.read(in);
-        final Uuid convoId = Uuid.SERIALIZER.read(in);
-        
-        String message = controller.removeUser(userId, removeUserId, convoId);
+            Serializers.INTEGER.write(out, NetworkCode.ADD_USER_RESPONSE);
+            Serializers.STRING.write(out, message);
+          }
+        });
 
-        Serializers.INTEGER.write(out, NetworkCode.REMOVE_USER_RESPONSE);
-        Serializers.STRING.write(out, message);
-      }
-    });
-    
-    this.commands.put(NetworkCode.USER_LIST_REQUEST, new Command() {
-	  @Override
-	  public void onMessage(InputStream in, OutputStream out) throws IOException {
-	    final Uuid cpID = Uuid.SERIALIZER.read(in);
-	    Serializers.MAP(Uuid.SERIALIZER, UserType.SERIALIZER).write
-	        (out, controller.getConversationPermission(cpID));
-	  }
-    	
-    });
+    this.commands.put(
+        NetworkCode.REMOVE_USER_REQUEST,
+        new Command() {
+          public void onMessage(InputStream in, OutputStream out) throws IOException {
+            final Uuid userId = Uuid.SERIALIZER.read(in);
+            final Uuid removeUserId = Uuid.SERIALIZER.read(in);
+            final Uuid convoId = Uuid.SERIALIZER.read(in);
+
+            String message = controller.removeUser(userId, removeUserId, convoId);
+
+            Serializers.INTEGER.write(out, NetworkCode.REMOVE_USER_RESPONSE);
+            Serializers.STRING.write(out, message);
+          }
+        });
+
+    this.commands.put(
+        NetworkCode.USER_LIST_REQUEST,
+        new Command() {
+          @Override
+          public void onMessage(InputStream in, OutputStream out) throws IOException {
+            final Uuid cpID = Uuid.SERIALIZER.read(in);
+            Serializers.MAP(Uuid.SERIALIZER, UserType.SERIALIZER)
+                .write(out, controller.getConversationPermission(cpID));
+          }
+        });
 
     this.timeline.scheduleNow(
         new Runnable() {
@@ -410,7 +413,10 @@ public final class Server {
       // this server's copy of the conversation.
       conversation =
           controller.newConversation(
-              relayConversation.id(), relayConversation.text(), relayConversation.creator(), relayConversation.time(), 
+              relayConversation.id(),
+              relayConversation.text(),
+              relayConversation.creator(),
+              relayConversation.time(),
               relayConversation.defaultAccess());
     }
 
@@ -439,7 +445,12 @@ public final class Server {
             id,
             secret,
             relay.pack(user.id, user.name, user.creation),
-            relay.pack(conversation.id, conversation.title, conversation.creation, conversation.creator, conversation.defaultAccess),
+            relay.pack(
+                conversation.id,
+                conversation.title,
+                conversation.creation,
+                conversation.creator,
+                conversation.defaultAccess),
             relay.pack(message.id, message.content, message.creation));
       }
     };

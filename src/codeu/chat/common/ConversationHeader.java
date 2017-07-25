@@ -55,7 +55,8 @@ public final class ConversationHeader {
   public final String title;
   public final UserType defaultAccess;
 
-  public ConversationHeader(Uuid id, Uuid creator, Time creation, String title, UserType defaultAccess) {
+  public ConversationHeader(
+      Uuid id, Uuid creator, Time creation, String title, UserType defaultAccess) {
 
     this.id = id;
     this.creator = creator;

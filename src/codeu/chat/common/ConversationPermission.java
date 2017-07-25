@@ -43,7 +43,8 @@ public class ConversationPermission {
     users.put(creator, UserType.CREATOR);
   }
 
-  public ConversationPermission(Uuid id, Uuid creator, Map<Uuid, UserType> users, UserType defaultAccess) {
+  public ConversationPermission(
+      Uuid id, Uuid creator, Map<Uuid, UserType> users, UserType defaultAccess) {
     this.creator = creator;
     this.id = id;
     this.users = users;
@@ -60,17 +61,16 @@ public class ConversationPermission {
   public void changeAccess(Uuid user, UserType newType) {
     users.put(user, newType);
   }
-  
-  public void removeUser(Uuid user){
+
+  public void removeUser(Uuid user) {
     users.remove(user);
   }
 
-  public boolean userInConvo(Uuid user){
+  public boolean userInConvo(Uuid user) {
     return users.containsKey(user);
-  } 
-  
-  public HashMap<Uuid, UserType> returnMap() {
-	  return (HashMap<Uuid, UserType>) users;
   }
- 
+
+  public HashMap<Uuid, UserType> returnMap() {
+    return (HashMap<Uuid, UserType>) users;
+  }
 }

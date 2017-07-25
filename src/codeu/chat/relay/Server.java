@@ -14,13 +14,6 @@
 
 package codeu.chat.relay;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Queue;
-
 import codeu.chat.common.LinearUuidGenerator;
 import codeu.chat.common.Relay;
 import codeu.chat.common.Secret;
@@ -28,10 +21,16 @@ import codeu.chat.common.UserType;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Queue;
 
 public final class Server implements Relay {
 
-  private final static Logger.Log LOG = Logger.newLog(Server.class);
+  private static final Logger.Log LOG = Logger.newLog(Server.class);
 
   private static final class Component implements Relay.Bundle.Component {
 
@@ -46,47 +45,62 @@ public final class Server implements Relay {
     }
 
     @Override
-    public Uuid id() { return id; }
+    public Uuid id() {
+      return id;
+    }
 
     @Override
-    public String text() { return text; }
+    public String text() {
+      return text;
+    }
 
     @Override
-    public Time time() { return time; }
-
+    public Time time() {
+      return time;
+    }
   }
-  
+
   private static final class ConversationComponent implements Relay.Bundle.ConversationComponent {
-	
-	private final Uuid id;
-	private final String text;
-	private final Time time;
-	private final Uuid creator;
-	private final UserType defaultAccess;
-	
-	public ConversationComponent(Uuid id, String text, Time time, Uuid creator, UserType defaultAccess) {
-	  this.id = id;
-	  this.text = text;
-	  this.time = time;
-	  this.creator = creator;
-	  this.defaultAccess = defaultAccess;
-	}
-	
-	@Override
-	public Uuid id() { return id; }
 
-	@Override
-	public String text() { return text; }
+    private final Uuid id;
+    private final String text;
+    private final Time time;
+    private final Uuid creator;
+    private final UserType defaultAccess;
 
-	@Override
-	public Time time() { return time; }
+    public ConversationComponent(
+        Uuid id, String text, Time time, Uuid creator, UserType defaultAccess) {
+      this.id = id;
+      this.text = text;
+      this.time = time;
+      this.creator = creator;
+      this.defaultAccess = defaultAccess;
+    }
 
-	@Override
-	public Uuid creator() { return creator; }
+    @Override
+    public Uuid id() {
+      return id;
+    }
 
-	@Override
-	public UserType defaultAccess() { return defaultAccess; }
-	  
+    @Override
+    public String text() {
+      return text;
+    }
+
+    @Override
+    public Time time() {
+      return time;
+    }
+
+    @Override
+    public Uuid creator() {
+      return creator;
+    }
+
+    @Override
+    public UserType defaultAccess() {
+      return defaultAccess;
+    }
   }
 
   private static final class Bundle implements Relay.Bundle {
@@ -98,12 +112,13 @@ public final class Server implements Relay {
     private final ConversationComponent conversation;
     private final Component message;
 
-    public Bundle(Uuid id,
-                  Time time,
-                  Uuid team,
-                  Component user,
-                  ConversationComponent conversation,
-                  Component message) {
+    public Bundle(
+        Uuid id,
+        Time time,
+        Uuid team,
+        Component user,
+        ConversationComponent conversation,
+        Component message) {
 
       this.id = id;
       this.time = time;
@@ -111,27 +126,37 @@ public final class Server implements Relay {
       this.user = user;
       this.conversation = conversation;
       this.message = message;
-
     }
 
     @Override
-    public Uuid id() { return id; }
+    public Uuid id() {
+      return id;
+    }
 
     @Override
-    public Time time() { return time; }
+    public Time time() {
+      return time;
+    }
 
     @Override
-    public Uuid team() { return team; }
+    public Uuid team() {
+      return team;
+    }
 
     @Override
-    public Component user() { return user; }
+    public Component user() {
+      return user;
+    }
 
     @Override
-    public ConversationComponent conversation() { return conversation; }
+    public ConversationComponent conversation() {
+      return conversation;
+    }
 
     @Override
-    public Component message() { return message; }
-
+    public Component message() {
+      return message;
+    }
   }
 
   private final Queue<Relay.Bundle> history = new LinkedList<>();
@@ -157,7 +182,7 @@ public final class Server implements Relay {
   // As a side note, the ids start at 1 and not 0 to avoid the first id from
   // matching the NULL id which is defined as (null, 0);
 
- private final Uuid.Generator idGenerator = new LinearUuidGenerator(null, 1, Integer.MAX_VALUE);
+  private final Uuid.Generator idGenerator = new LinearUuidGenerator(null, 1, Integer.MAX_VALUE);
 
   // SERVER
   //
@@ -185,9 +210,7 @@ public final class Server implements Relay {
       teamSecrets.put(id, secret);
     }
 
-    LOG.info(open ?
-             "Adding team was successful" :
-             "Adding team failed - team id already exists");
+    LOG.info(open ? "Adding team was successful" : "Adding team failed - team id already exists");
 
     return open;
   }
@@ -196,47 +219,38 @@ public final class Server implements Relay {
   public Relay.Bundle.Component pack(Uuid id, String text, Time time) {
     return new Component(id, text, time);
   }
-  
+
   @Override
-  public Relay.Bundle.ConversationComponent pack(Uuid id, String text, Time time, Uuid creator, UserType defaultAccess) {
-  	return new ConversationComponent(id, text, time, creator, defaultAccess);
+  public Relay.Bundle.ConversationComponent pack(
+      Uuid id, String text, Time time, Uuid creator, UserType defaultAccess) {
+    return new ConversationComponent(id, text, time, creator, defaultAccess);
   }
 
   @Override
-  public boolean write(Uuid teamId,
-                       Secret teamSecret,
-                       Relay.Bundle.Component user,
-                       Relay.Bundle.ConversationComponent conversation,
-                       Relay.Bundle.Component message) {
+  public boolean write(
+      Uuid teamId,
+      Secret teamSecret,
+      Relay.Bundle.Component user,
+      Relay.Bundle.ConversationComponent conversation,
+      Relay.Bundle.Component message) {
 
     if (authenticate(teamId, teamSecret)) {
 
       LOG.info(
           "Writing to server team=%s user=%s conversation=%s message=%s",
-          teamId,
-          user.id(),
-          conversation.id(),
-          message.id());
+          teamId, user.id(), conversation.id(), message.id());
 
       if (history.size() >= maxHistory) {
-         history.remove();
+        history.remove();
       }
 
-      return history.offer(new Bundle(
-          idGenerator.make(),
-          Time.now(),
-          teamId,
-          user,
-          conversation,
-          message));
+      return history.offer(
+          new Bundle(idGenerator.make(), Time.now(), teamId, user, conversation, message));
     } else {
 
       LOG.warning(
           "Unauthorized write attempt to server team=%s user=%s conversation=%s message=%s",
-          teamId,
-          user.id(),
-          conversation.id(),
-          message.id());
+          teamId, user.id(), conversation.id(), message.id());
 
       return false;
     }
@@ -249,10 +263,7 @@ public final class Server implements Relay {
 
     if (authenticate(teamId, teamSecret)) {
 
-      LOG.info(
-         "Request to read from server requested=%d allowed=%d",
-          range,
-          maxRead);
+      LOG.info("Request to read from server requested=%d allowed=%d", range, maxRead);
 
       for (final Relay.Bundle message : history) {
 
@@ -268,16 +279,11 @@ public final class Server implements Relay {
         }
       }
 
-      LOG.info(
-          "Read request complete requested=%d fullfilled=%d",
-          range,
-          found.size());
+      LOG.info("Read request complete requested=%d fullfilled=%d", range, found.size());
 
     } else {
 
-      LOG.info(
-          "Unauthroized attempt to read from server team=%s",
-          teamId);
+      LOG.info("Unauthroized attempt to read from server team=%s", teamId);
     }
 
     return found;

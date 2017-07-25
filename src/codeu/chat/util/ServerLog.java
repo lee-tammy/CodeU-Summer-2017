@@ -14,6 +14,8 @@
 
 package codeu.chat.util;
 
+import codeu.chat.common.UserType;
+import codeu.chat.server.Controller;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -22,17 +24,12 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import codeu.chat.common.UserType;
-import codeu.chat.server.Controller;
-
 public final class ServerLog {
-  private File log;	
-  private Map<Integer,String> lines;
+  private File log;
+  private Map<Integer, String> lines;
   private BufferedReader in;
 
-  /**
-   * Constructor for ServerLog
-   */
+  /** Constructor for ServerLog */
   public ServerLog(File log) {
     try {
       this.log = log;
@@ -42,35 +39,38 @@ public final class ServerLog {
     }
     lines = readFile(in);
   }
-  
-  
+
   /**
    * gets the location of the log
+   *
    * @return a String that represents the location of the ServerLog
-  */
+   */
   public static String createFilePath() {
     String workingDirectory = System.getProperty("user.dir");
     return workingDirectory + File.separator + "serverLog.txt";
   }
-  
+
   /**
    * Gets the length of logs
+   *
    * @return the number of lines in the ServerLog
-  */
-  public int getLength() { 
+   */
+  public int getLength() {
     return lines.size();
   }
 
   /**
    * getter for Log
+   *
    * @return File log
    */
   public File getLog() {
     return log;
   }
-  
+
   /**
    * Reads log line and create the object based on logs
+   *
    * @param index of the line in the log
    */
   public void readLine(int index, Controller controller) {
@@ -87,25 +87,33 @@ public final class ServerLog {
     try {
       if (commandType == 'M') {
         // parse a message
-        controller.newMessage( Uuid.parse(ParArr[2]), Uuid.parse(ParArr[1]), 
-                               Uuid.parse(ParArr[3]), ParArr[5], Time.parse(ParArr[4]) );
+        controller.newMessage(
+            Uuid.parse(ParArr[2]),
+            Uuid.parse(ParArr[1]),
+            Uuid.parse(ParArr[3]),
+            ParArr[5],
+            Time.parse(ParArr[4]));
 
       } else if (commandType == 'U') {
         // parse a user
-        controller.newUser( Uuid.parse(ParArr[2]), ParArr[1], Time.parse(ParArr[3]) );
+        controller.newUser(Uuid.parse(ParArr[2]), ParArr[1], Time.parse(ParArr[3]));
 
       } else if (commandType == 'C') {
         // parse a conversation
-        controller.newConversation( Uuid.parse(ParArr[1]), ParArr[2], Uuid.parse(ParArr[3]),
-        		                    Time.parse(ParArr[4]), stringToUserType(ParArr[5]) );
+        controller.newConversation(
+            Uuid.parse(ParArr[1]),
+            ParArr[2],
+            Uuid.parse(ParArr[3]),
+            Time.parse(ParArr[4]),
+            stringToUserType(ParArr[5]));
       }
     } catch (IOException e) {
       e.printStackTrace();
     }
   }
-  
+
   private UserType stringToUserType(String string) {
-	switch (string) {
+    switch (string) {
       case "M":
         return UserType.MEMBER;
       case "O":
@@ -115,9 +123,9 @@ public final class ServerLog {
     }
   }
 
-  private Map<Integer,String> readFile(BufferedReader br) {
+  private Map<Integer, String> readFile(BufferedReader br) {
     String line;
-    Map<Integer,String> lines = new HashMap<Integer,String>();
+    Map<Integer, String> lines = new HashMap<Integer, String>();
     try {
       int index = 0;
       while ((line = br.readLine()) != null) {

@@ -192,18 +192,16 @@ public final class Controller implements BasicController {
     return false;
   }
 
-
-  public String addUser(Uuid userId, Uuid addUserId, Uuid convoId, 
-	  UserType memberBit){
+  public String addUser(Uuid userId, Uuid addUserId, Uuid convoId, UserType memberBit) {
 
     String message = "";
 
-    try(final Connection connection = this.source.connect()){
+    try (final Connection connection = this.source.connect()) {
       Serializers.INTEGER.write(connection.out(), NetworkCode.ADD_USER_REQUEST);
       Uuid.SERIALIZER.write(connection.out(), userId);
       Uuid.SERIALIZER.write(connection.out(), addUserId);
       Uuid.SERIALIZER.write(connection.out(), convoId);
-      UserType.SERIALIZER.write(connection.out(), memberBit); 
+      UserType.SERIALIZER.write(connection.out(), memberBit);
 
       if (Serializers.INTEGER.read(connection.in()) == NetworkCode.ADD_USER_RESPONSE) {
         message = Serializers.STRING.read(connection.in());
@@ -211,41 +209,39 @@ public final class Controller implements BasicController {
         LOG.error("Response from server failed.");
       }
 
-    }catch(Exception ex){
+    } catch (Exception ex) {
       LOG.error(ex, "Exception during call on server.");
     }
     return message;
   }
 
-  public String removeUser(Uuid userId, Uuid removeUserId, Uuid convoId){
+  public String removeUser(Uuid userId, Uuid removeUserId, Uuid convoId) {
     String message = "";
-    try(final Connection connection = this.source.connect()){
-      Serializers.INTEGER.write(connection.out(),
-          NetworkCode.REMOVE_USER_REQUEST); 
+    try (final Connection connection = this.source.connect()) {
+      Serializers.INTEGER.write(connection.out(), NetworkCode.REMOVE_USER_REQUEST);
       Uuid.SERIALIZER.write(connection.out(), userId);
       Uuid.SERIALIZER.write(connection.out(), removeUserId);
       Uuid.SERIALIZER.write(connection.out(), convoId);
 
-      if(Serializers.INTEGER.read(connection.in()) == NetworkCode.REMOVE_USER_RESPONSE){
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.REMOVE_USER_RESPONSE) {
         message = Serializers.STRING.read(connection.in());
       }
-    }catch(Exception ex){
+    } catch (Exception ex) {
       LOG.error(ex, "Exception during call on server.");
-    } 
+    }
     return message;
   }
-  
+
   @Override
   public Map<Uuid, UserType> getConversationPermission(Uuid id) {
     Map<Uuid, UserType> hm = new HashMap<Uuid, UserType>();
-	try(final Connection connection = this.source.connect()){
-	  Serializers.INTEGER.write(connection.out(), NetworkCode.USER_LIST_REQUEST);
+    try (final Connection connection = this.source.connect()) {
+      Serializers.INTEGER.write(connection.out(), NetworkCode.USER_LIST_REQUEST);
       Uuid.SERIALIZER.write(connection.out(), id);
-	  hm = Serializers.MAP(Uuid.SERIALIZER, UserType.SERIALIZER).read(connection.in());
-	}catch(Exception ex){
-	  LOG.error(ex, "Exception during call on server.");
-	}
-	return hm;
-} 
-
+      hm = Serializers.MAP(Uuid.SERIALIZER, UserType.SERIALIZER).read(connection.in());
+    } catch (Exception ex) {
+      LOG.error(ex, "Exception during call on server.");
+    }
+    return hm;
+  }
 }

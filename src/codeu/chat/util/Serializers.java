@@ -17,118 +17,115 @@ package codeu.chat.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public final class Serializers {
 
-  public static final Serializer<Boolean> BOOLEAN = new Serializer<Boolean>() {
+  public static final Serializer<Boolean> BOOLEAN =
+      new Serializer<Boolean>() {
 
-    @Override
-    public void write(OutputStream out, Boolean value) throws IOException {
-      out.write(value ? 1 : 0);
-    }
+        @Override
+        public void write(OutputStream out, Boolean value) throws IOException {
+          out.write(value ? 1 : 0);
+        }
 
-    @Override
-    public Boolean read(InputStream in) throws IOException {
-      return in.read() != 0;
-    }
-  };
+        @Override
+        public Boolean read(InputStream in) throws IOException {
+          return in.read() != 0;
+        }
+      };
 
-  public static final Serializer<Integer> INTEGER = new Serializer<Integer>() {
+  public static final Serializer<Integer> INTEGER =
+      new Serializer<Integer>() {
 
-    @Override
-    public void write(OutputStream out, Integer value) throws IOException {
+        @Override
+        public void write(OutputStream out, Integer value) throws IOException {
 
-      for (int i = 24; i >= 0; i -= 8) {
-        out.write(0xFF & (value >>> i));
-      }
+          for (int i = 24; i >= 0; i -= 8) {
+            out.write(0xFF & (value >>> i));
+          }
+        }
 
-    }
+        @Override
+        public Integer read(InputStream in) throws IOException {
 
-    @Override
-    public Integer read(InputStream in) throws IOException {
+          int value = 0;
 
-      int value = 0;
+          for (int i = 0; i < 4; i++) {
+            value = (value << 8) | in.read();
+          }
 
-      for (int i = 0; i < 4; i++) {
-        value = (value << 8) | in.read();
-      }
+          return value;
+        }
+      };
 
-      return value;
+  public static final Serializer<Long> LONG =
+      new Serializer<Long>() {
 
-    }
-  };
+        @Override
+        public void write(OutputStream out, Long value) throws IOException {
 
-  public static final Serializer<Long> LONG = new Serializer<Long>() {
+          for (int i = 56; i >= 0; i -= 8) {
+            out.write((int) (0xFF & (value >>> i)));
+          }
+        }
 
-    @Override
-    public void write(OutputStream out, Long value) throws IOException {
+        @Override
+        public Long read(InputStream in) throws IOException {
 
-      for (int i = 56; i >= 0; i -= 8) {
-        out.write((int)(0xFF & (value >>> i)));
-      }
+          long value = 0;
 
-    }
+          for (int i = 0; i < 8; i++) {
+            value = (value << 8) | in.read();
+          }
 
-    @Override
-    public Long read(InputStream in) throws IOException {
+          return value;
+        }
+      };
 
-      long value = 0;
+  public static final Serializer<byte[]> BYTES =
+      new Serializer<byte[]>() {
 
-      for (int i = 0; i < 8; i++) {
-        value = (value << 8) | in.read();
-      }
+        @Override
+        public void write(OutputStream out, byte[] value) throws IOException {
 
-      return value;
+          INTEGER.write(out, value.length);
+          out.write(value);
+        }
 
-    }
-  };
+        @Override
+        public byte[] read(InputStream input) throws IOException {
 
-  public static final Serializer<byte[]> BYTES = new Serializer<byte[]>() {
+          final int length = INTEGER.read(input);
+          final byte[] array = new byte[length];
 
-    @Override
-    public void write(OutputStream out, byte[] value) throws IOException {
+          for (int i = 0; i < length; i++) {
+            array[i] = (byte) input.read();
+          }
 
-      INTEGER.write(out, value.length);
-      out.write(value);
+          return array;
+        }
+      };
 
-    }
+  public static final Serializer<String> STRING =
+      new Serializer<String>() {
 
-    @Override
-    public byte[] read(InputStream input) throws IOException {
+        @Override
+        public void write(OutputStream out, String value) throws IOException {
 
-      final int length = INTEGER.read(input);
-      final byte[] array = new byte[length];
+          BYTES.write(out, value.getBytes());
+        }
 
-      for (int i = 0; i < length; i++) {
-        array[i] = (byte)input.read();
-      }
+        @Override
+        public String read(InputStream input) throws IOException {
 
-      return array;
-
-    }
-  };
-
-  public static final Serializer<String> STRING = new Serializer<String>() {
-
-    @Override
-    public void write(OutputStream out, String value) throws IOException {
-
-      BYTES.write(out, value.getBytes());
-
-    }
-
-    @Override
-    public String read(InputStream input) throws IOException {
-
-      return new String(BYTES.read(input));
-
-    }
-  };
+          return new String(BYTES.read(input));
+        }
+      };
 
   public static <T> Serializer<Collection<T>> COLLECTION(final Serializer<T> serializer) {
 
@@ -154,7 +151,8 @@ public final class Serializers {
     };
   }
 
-  public static <K, V> Serializer<Map<K, V>> MAP(final Serializer<K> keySerializer, final Serializer<V> valueSerializer) {
+  public static <K, V> Serializer<Map<K, V>> MAP(
+      final Serializer<K> keySerializer, final Serializer<V> valueSerializer) {
     return new Serializer<Map<K, V>>() {
 
       @Override
@@ -209,4 +207,3 @@ public final class Serializers {
     };
   }
 }
-

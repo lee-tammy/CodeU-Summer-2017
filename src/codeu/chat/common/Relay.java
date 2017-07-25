@@ -14,10 +14,9 @@
 
 package codeu.chat.common;
 
-import java.util.Collection;
-
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
+import java.util.Collection;
 
 // RELAY
 //
@@ -66,19 +65,20 @@ public interface Relay {
       // this time is used to represent that time value. For messages, users, and conversations
       // this is the creation time.
       Time time();
-
     }
-    
+
     interface ConversationComponent {
-      
+
       Uuid id();
+
       String text();
+
       Time time();
-      
+
       // id of the creator of the conversation
       Uuid creator();
-      
-      // default permissions for the conversation 
+
+      // default permissions for the conversation
       UserType defaultAccess();
     }
 
@@ -114,7 +114,6 @@ public interface Relay {
     // All the information about the message that was sent from the server to
     // the relay.
     Component message();
-
   }
 
   // PACK
@@ -122,8 +121,9 @@ public interface Relay {
   // Pack together a uuid, string, and time into a component. This is to make
   // the signature for "write" to be shorter and easier to read.
   Bundle.Component pack(Uuid id, String text, Time time);
-  
-  Bundle.ConversationComponent pack(Uuid id, String text, Time time, Uuid creator, UserType defaultAccess);
+
+  Bundle.ConversationComponent pack(
+      Uuid id, String text, Time time, Uuid creator, UserType defaultAccess);
 
   // WRITE
   //
@@ -132,11 +132,12 @@ public interface Relay {
   // part of as the relay does not track users or conversations. In order to write
   // a message to the relay, a team must write their team id and team secret or
   // else the relay will reject the message.
-  boolean write(Uuid teamId,
-                Secret teamSecret,
-                Bundle.Component user,
-                Bundle.ConversationComponent conversation,
-                Bundle.Component message);
+  boolean write(
+      Uuid teamId,
+      Secret teamSecret,
+      Bundle.Component user,
+      Bundle.ConversationComponent conversation,
+      Bundle.Component message);
 
   // READ
   //
@@ -147,5 +148,4 @@ public interface Relay {
   // its earliest point. If the root is not found the relay will treat it as if it
   // was given Uuids.NULL.
   Collection<Bundle> read(Uuid teamId, Secret teamSecret, Uuid root, int range);
-
 }

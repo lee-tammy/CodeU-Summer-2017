@@ -14,36 +14,32 @@
 
 package codeu.chat.common;
 
+import codeu.chat.util.Serializer;
+import codeu.chat.util.Uuid;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import codeu.chat.util.Serializer;
-import codeu.chat.util.Uuid;
-
 public final class ConversationPayload {
 
-  public static final Serializer<ConversationPayload> SERIALIZER = new Serializer<ConversationPayload>() {
+  public static final Serializer<ConversationPayload> SERIALIZER =
+      new Serializer<ConversationPayload>() {
 
-    @Override
-    public void write(OutputStream out, ConversationPayload value) throws IOException {
+        @Override
+        public void write(OutputStream out, ConversationPayload value) throws IOException {
 
-      Uuid.SERIALIZER.write(out, value.id);
-      Uuid.SERIALIZER.write(out, value.firstMessage);
-      Uuid.SERIALIZER.write(out, value.lastMessage);
+          Uuid.SERIALIZER.write(out, value.id);
+          Uuid.SERIALIZER.write(out, value.firstMessage);
+          Uuid.SERIALIZER.write(out, value.lastMessage);
+        }
 
-    }
+        @Override
+        public ConversationPayload read(InputStream in) throws IOException {
 
-    @Override
-    public ConversationPayload read(InputStream in) throws IOException {
-
-      return new ConversationPayload(
-          Uuid.SERIALIZER.read(in),
-          Uuid.SERIALIZER.read(in),
-          Uuid.SERIALIZER.read(in));
-
-    }
-  };
+          return new ConversationPayload(
+              Uuid.SERIALIZER.read(in), Uuid.SERIALIZER.read(in), Uuid.SERIALIZER.read(in));
+        }
+      };
 
   public final Uuid id;
 
