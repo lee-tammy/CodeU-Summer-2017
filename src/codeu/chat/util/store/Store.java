@@ -43,7 +43,7 @@ public final class Store<KEY, VALUE> implements StoreAccessor<KEY, VALUE> {
     // through the chain of links until the next link is either the end (null)
     // or will logically come after the new value.
     StoreLink<KEY, VALUE> current = (closestLink == null) ? (rootLink) : (closestLink);
-    while(current.next != null && comparator.compare(current.next.key, key) <= 0) {
+    while (current.next != null && comparator.compare(current.next.key, key) <= 0) {
       current = current.next;
     }
 
@@ -59,7 +59,7 @@ public final class Store<KEY, VALUE> implements StoreAccessor<KEY, VALUE> {
     //  1. The index class does not handle duplicate keys well (as stated in
     //     the code for the index).
     //  2. There is no advantage to having multiple equal keys in the index as
-    //     it would not help with the interators. As long as the key will map
+    //     it would not help with the iterators. As long as the key will map
     //     to the first link, the other links will always be found. This is
     //     why the insert is always put at the end of the series.
     if (closestLink == null || comparator.compare(newLink.key, closestLink.key) != 0) {

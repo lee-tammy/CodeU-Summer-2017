@@ -14,52 +14,55 @@
 
 package codeu.chat.common;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-
 import codeu.chat.util.Serializer;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public final class ConversationHeader {
 
-  public static final Serializer<ConversationHeader> SERIALIZER = new Serializer<ConversationHeader>() {
+  public static final Serializer<ConversationHeader> SERIALIZER =
+      new Serializer<ConversationHeader>() {
 
-    @Override
-    public void write(OutputStream out, ConversationHeader value) throws IOException {
+        @Override
+        public void write(OutputStream out, ConversationHeader value) throws IOException {
 
-      Uuid.SERIALIZER.write(out, value.id);
-      Uuid.SERIALIZER.write(out, value.owner);
-      Time.SERIALIZER.write(out, value.creation);
-      Serializers.STRING.write(out, value.title);
+          Uuid.SERIALIZER.write(out, value.id);
+          Uuid.SERIALIZER.write(out, value.creator);
+          Time.SERIALIZER.write(out, value.creation);
+          Serializers.STRING.write(out, value.title);
+          UserType.SERIALIZER.write(out, value.defaultAccess);
+        }
 
-    }
+        @Override
+        public ConversationHeader read(InputStream in) throws IOException {
 
-    @Override
-    public ConversationHeader read(InputStream in) throws IOException {
-
-      return new ConversationHeader(Uuid.SERIALIZER.read(in),
-                                    Uuid.SERIALIZER.read(in),
-                                    Time.SERIALIZER.read(in),
-                                    Serializers.STRING.read(in));
-
-    }
-  };
+          return new ConversationHeader(
+              Uuid.SERIALIZER.read(in),
+              Uuid.SERIALIZER.read(in),
+              Time.SERIALIZER.read(in),
+              Serializers.STRING.read(in),
+              UserType.SERIALIZER.read(in));
+        }
+      };
 
   public final Uuid id;
-  public final Uuid owner;
+  public final Uuid creator;
   public final Time creation;
   public final String title;
+  public final UserType defaultAccess;
 
-  public ConversationHeader(Uuid id, Uuid owner, Time creation, String title) {
+  public ConversationHeader(
+      Uuid id, Uuid creator, Time creation, String title, UserType defaultAccess) {
 
     this.id = id;
-    this.owner = owner;
+    this.creator = creator;
     this.creation = creation;
     this.title = title;
-
+    this.defaultAccess = defaultAccess;
   }
 
   @Override

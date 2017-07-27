@@ -14,13 +14,14 @@
 
 package codeu.chat.server;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import codeu.chat.common.Relay;
+import codeu.chat.common.Relay.Bundle.ConversationComponent;
 import codeu.chat.common.Secret;
+import codeu.chat.common.UserType;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
+import java.util.ArrayList;
+import java.util.Collection;
 
 // NO OP RELAY
 //
@@ -30,38 +31,71 @@ import codeu.chat.util.Uuid;
 public final class NoOpRelay implements Relay {
 
   @Override
-  public Relay.Bundle.Component pack(final Uuid id,
-                                     final String text,
-                                     final Time time) {
+  public Relay.Bundle.Component pack(final Uuid id, final String text, final Time time) {
 
     return new Relay.Bundle.Component() {
       @Override
-      public Uuid id() { return id; }
+      public Uuid id() {
+        return id;
+      }
 
       @Override
-      public Time time() { return time; }
+      public Time time() {
+        return time;
+      }
 
       @Override
-      public String text() { return text; }
+      public String text() {
+        return text;
+      }
     };
   }
 
   @Override
-  public boolean write(Uuid teamId,
-                       Secret teamSecret,
-                       Relay.Bundle.Component user,
-                       Relay.Bundle.Component conversation,
-                       Relay.Bundle.Component message) {
+  public boolean write(
+      Uuid teamId,
+      Secret teamSecret,
+      Relay.Bundle.Component user,
+      Relay.Bundle.ConversationComponent conversation,
+      Relay.Bundle.Component message) {
 
     return true;
   }
 
   @Override
-  public Collection<Relay.Bundle> read(Uuid teamId,
-                                       Secret teamSecret,
-                                       Uuid root,
-                                       int range) {
+  public Collection<Relay.Bundle> read(Uuid teamId, Secret teamSecret, Uuid root, int range) {
 
     return new ArrayList<Relay.Bundle>();
+  }
+
+  @Override
+  public ConversationComponent pack(
+      Uuid id, String text, Time time, Uuid creator, UserType defaultAccess) {
+    return new Relay.Bundle.ConversationComponent() {
+      @Override
+      public Time time() {
+        return time;
+      }
+
+      @Override
+      public String text() {
+        return text;
+      }
+
+      @Override
+      public Uuid id() {
+        return id;
+      }
+
+      @Override
+      public UserType defaultAccess() {
+        return defaultAccess;
+      }
+
+      @Override
+      public Uuid creator() {
+        return creator;
+      }
+    };
   }
 }

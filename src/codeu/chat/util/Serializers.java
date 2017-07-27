@@ -19,115 +19,115 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public final class Serializers {
 
-  public static final Serializer<Boolean> BOOLEAN = new Serializer<Boolean>() {
+  public static final Serializer<Boolean> BOOLEAN =
+      new Serializer<Boolean>() {
 
-    @Override
-    public void write(OutputStream out, Boolean value) throws IOException {
-      out.write(value ? 1 : 0);
-    }
+        @Override
+        public void write(OutputStream out, Boolean value) throws IOException {
+          out.write(value ? 1 : 0);
+        }
 
-    @Override
-    public Boolean read(InputStream in) throws IOException {
-      return in.read() != 0;
-    }
-  };
+        @Override
+        public Boolean read(InputStream in) throws IOException {
+          return in.read() != 0;
+        }
+      };
 
-  public static final Serializer<Integer> INTEGER = new Serializer<Integer>() {
+  public static final Serializer<Integer> INTEGER =
+      new Serializer<Integer>() {
 
-    @Override
-    public void write(OutputStream out, Integer value) throws IOException {
+        @Override
+        public void write(OutputStream out, Integer value) throws IOException {
 
-      for (int i = 24; i >= 0; i -= 8) {
-        out.write(0xFF & (value >>> i));
-      }
+          for (int i = 24; i >= 0; i -= 8) {
+            out.write(0xFF & (value >>> i));
+          }
+        }
 
-    }
+        @Override
+        public Integer read(InputStream in) throws IOException {
 
-    @Override
-    public Integer read(InputStream in) throws IOException {
+          int value = 0;
 
-      int value = 0;
+          for (int i = 0; i < 4; i++) {
+            value = (value << 8) | in.read();
+          }
 
-      for (int i = 0; i < 4; i++) {
-        value = (value << 8) | in.read();
-      }
+          return value;
+        }
+      };
 
-      return value;
+  public static final Serializer<Long> LONG =
+      new Serializer<Long>() {
 
-    }
-  };
+        @Override
+        public void write(OutputStream out, Long value) throws IOException {
 
-  public static final Serializer<Long> LONG = new Serializer<Long>() {
+          for (int i = 56; i >= 0; i -= 8) {
+            out.write((int) (0xFF & (value >>> i)));
+          }
+        }
 
-    @Override
-    public void write(OutputStream out, Long value) throws IOException {
+        @Override
+        public Long read(InputStream in) throws IOException {
 
-      for (int i = 56; i >= 0; i -= 8) {
-        out.write((int)(0xFF & (value >>> i)));
-      }
+          long value = 0;
 
-    }
+          for (int i = 0; i < 8; i++) {
+            value = (value << 8) | in.read();
+          }
 
-    @Override
-    public Long read(InputStream in) throws IOException {
+          return value;
+        }
+      };
 
-      long value = 0;
+  public static final Serializer<byte[]> BYTES =
+      new Serializer<byte[]>() {
 
-      for (int i = 0; i < 8; i++) {
-        value = (value << 8) | in.read();
-      }
+        @Override
+        public void write(OutputStream out, byte[] value) throws IOException {
 
-      return value;
+          INTEGER.write(out, value.length);
+          out.write(value);
+        }
 
-    }
-  };
+        @Override
+        public byte[] read(InputStream input) throws IOException {
 
-  public static final Serializer<byte[]> BYTES = new Serializer<byte[]>() {
+          final int length = INTEGER.read(input);
+          final byte[] array = new byte[length];
 
-    @Override
-    public void write(OutputStream out, byte[] value) throws IOException {
+          for (int i = 0; i < length; i++) {
+            array[i] = (byte) input.read();
+          }
 
-      INTEGER.write(out, value.length);
-      out.write(value);
+          return array;
+        }
+      };
 
-    }
+  public static final Serializer<String> STRING =
+      new Serializer<String>() {
 
-    @Override
-    public byte[] read(InputStream input) throws IOException {
+        @Override
+        public void write(OutputStream out, String value) throws IOException {
 
-      final int length = INTEGER.read(input);
-      final byte[] array = new byte[length];
+          BYTES.write(out, value.getBytes());
+        }
 
-      for (int i = 0; i < length; i++) {
-        array[i] = (byte)input.read();
-      }
+        @Override
+        public String read(InputStream input) throws IOException {
 
-      return array;
+          return new String(BYTES.read(input));
+        }
+      };
 
-    }
-  };
-
-  public static final Serializer<String> STRING = new Serializer<String>() {
-
-    @Override
-    public void write(OutputStream out, String value) throws IOException {
-
-      BYTES.write(out, value.getBytes());
-
-    }
-
-    @Override
-    public String read(InputStream input) throws IOException {
-
-      return new String(BYTES.read(input));
-
-    }
-  };
-
-  public static <T> Serializer<Collection<T>> collection(final Serializer<T> serializer) {
+  public static <T> Serializer<Collection<T>> COLLECTION(final Serializer<T> serializer) {
 
     return new Serializer<Collection<T>>() {
 
@@ -151,7 +151,39 @@ public final class Serializers {
     };
   }
 
-  public static <T> Serializer<T> nullable(final Serializer<T> serializer) {
+  public static <K, V> Serializer<Map<K, V>> MAP(
+      final Serializer<K> keySerializer, final Serializer<V> valueSerializer) {
+    return new Serializer<Map<K, V>>() {
+
+      @Override
+      public void write(OutputStream out, Map<K, V> value) throws IOException {
+        INTEGER.write(out, value.size());
+        Collection<K> keys = new ArrayList<>(value.size());
+        Collection<V> values = new ArrayList<>(value.size());
+        for (final K x : value.keySet()) {
+          V v = value.get(x);
+          keys.add(x);
+          values.add(v);
+        }
+        Serializers.COLLECTION(keySerializer).write(out, keys);
+        Serializers.COLLECTION(valueSerializer).write(out, values);
+      }
+
+      @Override
+      public Map<K, V> read(InputStream in) throws IOException {
+        final int size = INTEGER.read(in);
+        List<K> keys = new ArrayList<>(Serializers.COLLECTION(keySerializer).read(in));
+        List<V> values = new ArrayList<>(Serializers.COLLECTION(valueSerializer).read(in));
+        Map<K, V> hashMap = new HashMap<>(size);
+        for (int i = 0; i < size; i++) {
+          hashMap.put(keys.get(i), values.get(i));
+        }
+        return hashMap;
+      }
+    };
+  }
+
+  public static <T> Serializer<T> NULLABLE(final Serializer<T> serializer) {
 
     final int NO_VALUE = 0x00;
     final int YES_VALUE = 0xFF;
@@ -175,4 +207,3 @@ public final class Serializers {
     };
   }
 }
-

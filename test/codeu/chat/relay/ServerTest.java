@@ -14,15 +14,15 @@
 
 package codeu.chat.relay;
 
-import java.util.Collection;
-
 import static org.junit.Assert.*;
-import org.junit.Test;
 
 import codeu.chat.common.Relay;
 import codeu.chat.common.Secret;
+import codeu.chat.common.UserType;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
+import java.util.Collection;
+import org.junit.Test;
 
 public final class ServerTest {
 
@@ -32,7 +32,7 @@ public final class ServerTest {
     final Server relay = new Server(8, 8);
 
     final Uuid team = new Uuid(3);
-    final Secret secret = new Secret((byte)0x00, (byte)0x01, (byte)0x02);
+    final Secret secret = new Secret((byte) 0x00, (byte) 0x01, (byte) 0x02);
 
     assertTrue(relay.addTeam(team, secret));
   }
@@ -43,15 +43,17 @@ public final class ServerTest {
     final Server relay = new Server(8, 8);
 
     final Uuid team = new Uuid(3);
-    final Secret secret = new Secret((byte)0x00, (byte)0x01, (byte)0x02);
+    final Secret secret = new Secret((byte) 0x00, (byte) 0x01, (byte) 0x02);
 
     assertTrue(relay.addTeam(team, secret));
 
-    assertTrue(relay.write(team,
-                           secret,
-                           relay.pack(new Uuid(4), "User", Time.now()),
-                           relay.pack(new Uuid(5), "Conversation", Time.now()),
-                           relay.pack(new Uuid(6), "Hello World", Time.now())));
+    assertTrue(
+        relay.write(
+            team,
+            secret,
+            relay.pack(new Uuid(4), "User", Time.now()),
+            relay.pack(new Uuid(5), "Conversation", Time.now(), new Uuid(6), UserType.NOTSET),
+            relay.pack(new Uuid(7), "Hello World", Time.now())));
   }
 
   @Test
@@ -60,13 +62,15 @@ public final class ServerTest {
     final Server relay = new Server(8, 8);
 
     final Uuid team = new Uuid(3);
-    final Secret secret = new Secret((byte)0x00, (byte)0x01, (byte)0x02);
+    final Secret secret = new Secret((byte) 0x00, (byte) 0x01, (byte) 0x02);
 
-    assertFalse(relay.write(team,
-                           secret,
-                           relay.pack(new Uuid(4), "User", Time.now()),
-                           relay.pack(new Uuid(5), "Conversation", Time.now()),
-                           relay.pack(new Uuid(6), "Hello World", Time.now())));
+    assertFalse(
+        relay.write(
+            team,
+            secret,
+            relay.pack(new Uuid(4), "User", Time.now()),
+            relay.pack(new Uuid(5), "Conversation", Time.now(), new Uuid(6), UserType.NOTSET),
+            relay.pack(new Uuid(7), "Hello World", Time.now())));
   }
 
   @Test
@@ -75,16 +79,18 @@ public final class ServerTest {
     final Server relay = new Server(8, 8);
 
     final Uuid team = new Uuid(3);
-    final Secret secret = new Secret((byte)0x00, (byte)0x01, (byte)0x02);
-    final Secret wrongSecret = new Secret((byte)0x00, (byte)0x01, (byte)0x03);
+    final Secret secret = new Secret((byte) 0x00, (byte) 0x01, (byte) 0x02);
+    final Secret wrongSecret = new Secret((byte) 0x00, (byte) 0x01, (byte) 0x03);
 
     assertTrue(relay.addTeam(team, secret));
 
-    assertFalse(relay.write(team,
-                           wrongSecret,
-                           relay.pack(new Uuid(4), "User", Time.now()),
-                           relay.pack(new Uuid(5), "Conversation", Time.now()),
-                           relay.pack(new Uuid(6), "Hello World", Time.now())));
+    assertFalse(
+        relay.write(
+            team,
+            wrongSecret,
+            relay.pack(new Uuid(4), "User", Time.now()),
+            relay.pack(new Uuid(5), "Conversation", Time.now(), new Uuid(6), UserType.NOTSET),
+            relay.pack(new Uuid(7), "Hello World", Time.now())));
   }
 
   @Test
@@ -93,115 +99,19 @@ public final class ServerTest {
     final Server relay = new Server(8, 8);
 
     final Uuid team = new Uuid(3);
-    final Secret secret = new Secret((byte)0x00, (byte)0x01, (byte)0x02);
+    final Secret secret = new Secret((byte) 0x00, (byte) 0x01, (byte) 0x02);
 
     assertTrue(relay.addTeam(team, secret));
 
-    assertTrue(relay.write(team,
-                           secret,
-                           relay.pack(new Uuid(4), "User", Time.now()),
-                           relay.pack(new Uuid(5), "Conversation", Time.now()),
-                           relay.pack(new Uuid(6), "Hello World", Time.now())));
+    assertTrue(
+        relay.write(
+            team,
+            secret,
+            relay.pack(new Uuid(4), "User", Time.now()),
+            relay.pack(new Uuid(5), "Conversation", Time.now(), new Uuid(6), UserType.MEMBER),
+            relay.pack(new Uuid(7), "Hello World", Time.now())));
 
     final Collection<Relay.Bundle> read = relay.read(team, secret, Uuid.NULL, 1);
-    assertTrue(read.size() == 1);
-
-    // By the assertion above this loop should only execute once as there should only
-    // be a single value in the collection.
-
-    for (final Relay.Bundle bundle : read) {
-      assertTrue(Uuid.equals(bundle.team(), team));
-      assertTrue(Uuid.equals(bundle.user().id(), new Uuid(4)));
-      assertTrue(Uuid.equals(bundle.conversation().id(), new Uuid(5)));
-      assertTrue(Uuid.equals(bundle.message().id(), new Uuid(6)));
-    }
-  }
-
-  @Test
-  public void testReadFailWrongSecret() {
-
-    final Server relay = new Server(8, 8);
-
-    final Uuid team = new Uuid(3);
-    final Secret secret = new Secret((byte)0x00, (byte)0x01, (byte)0x02);
-    final Secret wrongSecret = new Secret((byte)0x00, (byte)0x01, (byte)0x00);
-
-    assertTrue(relay.addTeam(team, secret));
-
-    assertFalse(relay.write(team,
-                            wrongSecret,
-                            relay.pack(new Uuid(4), "User", Time.now()),
-                            relay.pack(new Uuid(5), "Conversation", Time.now()),
-                            relay.pack(new Uuid(6), "Hello World", Time.now())));
-  }
-
-  @Test
-  public void testReadFailMissingTeam() {
-
-    final Server relay = new Server(8, 8);
-
-    final Uuid team = new Uuid(3);
-    final Secret secret = new Secret((byte)0x00, (byte)0x01, (byte)0x02);
-
-    assertTrue(relay.addTeam(team, secret));
-
-    assertFalse(relay.write(new Uuid(33),
-                            secret,
-                            relay.pack(new Uuid(4), "User", Time.now()),
-                            relay.pack(new Uuid(5), "Conversation", Time.now()),
-                            relay.pack(new Uuid(6), "Hello World", Time.now())));
-  }
-
-  @Test
-  public void testReadLimited() {
-
-    final Server relay = new Server(8, 1);
-
-    final Uuid team = new Uuid(3);
-    final Secret secret = new Secret((byte)0x00, (byte)0x01, (byte)0x02);
-
-    assertTrue(relay.addTeam(team, secret));
-
-    assertTrue(relay.write(team,
-                           secret,
-                           relay.pack(new Uuid(4), "User", Time.now()),
-                           relay.pack(new Uuid(5), "Conversation", Time.now()),
-                           relay.pack(new Uuid(6), "Hello World", Time.now())));
-
-    assertTrue(relay.write(team,
-                           secret,
-                           relay.pack(new Uuid(4), "User", Time.now()),
-                           relay.pack(new Uuid(5), "Conversation", Time.now()),
-                           relay.pack(new Uuid(7), "Hello World... again", Time.now())));
-
-
-    final Collection<Relay.Bundle> read = relay.read(team, secret, Uuid.NULL, 2);
-    assertTrue(read.size() == 1);
-  }
-
-  @Test
-  public void testHistoryOverwrite() {
-
-    final Server relay = new Server(1, 8);
-
-    final Uuid team = new Uuid(3);
-    final Secret secret = new Secret((byte)0x00, (byte)0x01, (byte)0x02);
-
-    assertTrue(relay.addTeam(team, secret));
-
-    assertTrue(relay.write(team,
-                           secret,
-                           relay.pack(new Uuid(4), "User", Time.now()),
-                           relay.pack(new Uuid(5), "Conversation", Time.now()),
-                           relay.pack(new Uuid(6), "Hello World", Time.now())));
-
-    assertTrue(relay.write(team,
-                           secret,
-                           relay.pack(new Uuid(4), "User", Time.now()),
-                           relay.pack(new Uuid(5), "Conversation", Time.now()),
-                           relay.pack(new Uuid(7), "Hello World... again", Time.now())));
-
-    final Collection<Relay.Bundle> read = relay.read(team, secret, Uuid.NULL, 2);
     assertTrue(read.size() == 1);
 
     // By the assertion above this loop should only execute once as there should only
@@ -216,22 +126,101 @@ public final class ServerTest {
   }
 
   @Test
-  public void testReadWithMissingRoot() {
+  public void testReadFailWrongSecret() {
 
     final Server relay = new Server(8, 8);
 
     final Uuid team = new Uuid(3);
-    final Secret secret = new Secret((byte)0x00, (byte)0x01, (byte)0x02);
+    final Secret secret = new Secret((byte) 0x00, (byte) 0x01, (byte) 0x02);
+    final Secret wrongSecret = new Secret((byte) 0x00, (byte) 0x01, (byte) 0x00);
 
     assertTrue(relay.addTeam(team, secret));
 
-    assertTrue(relay.write(team,
-                           secret,
-                           relay.pack(new Uuid(4), "User", Time.now()),
-                           relay.pack(new Uuid(5), "Conversation", Time.now()),
-                           relay.pack(new Uuid(6), "Hello World", Time.now())));
+    assertFalse(
+        relay.write(
+            team,
+            wrongSecret,
+            relay.pack(new Uuid(4), "User", Time.now()),
+            relay.pack(new Uuid(5), "Conversation", Time.now(), new Uuid(6), UserType.NOTSET),
+            relay.pack(new Uuid(7), "Hello World", Time.now())));
+  }
 
-    final Collection<Relay.Bundle> read = relay.read(team, secret, new Uuid(7), 1);
+  @Test
+  public void testReadFailMissingTeam() {
+
+    final Server relay = new Server(8, 8);
+
+    final Uuid team = new Uuid(3);
+    final Secret secret = new Secret((byte) 0x00, (byte) 0x01, (byte) 0x02);
+
+    assertTrue(relay.addTeam(team, secret));
+
+    assertFalse(
+        relay.write(
+            new Uuid(33),
+            secret,
+            relay.pack(new Uuid(4), "User", Time.now()),
+            relay.pack(new Uuid(5), "Conversation", Time.now(), new Uuid(6), UserType.NOTSET),
+            relay.pack(new Uuid(7), "Hello World", Time.now())));
+  }
+
+  @Test
+  public void testReadLimited() {
+
+    final Server relay = new Server(8, 1);
+
+    final Uuid team = new Uuid(3);
+    final Secret secret = new Secret((byte) 0x00, (byte) 0x01, (byte) 0x02);
+
+    assertTrue(relay.addTeam(team, secret));
+
+    assertTrue(
+        relay.write(
+            team,
+            secret,
+            relay.pack(new Uuid(4), "User", Time.now()),
+            relay.pack(new Uuid(5), "Conversation", Time.now(), new Uuid(6), UserType.NOTSET),
+            relay.pack(new Uuid(7), "Hello World", Time.now())));
+
+    assertTrue(
+        relay.write(
+            team,
+            secret,
+            relay.pack(new Uuid(4), "User", Time.now()),
+            relay.pack(new Uuid(5), "Conversation", Time.now(), new Uuid(6), UserType.NOTSET),
+            relay.pack(new Uuid(8), "Hello World... again", Time.now())));
+
+    final Collection<Relay.Bundle> read = relay.read(team, secret, Uuid.NULL, 2);
+    assertTrue(read.size() == 1);
+  }
+
+  @Test
+  public void testHistoryOverwrite() {
+
+    final Server relay = new Server(1, 8);
+
+    final Uuid team = new Uuid(3);
+    final Secret secret = new Secret((byte) 0x00, (byte) 0x01, (byte) 0x02);
+
+    assertTrue(relay.addTeam(team, secret));
+
+    assertTrue(
+        relay.write(
+            team,
+            secret,
+            relay.pack(new Uuid(4), "User", Time.now()),
+            relay.pack(new Uuid(5), "Conversation", Time.now(), new Uuid(6), UserType.NOTSET),
+            relay.pack(new Uuid(7), "Hello World", Time.now())));
+
+    assertTrue(
+        relay.write(
+            team,
+            secret,
+            relay.pack(new Uuid(4), "User", Time.now()),
+            relay.pack(new Uuid(5), "Conversation", Time.now(), new Uuid(6), UserType.NOTSET),
+            relay.pack(new Uuid(8), "Hello World... again", Time.now())));
+
+    final Collection<Relay.Bundle> read = relay.read(team, secret, Uuid.NULL, 2);
     assertTrue(read.size() == 1);
 
     // By the assertion above this loop should only execute once as there should only
@@ -241,7 +230,39 @@ public final class ServerTest {
       assertTrue(Uuid.equals(bundle.team(), team));
       assertTrue(Uuid.equals(bundle.user().id(), new Uuid(4)));
       assertTrue(Uuid.equals(bundle.conversation().id(), new Uuid(5)));
-      assertTrue(Uuid.equals(bundle.message().id(), new Uuid(6)));
+      assertTrue(Uuid.equals(bundle.message().id(), new Uuid(8)));
+    }
+  }
+
+  @Test
+  public void testReadWithMissingRoot() {
+
+    final Server relay = new Server(8, 8);
+
+    final Uuid team = new Uuid(3);
+    final Secret secret = new Secret((byte) 0x00, (byte) 0x01, (byte) 0x02);
+
+    assertTrue(relay.addTeam(team, secret));
+
+    assertTrue(
+        relay.write(
+            team,
+            secret,
+            relay.pack(new Uuid(4), "User", Time.now()),
+            relay.pack(new Uuid(5), "Conversation", Time.now(), new Uuid(6), UserType.NOTSET),
+            relay.pack(new Uuid(7), "Hello World", Time.now())));
+
+    final Collection<Relay.Bundle> read = relay.read(team, secret, new Uuid(8), 1);
+    assertTrue(read.size() == 1);
+
+    // By the assertion above this loop should only execute once as there should only
+    // be a single value in the collection.
+
+    for (final Relay.Bundle bundle : read) {
+      assertTrue(Uuid.equals(bundle.team(), team));
+      assertTrue(Uuid.equals(bundle.user().id(), new Uuid(4)));
+      assertTrue(Uuid.equals(bundle.conversation().id(), new Uuid(5)));
+      assertTrue(Uuid.equals(bundle.message().id(), new Uuid(7)));
     }
   }
 
@@ -251,27 +272,33 @@ public final class ServerTest {
     final Server relay = new Server(8, 8);
 
     final Uuid team = new Uuid(3);
-    final Secret secret = new Secret((byte)0x00, (byte)0x01, (byte)0x02);
+    final Secret secret = new Secret((byte) 0x00, (byte) 0x01, (byte) 0x02);
 
     assertTrue(relay.addTeam(team, secret));
 
-    assertTrue(relay.write(team,
-                           secret,
-                           relay.pack(new Uuid(4), "User", Time.now()),
-                           relay.pack(new Uuid(5), "Conversation", Time.now()),
-                           relay.pack(new Uuid(6), "Hello World", Time.now())));
+    assertTrue(
+        relay.write(
+            team,
+            secret,
+            relay.pack(new Uuid(4), "User", Time.now()),
+            relay.pack(new Uuid(5), "Conversation", Time.now(), new Uuid(6), UserType.NOTSET),
+            relay.pack(new Uuid(7), "Hello World", Time.now())));
 
-    assertTrue(relay.write(team,
-                           secret,
-                           relay.pack(new Uuid(7), "User", Time.now()),
-                           relay.pack(new Uuid(8), "Conversation", Time.now()),
-                           relay.pack(new Uuid(9), "Hello World", Time.now())));
+    assertTrue(
+        relay.write(
+            team,
+            secret,
+            relay.pack(new Uuid(8), "User", Time.now()),
+            relay.pack(new Uuid(9), "Conversation", Time.now(), new Uuid(10), UserType.NOTSET),
+            relay.pack(new Uuid(11), "Hello World", Time.now())));
 
-    assertTrue(relay.write(team,
-                           secret,
-                           relay.pack(new Uuid(10), "User", Time.now()),
-                           relay.pack(new Uuid(11), "Conversation", Time.now()),
-                           relay.pack(new Uuid(12), "Hello World", Time.now())));
+    assertTrue(
+        relay.write(
+            team,
+            secret,
+            relay.pack(new Uuid(12), "User", Time.now()),
+            relay.pack(new Uuid(13), "Conversation", Time.now(), new Uuid(14), UserType.NOTSET),
+            relay.pack(new Uuid(15), "Hello World", Time.now())));
 
     final Collection<Relay.Bundle> read = relay.read(team, secret, new Uuid(2), 1);
     assertTrue(read.size() == 1);

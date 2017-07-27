@@ -16,8 +16,7 @@ package codeu.chat.common;
 
 public final class NetworkCode {
 
-  public static final int
-      NO_MESSAGE = 0,
+  public static final int NO_MESSAGE = 0,
       GET_USERS_REQUEST = 1,
       GET_USERS_RESPONSE = 2,
       GET_ALL_CONVERSATIONS_REQUEST = 3,
@@ -33,7 +32,6 @@ public final class NetworkCode {
       NEW_CONVERSATION_REQUEST = 13,
       NEW_CONVERSATION_RESPONSE = 14,
       REMOVE_CONVERSATION_REQUEST = 15,
-      REMOVE_CONVERSATION_RESPONSE = 16,
       RELAY_READ_REQUEST = 27,
       RELAY_READ_RESPONSE = 28,
       RELAY_WRITE_REQUEST = 29,
@@ -49,5 +47,13 @@ public final class NetworkCode {
       GET_CONVERSATION_HEADER_BY_ID_REQUEST = 39,
       GET_CONVERSATION_HEADER_BY_ID_RESPONSE = 40,
       SERVER_INFO_REQUEST = 41,
-      SERVER_INFO_RESPONSE = 42;
+      SERVER_INFO_RESPONSE = 42,
+      CHANGE_PRIVILEGE_REQUEST = 43, // Network Codes for ca_control
+      INSUFFICIENT_PRIVILEGES_RESPONSE = 44,
+      SUFFICIENT_PRIVILEGES_RESPONSE = 45,
+      ADD_USER_REQUEST = 46,
+      ADD_USER_RESPONSE = 47,
+      REMOVE_USER_REQUEST = 48,
+      REMOVE_USER_RESPONSE = 49,
+      USER_LIST_REQUEST = 50;
 }

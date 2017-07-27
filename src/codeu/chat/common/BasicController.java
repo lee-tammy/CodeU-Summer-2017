@@ -15,6 +15,7 @@
 package codeu.chat.common;
 
 import codeu.chat.util.Uuid;
+import java.util.Map;
 
 // BASIC CONTROLLER
 //
@@ -49,7 +50,35 @@ public interface BasicController {
   //  operation is successful, a Conversation object will be returned
   //  representing the full state of the conversation on the server.
   //  Whether conversations can have the same title is undefined.
-  ConversationHeader newConversation(String title, Uuid owner);
+  ConversationHeader newConversation(String title, Uuid owner, UserType access);
 
-  void removeConversation(ConversationHeader conversation);
+  void removeConversation(ConversationHeader conversation); 
+
+  // CHANGE ACCESS
+  //
+  // Change the access of a target user in a given conversation. The requester must have both higher
+  // permission than the target user as well as the newAccess. The function will return true iff the
+  // function successfully changed access to the target user. If access could not be changed for any
+  // reason, the function will return false.
+  boolean changeAccess(Uuid requester, Uuid target, Uuid conversation, UserType newAccess);
+
+  // ADD USER
+  //
+  // Add a user with access type to the current conversation.
+  // The requester must be a creator or owner in order to have the permission
+  // to add a user. If the access type is not specified, the default access
+  // type will be assigned to the added user.
+  String addUser(Uuid requester, Uuid target, Uuid conversation, UserType memberBit);
+
+  // GET CONVERSATION PERMISSION
+  //
+  // Returns the list of users in a conversation along with their
+  // level of access.
+  Map<Uuid, UserType> getConversationPermission(Uuid id);
+
+  // REMOVE USER
+  //
+  // Removes specified user from specified conversation
+  // if the user performing the action has adequate privileges
+  String removeUser(Uuid id, Uuid target, Uuid id2);
 }
