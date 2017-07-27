@@ -14,9 +14,6 @@
 
 package codeu.chat.client.core;
 
-import java.util.ArrayList;
-import java.util.Collection;
-
 import codeu.chat.common.BasicView;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
@@ -29,15 +26,17 @@ import codeu.chat.util.Serializers;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
 import codeu.chat.util.connections.ConnectionSource;
+import java.util.ArrayList;
+import java.util.Collection;
 
 // VIEW
 //
 // This is the view component of the Model-View-Controller pattern used by the
-// the client to reterive readonly data from the server. All methods are blocking
+// the client to retrieve readonly data from the server. All methods are blocking
 // calls.
 final class View implements BasicView {
 
-  private final static Logger.Log LOG = Logger.newLog(View.class);
+  private static final Logger.Log LOG = Logger.newLog(View.class);
 
   private final ConnectionSource source;
 
@@ -59,7 +58,7 @@ final class View implements BasicView {
       Serializers.INTEGER.write(connection.out(), NetworkCode.GET_USERS_REQUEST);
 
       if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_USERS_RESPONSE) {
-        users.addAll(Serializers.collection(User.SERIALIZER).read(connection.in()));
+        users.addAll(Serializers.COLLECTION(User.SERIALIZER).read(connection.in()));
       } else {
         LOG.error("Response from server failed.");
       }
@@ -82,8 +81,8 @@ final class View implements BasicView {
       Serializers.INTEGER.write(connection.out(), NetworkCode.GET_ALL_CONVERSATIONS_REQUEST);
 
       if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_ALL_CONVERSATIONS_RESPONSE) {
-        summaries
-            .addAll(Serializers.collection(ConversationHeader.SERIALIZER).read(connection.in()));
+        summaries.addAll(
+            Serializers.COLLECTION(ConversationHeader.SERIALIZER).read(connection.in()));
       } else {
         LOG.error("Response from server failed.");
       }
@@ -104,12 +103,12 @@ final class View implements BasicView {
     try (final Connection connection = source.connect()) {
 
       Serializers.INTEGER.write(connection.out(), NetworkCode.GET_CONVERSATIONS_BY_ID_REQUEST);
-      Serializers.collection(Uuid.SERIALIZER).write(connection.out(), ids);
+      Serializers.COLLECTION(Uuid.SERIALIZER).write(connection.out(), ids);
 
-      if (Serializers.INTEGER
-          .read(connection.in()) == NetworkCode.GET_CONVERSATIONS_BY_ID_RESPONSE) {
-        conversations
-            .addAll(Serializers.collection(ConversationPayload.SERIALIZER).read(connection.in()));
+      if (Serializers.INTEGER.read(connection.in())
+          == NetworkCode.GET_CONVERSATIONS_BY_ID_RESPONSE) {
+        conversations.addAll(
+            Serializers.COLLECTION(ConversationPayload.SERIALIZER).read(connection.in()));
       } else {
         LOG.error("Response from server failed.");
       }
@@ -129,10 +128,10 @@ final class View implements BasicView {
     try (final Connection connection = source.connect()) {
 
       Serializers.INTEGER.write(connection.out(), NetworkCode.GET_MESSAGES_BY_ID_REQUEST);
-      Serializers.collection(Uuid.SERIALIZER).write(connection.out(), ids);
+      Serializers.COLLECTION(Uuid.SERIALIZER).write(connection.out(), ids);
 
       if (Serializers.INTEGER.read(connection.in()) == NetworkCode.GET_MESSAGES_BY_ID_RESPONSE) {
-        messages.addAll(Serializers.collection(Message.SERIALIZER).read(connection.in()));
+        messages.addAll(Serializers.COLLECTION(Message.SERIALIZER).read(connection.in()));
       } else {
         LOG.error("Response from server failed.");
       }
@@ -143,7 +142,7 @@ final class View implements BasicView {
 
     return messages;
   }
-  
+
   public ServerInfo getInfo() {
     ServerInfo info = null;
     try (final Connection connection = this.source.connect()) {
@@ -153,11 +152,11 @@ final class View implements BasicView {
       } else {
         // Communicate this error - the server did not respond with the type of
         // response we expected.
-      	LOG.error("Response from server failed.");
+        LOG.error("Response from server failed.");
       }
     } catch (Exception ex) {
-    	System.out.println("ERROR: Exception during call on server. Check log for details.");
-    	LOG.error(ex, "Exception during call on server.");
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server.");
       // Communicate this error - something went wrong with the connection.
     }
     // If we get here it means something went wrong and null should be returned

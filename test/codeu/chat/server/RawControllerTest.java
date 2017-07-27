@@ -15,15 +15,16 @@
 package codeu.chat.server;
 
 import static org.junit.Assert.*;
-import org.junit.Test;
-import org.junit.Before;
 
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.Message;
 import codeu.chat.common.RawController;
 import codeu.chat.common.User;
+import codeu.chat.common.UserType;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
+import org.junit.Before;
+import org.junit.Test;
 
 public final class RawControllerTest {
 
@@ -49,12 +50,8 @@ public final class RawControllerTest {
 
     final User user = controller.newUser(userId, "user", Time.now());
 
-    assertFalse(
-        "Check that user has a valid reference",
-        user == null);
-    assertTrue(
-        "Check that the user has the correct id",
-        Uuid.equals(user.id, userId));
+    assertFalse("Check that user has a valid reference", user == null);
+    assertTrue("Check that the user has the correct id", Uuid.equals(user.id, userId));
   }
 
   @Test
@@ -62,22 +59,14 @@ public final class RawControllerTest {
 
     final User user = controller.newUser(userId, "user", Time.now());
 
-    assertFalse(
-        "Check that user has a valid reference",
-        user == null);
-    assertTrue(
-        "Check that the user has the correct id",
-        Uuid.equals(user.id, userId));
+    assertFalse("Check that user has a valid reference", user == null);
+    assertTrue("Check that the user has the correct id", Uuid.equals(user.id, userId));
 
-    final ConversationHeader conversation = controller.newConversation(
-        conversationId,
-        "conversation",
-        user.id,
-        Time.now());
+    final ConversationHeader conversation =
+        controller.newConversation(
+            conversationId, "conversation", user.id, Time.now(), UserType.NOTSET);
 
-    assertFalse(
-        "Check that conversation has a valid reference",
-        conversation == null);
+    assertFalse("Check that conversation has a valid reference", conversation == null);
     assertTrue(
         "Check that the conversation has the correct id",
         Uuid.equals(conversation.id, conversationId));
@@ -88,38 +77,22 @@ public final class RawControllerTest {
 
     final User user = controller.newUser(userId, "user", Time.now());
 
-    assertFalse(
-        "Check that user has a valid reference",
-        user == null);
-    assertTrue(
-        "Check that the user has the correct id",
-        Uuid.equals(user.id, userId));
+    assertFalse("Check that user has a valid reference", user == null);
+    assertTrue("Check that the user has the correct id", Uuid.equals(user.id, userId));
 
-    final ConversationHeader conversation = controller.newConversation(
-        conversationId,
-        "conversation",
-        user.id,
-        Time.now());
+    final ConversationHeader conversation =
+        controller.newConversation(
+            conversationId, "conversation", user.id, Time.now(), UserType.NOTSET);
 
-    assertFalse(
-        "Check that conversation has a valid reference",
-        conversation == null);
+    assertFalse("Check that conversation has a valid reference", conversation == null);
     assertTrue(
         "Check that the conversation has the correct id",
         Uuid.equals(conversation.id, conversationId));
 
-    final Message message = controller.newMessage(
-        messageId,
-        user.id,
-        conversation.id,
-        "Hello World",
-        Time.now());
+    final Message message =
+        controller.newMessage(messageId, user.id, conversation.id, "Hello World", Time.now());
 
-    assertFalse(
-        "Check that the message has a valid reference",
-        message == null);
-    assertTrue(
-        "Check that the message has the correct id",
-        Uuid.equals(message.id, messageId));
+    assertFalse("Check that the message has a valid reference", message == null);
+    assertTrue("Check that the message has the correct id", Uuid.equals(message.id, messageId));
   }
 }

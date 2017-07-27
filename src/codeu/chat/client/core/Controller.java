@@ -14,25 +14,26 @@
 
 package codeu.chat.client.core;
 
-import java.util.Collection;
-
 import codeu.chat.common.BasicController;
 import codeu.chat.common.ConversationHeader;
+import codeu.chat.common.InterestStatus;
 import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
-import codeu.chat.common.User;
 import codeu.chat.common.Type;
-import codeu.chat.common.InterestStatus;
-
+import codeu.chat.common.User;
+import codeu.chat.common.UserType;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
 import codeu.chat.util.connections.ConnectionSource;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class Controller implements BasicController {
 
-  private final static Logger.Log LOG = Logger.newLog(Controller.class);
+  private static final Logger.Log LOG = Logger.newLog(Controller.class);
 
   private final ConnectionSource source;
 
@@ -40,7 +41,7 @@ public final class Controller implements BasicController {
     this.source = source;
   }
 
-  public ConnectionSource getSource(){
+  public ConnectionSource getSource() {
     return source;
   }
 
@@ -57,7 +58,7 @@ public final class Controller implements BasicController {
       Serializers.STRING.write(connection.out(), body);
 
       if (Serializers.INTEGER.read(connection.in()) == NetworkCode.NEW_MESSAGE_RESPONSE) {
-        response = Serializers.nullable(Message.SERIALIZER).read(connection.in());
+        response = Serializers.NULLABLE(Message.SERIALIZER).read(connection.in());
       } else {
         LOG.error("Response from server failed.");
       }
@@ -81,7 +82,7 @@ public final class Controller implements BasicController {
       LOG.info("newUser: Request completed.");
 
       if (Serializers.INTEGER.read(connection.in()) == NetworkCode.NEW_USER_RESPONSE) {
-        response = Serializers.nullable(User.SERIALIZER).read(connection.in());
+        response = Serializers.NULLABLE(User.SERIALIZER).read(connection.in());
         LOG.info("newUser: Response completed.");
       } else {
         LOG.error("Response from server failed.");
@@ -95,7 +96,7 @@ public final class Controller implements BasicController {
   }
 
   @Override
-  public ConversationHeader newConversation(String title, Uuid owner)  {
+  public ConversationHeader newConversation(String title, Uuid owner, UserType defaultAccess) {
 
     ConversationHeader response = null;
 
@@ -104,9 +105,10 @@ public final class Controller implements BasicController {
       Serializers.INTEGER.write(connection.out(), NetworkCode.NEW_CONVERSATION_REQUEST);
       Serializers.STRING.write(connection.out(), title);
       Uuid.SERIALIZER.write(connection.out(), owner);
+      UserType.SERIALIZER.write(connection.out(), defaultAccess);
 
       if (Serializers.INTEGER.read(connection.in()) == NetworkCode.NEW_CONVERSATION_RESPONSE) {
-        response = Serializers.nullable(ConversationHeader.SERIALIZER).read(connection.in());
+        response = Serializers.NULLABLE(ConversationHeader.SERIALIZER).read(connection.in());
       } else {
         LOG.error("Response from server failed.");
       }
@@ -118,60 +120,131 @@ public final class Controller implements BasicController {
     return response;
   }
 
-  public void newInterest(Uuid userId, Uuid interestId, Type
-      interestType){
+  public void newInterest(Uuid userId, Uuid interestId, Type interestType) {
 
     try (final Connection connection = this.source.connect()) {
-      Serializers.INTEGER.write(connection.out(),
-          NetworkCode.NEW_INTEREST_REQUEST);
+      Serializers.INTEGER.write(connection.out(), NetworkCode.NEW_INTEREST_REQUEST);
       Uuid.SERIALIZER.write(connection.out(), userId);
       Uuid.SERIALIZER.write(connection.out(), interestId);
       Type.SERIALIZER.write(connection.out(), interestType);
 
-      if(Serializers.INTEGER.read(connection.in()) !=
-          NetworkCode.NEW_INTEREST_RESPONSE){
+      if (Serializers.INTEGER.read(connection.in()) != NetworkCode.NEW_INTEREST_RESPONSE) {
         LOG.error("Response from server failed.");
       }
-                 
-    }catch(Exception ex){
+
+    } catch (Exception ex) {
       LOG.error(ex, "Exception during call on server.");
     }
   }
 
-  public void removeInterest(Uuid userId, Uuid interestId){
+  public void removeInterest(Uuid userId, Uuid interestId) {
 
     try (final Connection connection = source.connect()) {
-      Serializers.INTEGER.write(connection.out(),
-          NetworkCode.REMOVE_INTEREST_REQUEST);
+      Serializers.INTEGER.write(connection.out(), NetworkCode.REMOVE_INTEREST_REQUEST);
       Uuid.SERIALIZER.write(connection.out(), userId);
-      Uuid.SERIALIZER.write(connection.out(), interestId);           
-      if(Serializers.INTEGER.read(connection.in()) !=
-          NetworkCode.REMOVE_INTEREST_RESPONSE){
+      Uuid.SERIALIZER.write(connection.out(), interestId);
+      if (Serializers.INTEGER.read(connection.in()) != NetworkCode.REMOVE_INTEREST_RESPONSE) {
         LOG.error("Response from server failed.");
       }
-    }catch(Exception ex){
+    } catch (Exception ex) {
       LOG.error(ex, "Exception during call on server.");
-    } 
+    }
   }
 
-  public Collection<InterestStatus> statusUpdate(UserContext user){
+  public Collection<InterestStatus> statusUpdate(UserContext user) {
     Collection<InterestStatus> allInterests = null;
     try (final Connection connection = source.connect()) {
-      Serializers.INTEGER.write(connection.out(),
-          NetworkCode.INTEREST_STATUS_REQUEST);
+      Serializers.INTEGER.write(connection.out(), NetworkCode.INTEREST_STATUS_REQUEST);
       Uuid.SERIALIZER.write(connection.out(), user.user.id);
-      if(Serializers.INTEGER.read(connection.in()) ==
-          NetworkCode.INTEREST_STATUS_RESPONSE){
-        allInterests = 
-            Serializers.collection(InterestStatus.SERIALIZER).read(connection.in());
-      }
-      else {
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.INTEREST_STATUS_RESPONSE) {
+        allInterests = Serializers.COLLECTION(InterestStatus.SERIALIZER).read(connection.in());
+      } else {
         LOG.error("Response from server failed.");
       }
-    }catch(Exception ex){
-      LOG.error(ex, "Exception during call on server."); 
+    } catch (Exception ex) {
+      LOG.error(ex, "Exception during call on server.");
     }
     return allInterests;
   }
+  
+  @Override
+  public boolean changeAccess(Uuid requester, Uuid target, Uuid conversation, UserType newAccess) {
+    try (final Connection connection = source.connect()) {
+      Serializers.INTEGER.write(connection.out(), NetworkCode.CHANGE_PRIVILEGE_REQUEST);
+      Uuid.SERIALIZER.write(connection.out(), requester);
+      Uuid.SERIALIZER.write(connection.out(), target);
+      Uuid.SERIALIZER.write(connection.out(), conversation);
+      UserType.SERIALIZER.write(connection.out(), newAccess);
 
+      int reply = Serializers.INTEGER.read(connection.in());
+
+      if (reply == NetworkCode.SUFFICIENT_PRIVILEGES_RESPONSE) {
+        LOG.info("Changed user privilege");
+        return true;
+      } else if (reply == NetworkCode.INSUFFICIENT_PRIVILEGES_RESPONSE) {
+        LOG.error("Insufficient privilege to complete action");
+      } else {
+        LOG.error("Response from server failed.");
+      }
+    } catch (Exception ex) {
+      System.out.println("ERROR: Exception during call on server. Check log for details.");
+      LOG.error(ex, "Exception during call on server.");
+    }
+    return false;
+  }
+  
+  @Override
+  public String addUser(Uuid userId, Uuid addUserId, Uuid convoId, UserType memberBit) {
+
+    String message = "";
+
+    try (final Connection connection = this.source.connect()) {
+      Serializers.INTEGER.write(connection.out(), NetworkCode.ADD_USER_REQUEST);
+      Uuid.SERIALIZER.write(connection.out(), userId);
+      Uuid.SERIALIZER.write(connection.out(), addUserId);
+      Uuid.SERIALIZER.write(connection.out(), convoId);
+      UserType.SERIALIZER.write(connection.out(), memberBit);
+
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.ADD_USER_RESPONSE) {
+        message = Serializers.STRING.read(connection.in());
+      } else {
+        LOG.error("Response from server failed.");
+      }
+
+    } catch (Exception ex) {
+      LOG.error(ex, "Exception during call on server.");
+    }
+    return message;
+  }
+
+  @Override
+  public String removeUser(Uuid userId, Uuid removeUserId, Uuid convoId) {
+    String message = "";
+    try (final Connection connection = this.source.connect()) {
+      Serializers.INTEGER.write(connection.out(), NetworkCode.REMOVE_USER_REQUEST);
+      Uuid.SERIALIZER.write(connection.out(), userId);
+      Uuid.SERIALIZER.write(connection.out(), removeUserId);
+      Uuid.SERIALIZER.write(connection.out(), convoId);
+
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.REMOVE_USER_RESPONSE) {
+        message = Serializers.STRING.read(connection.in());
+      }
+    } catch (Exception ex) {
+      LOG.error(ex, "Exception during call on server.");
+    }
+    return message;
+  }
+
+  @Override
+  public Map<Uuid, UserType> getConversationPermission(Uuid id) {
+    Map<Uuid, UserType> hm = new HashMap<Uuid, UserType>();
+    try (final Connection connection = this.source.connect()) {
+      Serializers.INTEGER.write(connection.out(), NetworkCode.USER_LIST_REQUEST);
+      Uuid.SERIALIZER.write(connection.out(), id);
+      hm = Serializers.MAP(Uuid.SERIALIZER, UserType.SERIALIZER).read(connection.in());
+    } catch (Exception ex) {
+      LOG.error(ex, "Exception during call on server.");
+    }
+    return hm;
+  }
 }

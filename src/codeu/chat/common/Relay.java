@@ -14,10 +14,9 @@
 
 package codeu.chat.common;
 
-import java.util.Collection;
-
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
+import java.util.Collection;
 
 // RELAY
 //
@@ -43,7 +42,7 @@ public interface Relay {
     // As there is a lot of similar information in a bundle. Component groups together
     // common fields to make the bundle interface easier to read. As a bundle is made-up
     // of three parts (user, conversation, and message) and each parts have a uuid,
-    // string, and time field it cluttered the interface. A commonent is just a wrapper
+    // string, and time field it cluttered the interface. A component is just a wrapper
     // to make the Bundle interface easier to read.
     interface Component {
 
@@ -66,7 +65,21 @@ public interface Relay {
       // this time is used to represent that time value. For messages, users, and conversations
       // this is the creation time.
       Time time();
+    }
 
+    interface ConversationComponent {
+
+      Uuid id();
+
+      String text();
+
+      Time time();
+
+      // id of the creator of the conversation
+      Uuid creator();
+
+      // default permissions for the conversation
+      UserType defaultAccess();
     }
 
     // ID
@@ -93,15 +106,14 @@ public interface Relay {
 
     // CONVERSATION
     //
-    // All the infromation about the conversation that the message is part of.
-    Component conversation();
+    // All the information about the conversation that the message is part of.
+    ConversationComponent conversation();
 
     // MESSAGE
     //
     // All the information about the message that was sent from the server to
     // the relay.
     Component message();
-
   }
 
   // PACK
@@ -110,6 +122,9 @@ public interface Relay {
   // the signature for "write" to be shorter and easier to read.
   Bundle.Component pack(Uuid id, String text, Time time);
 
+  Bundle.ConversationComponent pack(
+      Uuid id, String text, Time time, Uuid creator, UserType defaultAccess);
+
   // WRITE
   //
   // Write a single message and all its extra data to the relay server. A message
@@ -117,11 +132,12 @@ public interface Relay {
   // part of as the relay does not track users or conversations. In order to write
   // a message to the relay, a team must write their team id and team secret or
   // else the relay will reject the message.
-  boolean write(Uuid teamId,
-                Secret teamSecret,
-                Bundle.Component user,
-                Bundle.Component conversation,
-                Bundle.Component message);
+  boolean write(
+      Uuid teamId,
+      Secret teamSecret,
+      Bundle.Component user,
+      Bundle.ConversationComponent conversation,
+      Bundle.Component message);
 
   // READ
   //
@@ -132,5 +148,4 @@ public interface Relay {
   // its earliest point. If the root is not found the relay will treat it as if it
   // was given Uuids.NULL.
   Collection<Bundle> read(Uuid teamId, Secret teamSecret, Uuid root, int range);
-
 }
