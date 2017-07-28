@@ -21,14 +21,24 @@ import codeu.chat.common.Interest;
 import codeu.chat.common.Message;
 import codeu.chat.common.Type;
 import codeu.chat.common.User;
+import codeu.chat.util.ServerLog;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.store.Store;
 import codeu.chat.util.store.StoreAccessor;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 public final class Model {
 
@@ -84,7 +94,8 @@ public final class Model {
   private final Store<Uuid, ConversationPermission> permissionById = new Store<>(UUID_COMPARE);
 
   public final Map<Uuid, ArrayList<Uuid>> interests = new HashMap<>();
-
+  private final Gson gson = new GsonBuilder().create();
+  
   public void add(User user) {
     userById.insert(user.id, user);
     userByTime.insert(user.creation, user);
@@ -168,5 +179,66 @@ public final class Model {
     if (interests.get(userId) != null) {
       interests.get(userId).remove(interestId);
     }
+  }
+  
+  public void refresh(FileWriter output, File file) { 
+	// clear the current contents of the log
+	if (file.delete()) {
+	  try {
+		file.createNewFile();
+		output = new FileWriter(file);
+		
+	    // take a snapshot of the users, conversations, messages, etc.  
+		String users = gson.toJson(userById);
+		if (!users.isEmpty()) 
+		  output.write(users);
+		
+		String conversations = gson.toJson(conversationById);
+		if (!conversations.isEmpty())
+		  output.write(conversations);
+	    
+		String permissions = gson.toJson(permissionById);
+		if (!permissions.isEmpty())
+	      output.write(permissions);
+	    
+		String messages = gson.toJson(messageById);
+		if (!messages.isEmpty())
+		  output.write(messages);
+	    
+		String interests = gson.toJson(interestById);
+		if (!interests.isEmpty())
+		  output.write(interests);
+		
+	  } catch (IOException e) {
+		e.printStackTrace();
+	  }
+	} else {
+	  try {
+				
+		// take a snapshot of the users, conversations, messages, etc.  
+		String users = gson.toJson(userById);
+		if (!users.isEmpty()) 
+		  output.write(users);
+				
+		String conversations = gson.toJson(conversationById);
+		if (!conversations.isEmpty())
+		  output.write(conversations);
+			    
+		String permissions = gson.toJson(permissionById);
+		if (!permissions.isEmpty())
+	      output.write(permissions);
+			    
+		String messages = gson.toJson(messageById);
+		if (!messages.isEmpty())
+		  output.write(messages);
+			    
+		String interests = gson.toJson(interestById);
+		if (!interests.isEmpty())
+		  output.write(interests);
+		
+	  } catch (IOException e) {
+	    e.printStackTrace();
+	  }
+	}
   }
 }

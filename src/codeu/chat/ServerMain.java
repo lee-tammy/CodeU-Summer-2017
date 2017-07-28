@@ -50,7 +50,7 @@ final class ServerMain {
     Uuid id = null;
     Secret secret = null;
     int port = -1;
-    // This is the directory where it is safe to store data accross runs
+    // This is the directory where it is safe to store data across runs
     // of the server.
     File persistentPath = null;
     RemoteAddress relayAddress = null;

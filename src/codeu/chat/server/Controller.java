@@ -30,9 +30,8 @@ import codeu.chat.util.Logger;
 import codeu.chat.util.ServerLog;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
-import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -44,15 +43,17 @@ public final class Controller implements RawController, BasicController {
   private final Model model;
   private final Uuid.Generator uuidGenerator;
 
-  private PrintWriter output;
+  private FileWriter output;
+  private File log;
+  
   private static boolean writeToLog;
 
   public Controller(Uuid serverId, Model model) {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
     try {
-      output =
-          new PrintWriter(new BufferedWriter(new FileWriter(ServerLog.createFilePath(), true)));
+      log = new File(ServerLog.createFilePath());
+      output =  new FileWriter(log);
       output.flush();
     } catch (Exception e) {
       e.printStackTrace();
@@ -136,12 +137,6 @@ public final class Controller implements RawController, BasicController {
       foundConversation.lastMessage = message.id;
     }
 
-    if (writeToLog) {
-      output.println(
-          "M_" + author + "_" + id + "_" + conversation + "_" + creationTime + "_" + body);
-      output.flush();
-    }
-
     return message;
   }
 
@@ -164,11 +159,6 @@ public final class Controller implements RawController, BasicController {
           id, name, creationTime);
     }
 
-    if (writeToLog) {
-      output.println("U_" + name + "_" + user.id + "_" + creationTime);
-      output.flush();
-    }
-
     return user;
   }
 
@@ -186,11 +176,6 @@ public final class Controller implements RawController, BasicController {
       model.add(conversation, permission);
       LOG.info("Conversation added: " + id);
     }
-    
-    if (writeToLog) {
-        output.println("C_" + id + "_" + title + "_" + owner + "_" + creationTime + "_" + defaultAccess);
-        output.flush();
-      }
 
     return conversation;
   }
@@ -426,5 +411,9 @@ public final class Controller implements RawController, BasicController {
   public Map<Uuid, UserType> getConversationPermission(Uuid id) {
 	  ConversationPermission cp = model.permissionById().first(id);
 	return cp.getUsers();
-  } 
+  }
+  
+  public void refreshLog() {
+	model.refresh(output, log);
+  }
 }

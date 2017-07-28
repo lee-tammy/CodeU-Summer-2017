@@ -14,15 +14,20 @@
 
 package codeu.chat.util;
 
-import codeu.chat.common.UserType;
-import codeu.chat.server.Controller;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+
+import com.google.gson.Gson;
+import com.google.gson.stream.JsonReader;
+
+import codeu.chat.common.UserType;
+import codeu.chat.server.Controller;
 
 public final class ServerLog {
   private File log;
@@ -47,7 +52,7 @@ public final class ServerLog {
    */
   public static String createFilePath() {
     String workingDirectory = System.getProperty("user.dir");
-    return workingDirectory + File.separator + "serverLog.txt";
+    return workingDirectory + File.separator + "serverLog.json";
   }
 
   /**
@@ -67,7 +72,17 @@ public final class ServerLog {
   public File getLog() {
     return log;
   }
-
+  
+  public void read(Controller controller) {
+    Gson gson = new Gson();
+	try {
+		JsonReader reader = new JsonReader(new FileReader(createFilePath()));
+	} catch (FileNotFoundException e) {
+		e.printStackTrace();
+	}
+//	List<> data = gson.fromJson(reader);
+  }
+  
   /**
    * Reads log line and create the object based on logs
    *
