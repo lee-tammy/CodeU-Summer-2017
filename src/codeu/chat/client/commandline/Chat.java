@@ -424,7 +424,8 @@ public final class Chat {
             }
           }
         });
-
+    
+    
     // I-ADD (adds an interest)
     //
     // Adds a command that will allow the user to add users and conversations
