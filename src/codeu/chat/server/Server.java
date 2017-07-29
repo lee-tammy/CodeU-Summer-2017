@@ -48,7 +48,7 @@ public final class Server {
   private static final Logger.Log LOG = Logger.newLog(Server.class);
 
   private static final int RELAY_REFRESH_MS = 5000; // 5 seconds
-  private static final int SAVE_TO_LOG_MS = 10000; // 10 seconds
+  private static final int LOG_REFRESH_MS = 10000; // 10 seconds
 
   private static ServerInfo info = new ServerInfo();
 
@@ -81,7 +81,7 @@ public final class Server {
     ServerLog log = new ServerLog(new File(ServerLog.createFilePath()));
 
     // check if the server needs to be restored
-    restore(log, this.controller);
+   // restore(log, this.controller);
 
     // once we are done reading in old data from the log
     // we set this to true so that new data is written to the log
@@ -347,8 +347,6 @@ public final class Server {
                 onBundle(bundle);
                 lastSeen = bundle.id();
               }
-              
-              controller.refreshLog();
 
             } catch (Exception ex) {
 
@@ -364,16 +362,18 @@ public final class Server {
           @Override
           public void run() {
             try {
+
+              LOG.info("Updating log...");
                   
               controller.refreshLog();
 
             } catch (Exception ex) {
 
-              LOG.error(ex, "Failed to save contents of chat to log");
+              LOG.error(ex, "Failed to update log.");
             }
 
-              timeline.scheduleIn(SAVE_TO_LOG_MS, this);
-            }
+            timeline.scheduleIn(LOG_REFRESH_MS, this);
+          }
         });
   }
 
@@ -475,9 +475,13 @@ public final class Server {
       }
     };
   }
+  
+  public Model getModel() {
+	return model;
+  }
 
   // checks if the server needs restoring
-  private void restore(ServerLog log, Controller controller) {
-    log.read(controller);
-  }
+//  private void restore(ServerLog log, Controller controller) {
+//    log.read(controller);
+//  }
 }

@@ -43,7 +43,6 @@ public final class Controller implements RawController, BasicController {
   private final Model model;
   private final Uuid.Generator uuidGenerator;
 
-  private FileWriter output;
   private File log;
   
   private static boolean writeToLog;
@@ -51,13 +50,7 @@ public final class Controller implements RawController, BasicController {
   public Controller(Uuid serverId, Model model) {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
-    try {
-      log = new File(ServerLog.createFilePath());
-      output =  new FileWriter(log);
-      output.flush();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+    log = new File(ServerLog.createFilePath());
   }
 
   public User userById(Uuid id) {
@@ -414,6 +407,6 @@ public final class Controller implements RawController, BasicController {
   }
   
   public void refreshLog() {
-	model.refresh(output, log);
+	model.refresh(log);
   }
 }

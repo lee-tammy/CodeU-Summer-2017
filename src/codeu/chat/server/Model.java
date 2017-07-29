@@ -29,9 +29,12 @@ import codeu.chat.util.store.StoreAccessor;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -39,6 +42,7 @@ import java.util.Map;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.stream.JsonReader;
 
 public final class Model {
 
@@ -181,64 +185,85 @@ public final class Model {
     }
   }
   
-  public void refresh(FileWriter output, File file) { 
+  public void refresh(File file) { 
 	// clear the current contents of the log
-	if (file.delete()) {
-	  try {
-		file.createNewFile();
-		output = new FileWriter(file);
-		
-	    // take a snapshot of the users, conversations, messages, etc.  
-		String users = gson.toJson(userById);
-		if (!users.isEmpty()) 
-		  output.write(users);
-		
-		String conversations = gson.toJson(conversationById);
-		if (!conversations.isEmpty())
-		  output.write(conversations);
-	    
-		String permissions = gson.toJson(permissionById);
-		if (!permissions.isEmpty())
-	      output.write(permissions);
-	    
-		String messages = gson.toJson(messageById);
-		if (!messages.isEmpty())
-		  output.write(messages);
-	    
-		String interests = gson.toJson(interestById);
-		if (!interests.isEmpty())
-		  output.write(interests);
-		
-	  } catch (IOException e) {
-		e.printStackTrace();
+	try {
+	  FileWriter fwOb = new FileWriter(file.getAbsolutePath(), false);
+	  PrintWriter pwOb = new PrintWriter(fwOb, false);
+	  pwOb.flush();
+	  pwOb.close();
+	  fwOb.close();
+	} catch (IOException e1) {
+      e1.printStackTrace();
+      System.out.println("Failed to clear contents of log!");
+	} 
+	  
+	try {
+	  FileWriter fw = new FileWriter(file.getAbsolutePath(), true);
+	  
+	  // take a snapshot of the users, conversations, messages, etc.  
+	  String users = gson.toJson(userById);
+	  if (!users.isEmpty()) { 
+		fw.write(users);
+	    fw.write("/n");
+	    fw.write("___");
+	    fw.write("/n");
 	  }
-	} else {
-	  try {
-				
-		// take a snapshot of the users, conversations, messages, etc.  
-		String users = gson.toJson(userById);
-		if (!users.isEmpty()) 
-		  output.write(users);
-				
-		String conversations = gson.toJson(conversationById);
-		if (!conversations.isEmpty())
-		  output.write(conversations);
-			    
-		String permissions = gson.toJson(permissionById);
-		if (!permissions.isEmpty())
-	      output.write(permissions);
-			    
-		String messages = gson.toJson(messageById);
-		if (!messages.isEmpty())
-		  output.write(messages);
-			    
-		String interests = gson.toJson(interestById);
-		if (!interests.isEmpty())
-		  output.write(interests);
-		
-	  } catch (IOException e) {
-	    e.printStackTrace();
+	  
+	  String conversations = gson.toJson(conversationById);
+	  if (!conversations.isEmpty()) {
+		fw.write(conversations);
+	    fw.write("/n");
+	    fw.write("___");
+	    fw.write("/n");
+	  }  
+	  
+	  String permissions = gson.toJson(permissionById);
+	  if (!permissions.isEmpty()) {
+	    fw.write(permissions);
+	    fw.write("/n");
+	    fw.write("___");
+	    fw.write("/n");
 	  }
+	  
+	  String messages = gson.toJson(messageById);
+	  if (!messages.isEmpty()) {
+		fw.write(messages);
+	    fw.write("/n");
+	    fw.write("___");
+	    fw.write("/n");
+	  }
+	  
+      String interests = gson.toJson(interestById);
+	  if (!interests.isEmpty()) {
+		fw.write(interests);
+	    fw.write("/n");
+	    fw.write("___");
+	    fw.write("/n");
+	  }	
+	  
+	  fw.flush();
+	  fw.close();
+	  
+	  } catch (IOException e2) {
+		e2.printStackTrace();
+		System.out.println("Failed to save data to log!");
+	  }
+  }
+  
+  public void restore(File file) {
+	// check to see if there is a log to restore from 
+	if(!file.exists())
+	  return;	
+	
+	// create a JSON reader to parse the log
+	try {
+	  JsonReader reader = new JsonReader(new FileReader(file.getAbsolutePath()));
+	} catch (FileNotFoundException e) {
+	  e.printStackTrace();
 	}
+	
+//	Store[] stores = new Gson().fromJson(json, Store.class);
+	
   }
 }
