@@ -294,6 +294,8 @@ public final class Chat {
             System.out.println("    Specify default member/owner permission when a user is added");
             System.out.println("  c-join <title>");
             System.out.println("    Join the conversation as the current user.");
+            System.out.println("  c-leave <title>");
+            System.out.println("    Leave the conversation as the current user.");
             System.out.println("  i-add <u for user or c for conversation> <username or title>.");
             System.out.println("    Get updates on conversations and users.");
             System.out.println(
@@ -398,7 +400,33 @@ public final class Chat {
             }
           }
         });
-
+  
+    panel.register("c-leave", new Panel.Command(){
+      public void invoke(List<String> args){
+        final String name = args.size() > 0 ? args.get(0).trim() : "";
+        if(name.length() > 0){
+          ConversationContext conversation = find(name, user);
+          if(conversation != null){
+            Map<Uuid, UserType> permissions = conversation.getConversationPermission(); 
+            UserType requester = permissions.get(user.user.id);
+            if(requester != null){
+              if(requester == UserType.CREATOR){
+                
+                //user.stop(conversation.conversation);
+              }else{
+                conversation.remove(user);
+              }
+            }else{
+              System.out.println("ERROR: You are not in the conversation.");
+            }
+          }else{
+            System.out.println("ERROR: Conversation does not exist.");
+          }
+        }else{
+          System.out.println("ERROR: Wrong format");
+        }
+      }
+    });
     // I-ADD (adds an interest)
     //
     // Adds a command that will allow the user to add users and conversations
