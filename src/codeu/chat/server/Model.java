@@ -27,6 +27,7 @@ import codeu.chat.util.Uuid;
 import codeu.chat.util.store.Store;
 import codeu.chat.util.store.StoreAccessor;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -205,41 +206,31 @@ public final class Model {
 	  String users = gson.toJson(userById);
 	  if (!users.isEmpty()) { 
 		fw.write(users);
-	    fw.write("/n");
 	    fw.write("___");
-	    fw.write("/n");
 	  }
 	  
 	  String conversations = gson.toJson(conversationById);
 	  if (!conversations.isEmpty()) {
 		fw.write(conversations);
-	    fw.write("/n");
 	    fw.write("___");
-	    fw.write("/n");
 	  }  
 	  
 	  String permissions = gson.toJson(permissionById);
 	  if (!permissions.isEmpty()) {
 	    fw.write(permissions);
-	    fw.write("/n");
 	    fw.write("___");
-	    fw.write("/n");
 	  }
 	  
 	  String messages = gson.toJson(messageById);
 	  if (!messages.isEmpty()) {
 		fw.write(messages);
-	    fw.write("/n");
 	    fw.write("___");
-	    fw.write("/n");
 	  }
 	  
       String interests = gson.toJson(interestById);
 	  if (!interests.isEmpty()) {
 		fw.write(interests);
-	    fw.write("/n");
 	    fw.write("___");
-	    fw.write("/n");
 	  }	
 	  
 	  fw.flush();
@@ -256,12 +247,31 @@ public final class Model {
 	if(!file.exists())
 	  return;	
 	
-	// create a JSON reader to parse the log
+	BufferedReader br = null;
 	try {
-	  JsonReader reader = new JsonReader(new FileReader(file.getAbsolutePath()));
+	  br = new BufferedReader(new FileReader(file.getAbsolutePath()));
 	} catch (FileNotFoundException e) {
 	  e.printStackTrace();
 	}
+	
+	String completeText = "";
+	String line;
+	
+	// read the entirety of file into one string 
+	try {
+      while((line = br.readLine()) != null) {
+    	  completeText += line;
+      }
+	} catch (IOException e) {
+		e.printStackTrace();
+	}
+	
+	String[] jsonObjs = completeText.split("___");
+	
+	if (jsonObjs.length == 5) {
+		
+	}
+
 	
 //	Store[] stores = new Gson().fromJson(json, Store.class);
 	
