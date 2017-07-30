@@ -125,6 +125,9 @@ public final class Controller implements BasicController {
     try(final Connection connection = source.connect()){
       Serializers.INTEGER.write(connection.out(), NetworkCode.REMOVE_CONVERSATION_REQUEST);
       Serializers.NULLABLE(ConversationHeader.SERIALIZER).write(connection.out(), conversation);
+      if(Serializers.INTEGER.read(connection.in()) != NetworkCode.REMOVE_CONVERSATION_RESPONSE){
+        LOG.error("Response during call on server.");
+      }
     }catch(Exception ex){
       LOG.error(ex, "Exception during call on server.");
     }
