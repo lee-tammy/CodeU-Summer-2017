@@ -120,6 +120,7 @@ public final class Controller implements BasicController {
     return response;
   }
 
+  @Override
   public void removeConversation(ConversationHeader conversation){ 
     ConversationHeader response = null; 
     try(final Connection connection = source.connect()){
