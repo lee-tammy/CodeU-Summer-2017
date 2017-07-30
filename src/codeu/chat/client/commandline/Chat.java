@@ -294,8 +294,10 @@ public final class Chat {
             System.out.println("    Specify default member/owner permission when a user is added");
             System.out.println("  c-join <title>");
             System.out.println("    Join the conversation as the current user.");
-            System.out.println("  c-leave <title>");
-            System.out.println("    Leave the conversation as the current user.");
+            System.out.println("  c-leave <title> <optional: username>");
+            System.out.println("    Leave the conversation as the current user. If current user is creator,");
+            System.out.println("    If creator, type username after title to promote a user to creator access type.");
+            System.out.println("    If empty, the conversation will be deleted.");
             System.out.println("  i-add <u for user or c for conversation> <username or title>.");
             System.out.println("    Get updates on conversations and users.");
             System.out.println(
@@ -401,32 +403,59 @@ public final class Chat {
           }
         });
   
+    // C-LEAVE (leave conversation)
+    //
+    // Add command that will leave the conversation when the user enters
+    // "c-leave" while on the user panel. If the user is a creator, they have
+    // the option to delete the conversation or promote another user to creator
+    // access type
+    //
     panel.register("c-leave", new Panel.Command(){
       public void invoke(List<String> args){
-        final String name = args.size() > 0 ? args.get(0).trim() : "";
-        if(name.length() > 0){
-          ConversationContext conversation = find(name, user);
-          if(conversation != null){
-            Map<Uuid, UserType> permissions = conversation.getConversationPermission(); 
-            UserType requester = permissions.get(user.user.id);
-            if(requester != null){
-              if(requester == UserType.CREATOR){
-                
-                //user.stop(conversation.conversation);
-              }else{
-                conversation.remove(user);
-              }
-            }else{
-              System.out.println("ERROR: You are not in the conversation.");
-            }
-          }else{
-            System.out.println("ERROR: Conversation does not exist.");
-          }
-        }else{
-          System.out.println("ERROR: Wrong format");
+        final String title = args.isEmpty() ? args.get(0).trim() : "";
+        if(title.isEmpty()){
+          System.out.println("ERROR: Missing <title>");
+          return;
         }
+
+        ConversationContext conversation = find(title, user);
+        if(conversation == null){
+          System.out.println("ERROR: Conversation does not exist.");
+          return;
+        }
+
+        Map<Uuid, UserType> permissions = conversation.getConversationPermission(); 
+        UserType requester = permissions.get(user.user.id);
+        if(requester == null){
+          System.out.println("ERROR: You are not in the conversation.");
+          return;
+        }
+
+        if(requester != UserType.CREATOR){
+          conversation.removeUser(user.user.id);
+          return;
+        }
+
+        final String name = args.isEmpty() ? args.get(1).trim() : "";
+        if(name.isEmpty()){
+          user.stop(conversation.conversation);
+          return;
+        }
+        UserContext username = findUser(name, context);
+        if(user == null){
+          System.out.println("ERROR: User does not exist.");
+          return;
+        }
+        UserType newCreator = permissions.get(username.user.id);
+        if(newCreator == null){
+          System.out.println("ERROR: User is not in the conversation.");
+          return;
+        }
+        conversation.changeAccess(username.user.id, UserType.CREATOR);
+        conversation.removeUser(user.user.id);
       }
     });
+
     // I-ADD (adds an interest)
     //
     // Adds a command that will allow the user to add users and conversations
