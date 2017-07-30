@@ -151,11 +151,9 @@ public final class Server {
 
     this.commands.put(NetworkCode.REMOVE_CONVERSATION_REQUEST, new Command(){
       @Override
-      public void onMessage(InputStream in, OutputStream out)throws IOException{
-       
+      public void onMessage(InputStream in, OutputStream out)throws IOException{ 
         final ConversationHeader conversation = 
             Serializers.NULLABLE(ConversationHeader.SERIALIZER).read(in);
-        
         controller.removeConversation(conversation);
       }
     });

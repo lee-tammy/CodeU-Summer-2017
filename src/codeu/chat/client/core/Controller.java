@@ -95,6 +95,7 @@ public final class Controller implements BasicController {
     return response;
   }
 
+  @Override
   public ConversationHeader newConversation(String title, Uuid owner, UserType defaultAccess) {
 
     ConversationHeader response = null;
@@ -122,15 +123,12 @@ public final class Controller implements BasicController {
   public void removeConversation(ConversationHeader conversation){ 
     ConversationHeader response = null; 
     try(final Connection connection = source.connect()){
-
       Serializers.INTEGER.write(connection.out(), NetworkCode.REMOVE_CONVERSATION_REQUEST);
       Serializers.NULLABLE(ConversationHeader.SERIALIZER).write(connection.out(), conversation);
     }catch(Exception ex){
       LOG.error(ex, "Exception during call on server.");
     }
-        
   }
-
 
   public void newInterest(Uuid userId, Uuid interestId, Type interestType) {
 
