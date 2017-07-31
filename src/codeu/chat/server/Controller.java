@@ -31,7 +31,6 @@ import codeu.chat.util.ServerLog;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 import java.io.File;
-import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

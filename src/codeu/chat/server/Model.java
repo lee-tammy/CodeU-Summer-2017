@@ -21,21 +21,18 @@ import codeu.chat.common.Interest;
 import codeu.chat.common.Message;
 import codeu.chat.common.Type;
 import codeu.chat.common.User;
-import codeu.chat.util.ServerLog;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.store.Store;
 import codeu.chat.util.store.StoreAccessor;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -43,7 +40,6 @@ import java.util.Map;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.stream.JsonReader;
 
 public final class Model {
 
@@ -79,26 +75,26 @@ public final class Model {
       };
 
   private static final Comparator<String> STRING_COMPARE = String.CASE_INSENSITIVE_ORDER;
-  private final Store<Uuid, User> userById = new Store<>(UUID_COMPARE);
+  private Store<Uuid, User> userById = new Store<>(UUID_COMPARE);
   private final Store<Time, User> userByTime = new Store<>(TIME_COMPARE);
   private final Store<String, User> userByText = new Store<>(STRING_COMPARE);
 
-  private final Store<Uuid, ConversationHeader> conversationById = new Store<>(UUID_COMPARE);
+  private Store<Uuid, ConversationHeader> conversationById = new Store<>(UUID_COMPARE);
   private final Store<Time, ConversationHeader> conversationByTime = new Store<>(TIME_COMPARE);
   private final Store<String, ConversationHeader> conversationByText = new Store<>(STRING_COMPARE);
 
-  private final Store<Uuid, ConversationPayload> conversationPayloadById =
+  private Store<Uuid, ConversationPayload> conversationPayloadById =
       new Store<>(UUID_COMPARE);
 
-  private final Store<Uuid, Message> messageById = new Store<>(UUID_COMPARE);
+  private Store<Uuid, Message> messageById = new Store<>(UUID_COMPARE);
   private final Store<Time, Message> messageByTime = new Store<>(TIME_COMPARE);
   private final Store<String, Message> messageByText = new Store<>(STRING_COMPARE);
 
-  private final Store<Uuid, Interest> interestById = new Store<>(UUID_COMPARE);
+  private Store<Uuid, Interest> interestById = new Store<>(UUID_COMPARE);
 
-  private final Store<Uuid, ConversationPermission> permissionById = new Store<>(UUID_COMPARE);
+  private Store<Uuid, ConversationPermission> permissionById = new Store<>(UUID_COMPARE);
 
-  public final Map<Uuid, ArrayList<Uuid>> interests = new HashMap<>();
+  public Map<Uuid, ArrayList<Uuid>> interests = new HashMap<>();
   private final Gson gson = new GsonBuilder().create();
   
   public void add(User user) {
@@ -203,35 +199,25 @@ public final class Model {
 	  FileWriter fw = new FileWriter(file.getAbsolutePath(), true);
 	  
 	  // take a snapshot of the users, conversations, messages, etc.  
-	  String users = gson.toJson(userById);
-	  if (!users.isEmpty()) { 
-		fw.write(users);
-	    fw.write("___");
-	  }
+	  fw.write(gson.toJson(userById));
+	  fw.write("___");
 	  
-	  String conversations = gson.toJson(conversationById);
-	  if (!conversations.isEmpty()) {
-		fw.write(conversations);
-	    fw.write("___");
-	  }  
+	  fw.write(gson.toJson(conversationById));
+	  fw.write("___");  
 	  
-	  String permissions = gson.toJson(permissionById);
-	  if (!permissions.isEmpty()) {
-	    fw.write(permissions);
-	    fw.write("___");
-	  }
+	  fw.write(gson.toJson(permissionById));
+	  fw.write("___");
 	  
-	  String messages = gson.toJson(messageById);
-	  if (!messages.isEmpty()) {
-		fw.write(messages);
-	    fw.write("___");
-	  }
+	  fw.write(gson.toJson(messageById));
+	  fw.write("___");
 	  
-      String interests = gson.toJson(interestById);
-	  if (!interests.isEmpty()) {
-		fw.write(interests);
-	    fw.write("___");
-	  }	
+	  fw.write(gson.toJson(interestById));
+	  fw.write("___");	
+	  
+	  fw.write(gson.toJson(conversationPayloadById));
+	  fw.write("___");
+	  
+	  fw.write(gson.toJson(interests));
 	  
 	  fw.flush();
 	  fw.close();
@@ -242,6 +228,7 @@ public final class Model {
 	  }
   }
   
+  @SuppressWarnings("unchecked")
   public void restore(File file) {
 	// check to see if there is a log to restore from 
 	if(!file.exists())
@@ -257,7 +244,7 @@ public final class Model {
 	String completeText = "";
 	String line;
 	
-	// read the entirety of file into one string 
+	// read the entirety of file into one String 
 	try {
       while((line = br.readLine()) != null) {
     	  completeText += line;
@@ -268,12 +255,39 @@ public final class Model {
 	
 	String[] jsonObjs = completeText.split("___");
 	
-	if (jsonObjs.length == 5) {
-		
+	if (jsonObjs.length == 7) {
+	  // convert from json to respective Store objects
+	  userById = gson.fromJson(jsonObjs[0], Store.class);
+	  conversationById = gson.fromJson(jsonObjs[1], Store.class);
+	  permissionById = gson.fromJson(jsonObjs[2], Store.class);
+	  messageById = gson.fromJson(jsonObjs[3], Store.class);
+	  interestById = gson.fromJson(jsonObjs[4], Store.class);
+	  conversationPayloadById = gson.fromJson(jsonObjs[5], Store.class);
+	  interests = gson.fromJson(jsonObjs[6], HashMap.class);
+	  
+	  // restore users
+	  ArrayList<Uuid> userId = userById.getKeys();
+	  for(int i = 0; i < userId.size(); i++) {
+	    User temp = userById.first(userId.get(i));
+	    userByTime.insert(temp.creation, temp);
+	    userByText.insert(temp.name, temp);
+	  }
+	  
+	  // restore conversations
+	  ArrayList<Uuid> conversationId = conversationById.getKeys();
+	  for(int i = 0; i < conversationId.size(); i++) {
+	    ConversationHeader temp = conversationById.first(conversationId.get(i));
+	    conversationByTime.insert(temp.creation, temp);
+	    conversationByText.insert(temp.title, temp);
+	  }
+	  
+	  // restore messages
+	  ArrayList<Uuid> messageId = messageById.getKeys();
+	  for(int i = 0; i < messageId.size(); i++) {
+	    Message temp = messageById.first(messageId.get(i));
+	    messageByTime.insert(temp.creation, temp);
+	    messageByText.insert(temp.content, temp);
+	  }
 	}
-
-	
-//	Store[] stores = new Gson().fromJson(json, Store.class);
-	
   }
 }

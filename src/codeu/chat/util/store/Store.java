@@ -14,6 +14,7 @@
 
 package codeu.chat.util.store;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -29,15 +30,28 @@ public final class Store<KEY, VALUE> implements StoreAccessor<KEY, VALUE> {
   private final NavigableMap<KEY, StoreLink<KEY, VALUE>> index;
 
   private final Comparator<KEY> comparator;
+  
+  private ArrayList<KEY> keys;
+  
+//  private Store() {
+//	this(Object.class);
+//  }
 
   public Store(Comparator<KEY> comparator) {
     this.index = new TreeMap<>(comparator);
     this.comparator = comparator;
+    keys = new ArrayList<KEY>();
+  }
+  
+  public ArrayList<KEY> getKeys() {
+	return keys;
   }
 
   public void insert(KEY key, VALUE value) {
-
-    final StoreLink<KEY, VALUE> closestLink = floor(key);
+	// add to the list of keys
+    keys.add(key);
+	  
+	final StoreLink<KEY, VALUE> closestLink = floor(key);
 
     // Assume that the new value can only come after the current position. Move
     // through the chain of links until the next link is either the end (null)
