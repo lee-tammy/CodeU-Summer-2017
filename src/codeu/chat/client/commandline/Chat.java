@@ -23,6 +23,7 @@ import codeu.chat.common.ServerInfo;
 import codeu.chat.common.Type;
 import codeu.chat.common.User;
 import codeu.chat.common.UserType;
+import codeu.chat.util.Duration;
 import codeu.chat.util.Time;
 import codeu.chat.util.Tokenizer;
 import codeu.chat.util.Uuid;
@@ -51,6 +52,7 @@ public final class Chat {
   public Chat(Context context) {
     this.context = context;
     this.panels.push(createRootPanel(context));
+    this.startHandlingTimers();
   }
 
   // HANDLE COMMAND
@@ -100,6 +102,27 @@ public final class Chat {
     // processing future commands.
     System.out.println("ERROR: Unsupported command");
     return true;
+  }
+
+  public void startHandlingTimers() {
+    // Handle timers every 1 second.
+    startHandlingTimers(1000);
+  }
+
+  public void startHandlingTimers(int sleepTime) {
+    new Thread() {
+      public void run() {
+        while (true) {
+          Panel current = panels.peek();
+          current.handleNextEvent(Time.now());
+          try {
+            Thread.sleep(sleepTime);
+          } catch (InterruptedException ex) {
+            System.err.println(ex);
+          }
+        }
+      }
+    }.start();
   }
 
   // CREATE ROOT PANEL
@@ -546,6 +569,25 @@ public final class Chat {
     return panel;
   }
 
+  private void listMessages(final ConversationContext conversation, List<String> args) {
+    if (hasAccess(conversation.getUser(), conversation)) {
+      System.out.println("--- start of conversation ---");
+      for (MessageContext message = conversation.firstMessage();
+          message != null;
+          message = message.next()) {
+        System.out.println();
+        System.out.format("USER : %s\n", message.message.author);
+        System.out.format("SENT : %s\n", message.message.creation);
+        System.out.println();
+        System.out.println(message.message.content);
+        System.out.println();
+      }
+      System.out.println("---  end of conversation  ---");
+    } else {
+      System.out.println("ERROR: you no longer have access to this conversation");
+    }
+  }
+
   private Panel createConversationPanel(final ConversationContext conversation) {
 
     final Panel panel = new Panel();
@@ -560,7 +602,7 @@ public final class Chat {
         new Panel.Command() {
           @Override
           public void invoke(List<String> args) {
-            System.out.println("USER MODE");
+            System.out.println("CONVERSATION MODE");
             System.out.println("  m-list");
             System.out.println("    List all messages in the current conversation.");
             System.out.println("  m-add <message>");
@@ -587,6 +629,16 @@ public final class Chat {
           }
         });
 
+    // List messages automatically every 5 seconds.
+    panel.register(
+        new Duration(5),
+        new Panel.Command() {
+          @Override
+          public void invoke(List<String> args) {
+            listMessages(conversation, args);
+          }
+        });
+
     // M-LIST (list messages)
     //
     // Add a command to print all messages in the current conversation when the
@@ -597,22 +649,7 @@ public final class Chat {
         new Panel.Command() {
           @Override
           public void invoke(List<String> args) {
-            if (hasAccess(conversation.getUser(), conversation)) {
-              System.out.println("--- start of conversation ---");
-              for (MessageContext message = conversation.firstMessage();
-                  message != null;
-                  message = message.next()) {
-                System.out.println();
-                System.out.format("USER : %s\n", message.message.author);
-                System.out.format("SENT : %s\n", message.message.creation);
-                System.out.println();
-                System.out.println(message.message.content);
-                System.out.println();
-              }
-              System.out.println("---  end of conversation  ---");
-            } else {
-              System.out.println("ERROR: you no longer have access to this conversation");
-            }
+            listMessages(conversation, args);
           }
         });
     // M-ADD (add message)

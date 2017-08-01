@@ -166,7 +166,7 @@ public final class Controller implements BasicController {
     }
     return allInterests;
   }
-  
+
   @Override
   public boolean changeAccess(Uuid requester, Uuid target, Uuid conversation, UserType newAccess) {
     try (final Connection connection = source.connect()) {
@@ -192,7 +192,7 @@ public final class Controller implements BasicController {
     }
     return false;
   }
-  
+
   @Override
   public String addUser(Uuid userId, Uuid addUserId, Uuid convoId, UserType memberBit) {
 

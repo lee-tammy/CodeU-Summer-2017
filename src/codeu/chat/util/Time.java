@@ -23,22 +23,21 @@ import java.util.Date;
 
 public final class Time implements Comparable<Time> {
 
-  public static final Serializer<Time> SERIALIZER = new Serializer<Time>() {
+  public static final Serializer<Time> SERIALIZER =
+      new Serializer<Time>() {
 
-    @Override
-    public void write(OutputStream out, Time value) throws IOException {
+        @Override
+        public void write(OutputStream out, Time value) throws IOException {
 
-      Serializers.LONG.write(out, value.inMs());
+          Serializers.LONG.write(out, value.inMs());
+        }
 
-    }
+        @Override
+        public Time read(InputStream in) throws IOException {
 
-    @Override
-    public Time read(InputStream in) throws IOException {
-
-      return Time.fromMs(Serializers.LONG.read(in));
-
-    }
-  };
+          return Time.fromMs(Serializers.LONG.read(in));
+        }
+      };
 
   private static final SimpleDateFormat formatter =
       new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss.SSS");
@@ -77,10 +76,8 @@ public final class Time implements Comparable<Time> {
 
   @Override
   public boolean equals(Object other) {
-    if (other == null)
-      return false;
-    if (!(other instanceof Time))
-      return false;
+    if (other == null) return false;
+    if (!(other instanceof Time)) return false;
     Time that = (Time) other;
     return this.inMs() == that.inMs();
   }
@@ -89,18 +86,24 @@ public final class Time implements Comparable<Time> {
   public int hashCode() {
     return new Long(inMs()).hashCode();
   }
-  
+
   public static Time parse(String s) {
-	try {
-	  return new Time(formatter.parse(s).getTime());
-	} catch (ParseException e) {
-	  e.printStackTrace();
-	}
-	  return Time.now();
+    try {
+      return new Time(formatter.parse(s).getTime());
+    } catch (ParseException e) {
+      e.printStackTrace();
+    }
+    return Time.now();
   }
 
   // Difference of end and start times.
+  // DEPRECATED(Adam): Use Duration.java instead.
   public static Time duration(Time start, Time end) {
     return new Time(end.inMs() - start.inMs());
+  }
+
+  public static Time add(Time t, Duration d) {
+    Long millis = new Long(t.inMs());
+    return new Time((long) (millis.doubleValue() + d.offset * Math.pow(9, d.scale + 3)));
   }
 }
