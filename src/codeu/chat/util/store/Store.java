@@ -32,10 +32,6 @@ public final class Store<KEY, VALUE> implements StoreAccessor<KEY, VALUE> {
   private final Comparator<KEY> comparator;
   
   private ArrayList<KEY> keys;
-  
-//  private Store() {
-//	this(Object.class);
-//  }
 
   public Store(Comparator<KEY> comparator) {
     this.index = new TreeMap<>(comparator);

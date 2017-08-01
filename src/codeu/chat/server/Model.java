@@ -40,6 +40,9 @@ import java.util.Map;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.InstanceCreator;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonParser;
 
 public final class Model {
 
@@ -95,6 +98,7 @@ public final class Model {
   private Store<Uuid, ConversationPermission> permissionById = new Store<>(UUID_COMPARE);
 
   public Map<Uuid, ArrayList<Uuid>> interests = new HashMap<>();
+  private int logSize = 7; // number of elements stored in the log
   private final Gson gson = new GsonBuilder().create();
   
   public void add(User user) {
@@ -199,23 +203,17 @@ public final class Model {
 	  FileWriter fw = new FileWriter(file.getAbsolutePath(), true);
 	  
 	  // take a snapshot of the users, conversations, messages, etc.  
-	  fw.write(gson.toJson(userById));
-	  fw.write("___");
+	  fw.write(gson.toJson(userById) + "\n");
 	  
-	  fw.write(gson.toJson(conversationById));
-	  fw.write("___");  
+	  fw.write(gson.toJson(conversationById) + "\n");
 	  
-	  fw.write(gson.toJson(permissionById));
-	  fw.write("___");
+	  fw.write(gson.toJson(permissionById) + "\n");
 	  
-	  fw.write(gson.toJson(messageById));
-	  fw.write("___");
+	  fw.write(gson.toJson(messageById) + "\n");
 	  
-	  fw.write(gson.toJson(interestById));
-	  fw.write("___");	
+	  fw.write(gson.toJson(interestById) + "\n");	
 	  
-	  fw.write(gson.toJson(conversationPayloadById));
-	  fw.write("___");
+	  fw.write(gson.toJson(conversationPayloadById) + "\n");
 	  
 	  fw.write(gson.toJson(interests));
 	  
@@ -247,16 +245,18 @@ public final class Model {
 	// read the entirety of file into one String 
 	try {
       while((line = br.readLine()) != null) {
-    	  completeText += line;
+    	  completeText += line + "\n";
       }
 	} catch (IOException e) {
 		e.printStackTrace();
 	}
 	
-	String[] jsonObjs = completeText.split("___");
+	String[] jsonObjs = completeText.split("\n");
 	
-	if (jsonObjs.length == 7) {
+	if (jsonObjs.length == logSize) {
 	  // convert from json to respective Store objects
+	  JsonParser parser = new JsonParser();
+	  JsonArray array = parser.parse(jsonObjs[0]).getAsJsonArray();
 	  userById = gson.fromJson(jsonObjs[0], Store.class);
 	  conversationById = gson.fromJson(jsonObjs[1], Store.class);
 	  permissionById = gson.fromJson(jsonObjs[2], Store.class);
@@ -288,6 +288,16 @@ public final class Model {
 	    messageByTime.insert(temp.creation, temp);
 	    messageByText.insert(temp.content, temp);
 	  }
+	} else {
+	  System.out.println("ERROR: incorrect number of elements in log");
+	  System.out.println("Expected: " + logSize + "\t Actual: " + jsonObjs.length);
+	}
+  }
+  public class ComparatorInstanceCreator implements InstanceCreator<Comparator<Object>> {
+	@Override
+	public Comparator<Object> createInstance(java.lang.reflect.Type arg0) {
+	  // TODO Auto-generated method stub
+	  return null;
 	}
   }
 }
