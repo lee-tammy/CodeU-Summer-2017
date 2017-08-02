@@ -40,8 +40,6 @@ public final class Controller implements RawController, BasicController {
 
   private final Model model;
   private final Uuid.Generator uuidGenerator;
-
-  private File log;
   
   private static boolean writeToLog;
 
@@ -404,6 +402,6 @@ public final class Controller implements RawController, BasicController {
   }
   
   public void refreshLog() {
-	model.refresh(log);
+	model.refresh(new File(model.createFilePath()));
   }
 }

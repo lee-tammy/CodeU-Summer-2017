@@ -300,43 +300,46 @@ public final class Model {
 	
 	if (jsonObjs.length == logSize) {
 	  // convert from json to respective Store objects
-	  users = gson.fromJson(jsonObjs[0], userType);
-	  conversations = gson.fromJson(jsonObjs[1], conversationType);
-	  permissions = gson.fromJson(jsonObjs[2], permissionType);
-	  messages = gson.fromJson(jsonObjs[3], messageType);
-	  interestList = gson.fromJson(jsonObjs[4], interestType);
-	  payloads = gson.fromJson(jsonObjs[5], payloadType);
+	  ArrayList<User> restoredUsers = gson.fromJson(jsonObjs[0], userType);
+	  ArrayList<ConversationHeader> restoredConvos = gson.fromJson(jsonObjs[1], conversationType);
+	  ArrayList<ConversationPermission> restoredPermissions = gson.fromJson(jsonObjs[2], permissionType);
+	  ArrayList<Message> restoredMessages = gson.fromJson(jsonObjs[3], messageType);
+	  ArrayList<Interest> restoredInterests = gson.fromJson(jsonObjs[4], interestType);
+	  ArrayList<ConversationPayload> restoredPayloads = gson.fromJson(jsonObjs[5], payloadType);
 	  
 	  // restore users
-	  for(int i = 0; i < users.size(); i++) {
-	    add(users.get(i));
+	  for(int i = 0; i < restoredUsers.size(); i++) {
+	    add(restoredUsers.get(i));
 	  }
 	  
 	  // restore conversations
-	  for(int i = 0; i < conversations.size(); i++) {
-	    add(conversations.get(i));
+	  for(int i = 0; i < restoredConvos.size(); i++) {
+	    add(restoredConvos.get(i));
 	  }
 	  
 	  // restore permissions
-	  for(int i = 0; i < permissions.size(); i++) {
-	    add(permissions.get(i));
+	  for(int i = 0; i < restoredPermissions.size(); i++) {
+	    add(restoredPermissions.get(i));
 	  }
 	  
 	  // restore payloads
-	  for(int i = 0; i < payloads.size(); i++) {
-		add(payloads.get(i));
+	  for(int i = 0; i < restoredPayloads.size(); i++) {
+		add(restoredPayloads.get(i));
 	  }
 	  
 	  // restore messages
-	  for(int i = 0; i < messages.size(); i++) {
-	    add(messages.get(i));
+	  for(int i = 0; i < restoredMessages.size(); i++) {
+	    add(restoredMessages.get(i));
 	  }
 	  
 	  // restore interests
-	  for(int i = 0; i < interestList.size(); i++) {
-		Interest temp = interestList.get(i);
+	  for(int i = 0; i < restoredInterests.size(); i++) {
+		Interest temp = restoredInterests.get(i);
 		addInterest(temp.id, temp.userId, temp.interestId, temp.type, temp.lastUpdate);
 	  }
+	  
+	  System.out.println("Sucessfully restored previous state of the Server");
+	  
 	  return true;
 	} else {
 	  System.out.println("ERROR: incorrect number of elements in log");
