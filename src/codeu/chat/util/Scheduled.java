@@ -9,6 +9,13 @@ package codeu.chat.util;
 // (if unspecified) at Time.now() + repeat.
 public class Scheduled {
 
+  // ACTION
+  //
+  // Action is a simple interface that is used to create handlers for events.
+  public interface Action {
+    public void invoke();
+  }
+
   Action handler;
   Time firstTime;
   Time nextEventTime;

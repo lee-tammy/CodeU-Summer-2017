@@ -14,8 +14,8 @@
 
 package codeu.chat.client.commandline;
 
-import codeu.chat.util.Action;
 import codeu.chat.util.Duration;
+import codeu.chat.util.Scheduled;
 import codeu.chat.util.Scheduler;
 import codeu.chat.util.Time;
 import java.util.HashMap;
@@ -46,16 +46,16 @@ final class Panel {
     commands.put(commandName, command);
   }
 
-  public void register(Time eventTime, Action handler) {
-    scheduler.addEvent(handler, eventTime);
+  public void register(Time eventTime, Scheduled.Action handler) {
+    scheduler.addEvent(new Scheduled(handler, eventTime));
   }
 
-  public void register(Duration repeat, Action handler) {
-    scheduler.addEvent(handler, repeat);
+  public void register(Duration repeat, Scheduled.Action handler) {
+    scheduler.addEvent(new Scheduled(handler, repeat));
   }
 
-  public void register(Time eventTime, Duration repeat, Action handler) {
-    scheduler.addEvent(handler, eventTime, repeat);
+  public void register(Time eventTime, Duration repeat, Scheduled.Action handler) {
+    scheduler.addEvent(new Scheduled(handler, eventTime, repeat));
   }
 
   // HANDLE COMMAND

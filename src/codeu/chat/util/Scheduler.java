@@ -20,15 +20,7 @@ public class Scheduler {
     }
   }
 
-  public void addEvent(Action handler, Time eventTime, Duration repeat) {
-    scheduled.add(new Scheduled(handler, eventTime, repeat));
-  }
-
-  public void addEvent(Action handler, Duration repeat) {
-    scheduled.add(new Scheduled(handler, repeat));
-  }
-
-  public void addEvent(Action handler, Time eventTime) {
-    scheduled.add(new Scheduled(handler, eventTime));
+  public void addEvent(Scheduled event) {
+    scheduled.add(event);
   }
 }

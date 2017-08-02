@@ -23,8 +23,8 @@ import codeu.chat.common.ServerInfo;
 import codeu.chat.common.Type;
 import codeu.chat.common.User;
 import codeu.chat.common.UserType;
-import codeu.chat.util.Action;
 import codeu.chat.util.Duration;
+import codeu.chat.util.Scheduled;
 import codeu.chat.util.Time;
 import codeu.chat.util.Tokenizer;
 import codeu.chat.util.Uuid;
@@ -633,7 +633,7 @@ public final class Chat {
     // List messages automatically every 5 seconds.
     panel.register(
         new Duration(MESSAGE_REFRESH_RATE),
-        new Action() {
+        new Scheduled.Action() {
           @Override
           public void invoke() {
             listMessages(conversation, null);
