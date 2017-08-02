@@ -155,7 +155,7 @@ public final class Server {
         final ConversationHeader conversation = 
             Serializers.NULLABLE(ConversationHeader.SERIALIZER).read(in);
         controller.removeConversation(conversation);
-        Serializers.INTEGER.write(out, NetworkCode.REMOVE_CONVERSATION_REQUEST);
+        Serializers.INTEGER.write(out, NetworkCode.REMOVE_CONVERSATION_RESPONSE);
       }
     });
 
