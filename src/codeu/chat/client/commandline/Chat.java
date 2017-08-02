@@ -292,6 +292,9 @@ public final class Chat {
             System.out.println(
                 "    Add a new conversation with the given title and join it as the current user. ");
             System.out.println("    Specify default member/owner permission when a user is added");
+            System.out.println("  c-remove <title>");
+            System.out.println("    Remove a conversation with the given title (Must" +
+            " be the creator to remove).");
             System.out.println("  c-join <title>");
             System.out.println("    Join the conversation as the current user.");
             System.out.println("  i-add <u for user or c for conversation> <username or title>.");
@@ -370,6 +373,37 @@ public final class Chat {
           }
         });
 
+    // C-REMOVE (remove conversation)
+    //
+    // Add a command that will remove a conversation when the creator  enters
+    // "c-remove" while on the user panel.
+    //
+    panel.register("c-remove", new Panel.Command(){
+      @Override
+      public void invoke(List<String> args){
+        final String name = args.isEmpty() ? args.get(0).trim() : "";
+        if(name.isEmpty()){
+          System.out.println("ERROR: Missing <title>");
+          return;
+        }
+
+        ConversationContext conversation = find(name, user);
+        if(conversation == null){
+          System.out.println("ERROR: Conversation does not exist");
+          return;
+        }
+
+        Map<Uuid, UserType> permissions = conversation.getConversationPermission(); 
+        UserType requester = permissions.get(user.user.id);
+        if(requester == null || requester != UserType.CREATOR){
+          System.out.println("ERROR: You do not have permission to remove this conversation.");
+          return;
+        }
+
+        user.stop(conversation.conversation);          
+      }
+    });
+
     // C-JOIN (join conversation)
     //
     // Add a command that will join a conversation when the user enters
@@ -398,7 +432,7 @@ public final class Chat {
             }
           }
         });
-
+     
     // I-ADD (adds an interest)
     //
     // Adds a command that will allow the user to add users and conversations

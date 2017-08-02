@@ -115,6 +115,13 @@ public final class Model {
     permissionById.insert(permission.id, permission);
   }
 
+  public void remove(ConversationHeader conversation){
+    conversationById.remove(conversation.id);
+    conversationByTime.remove(conversation.creation);
+    conversationByText.remove(conversation.title);
+    conversationPayloadById.remove(conversation.id);
+  }
+
   public StoreAccessor<Uuid, ConversationHeader> conversationById() {
     return conversationById;
   }

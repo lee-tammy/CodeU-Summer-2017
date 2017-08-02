@@ -18,6 +18,7 @@ import codeu.chat.common.BasicController;
 import codeu.chat.common.BasicView;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.User;
+import codeu.chat.util.Uuid;
 import codeu.chat.common.UserType;
 import codeu.chat.util.connections.Connection;
 import java.io.IOException;
@@ -54,6 +55,10 @@ public final class UserContext {
     return conversation == null
         ? null
         : new ConversationContext(user, conversation, view, controller);
+  }
+
+  public void stop(ConversationHeader conversation){
+    controller.removeConversation(conversation);
   }
 
   public Iterable<ConversationContext> conversations() {
