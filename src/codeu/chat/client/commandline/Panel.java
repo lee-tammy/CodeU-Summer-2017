@@ -14,12 +14,13 @@
 
 package codeu.chat.client.commandline;
 
+import codeu.chat.util.Action;
 import codeu.chat.util.Duration;
+import codeu.chat.util.Scheduler;
 import codeu.chat.util.Time;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.PriorityQueue;
 
 // PANEL
 //
@@ -33,46 +34,8 @@ final class Panel {
     void invoke(List<String> args);
   }
 
-  class TimerCommand {
-    Command handler;
-    Time firstTime;
-    Time nextEventTime;
-    Duration repeat;
-
-    public TimerCommand(Command handler, Time eventTime, Duration repeat) {
-      this.handler = handler;
-      this.nextEventTime = eventTime;
-      this.firstTime = eventTime;
-      this.repeat = repeat;
-    }
-
-    public TimerCommand(Command handler, Duration repeat) {
-      this(handler, Time.add(Time.now(), repeat), repeat);
-    }
-
-    public TimerCommand(Command handler, Time eventTime) {
-      this(handler, eventTime, null);
-    }
-
-    // Lower time means higher priority.
-    public int compareTo(TimerCommand other) {
-      return other.nextEventTime.compareTo(this.nextEventTime);
-    }
-
-    public TimerCommand runHandler(Time now, List<String> args) {
-      if (now.compareTo(this.nextEventTime) >= 0) {
-        handler.invoke(args);
-        if (repeat == null) {
-          return null;
-        }
-        nextEventTime = Time.add(now, repeat);
-      }
-      return this;
-    }
-  }
-
   private final Map<String, Command> commands = new HashMap<>();
-  private final PriorityQueue<TimerCommand> timerCommands = new PriorityQueue<>();
+  private final Scheduler scheduler = new Scheduler();
 
   // REGISTER
   //
@@ -83,12 +46,16 @@ final class Panel {
     commands.put(commandName, command);
   }
 
-  public void register(Time eventTime, Command command) {
-    timerCommands.add(new TimerCommand(command, eventTime));
+  public void register(Time eventTime, Action handler) {
+    scheduler.addEvent(handler, eventTime);
   }
 
-  public void register(Duration repeatedDuration, Command command) {
-    timerCommands.add(new TimerCommand(command, repeatedDuration));
+  public void register(Duration repeat, Action handler) {
+    scheduler.addEvent(handler, repeat);
+  }
+
+  public void register(Time eventTime, Duration repeat, Action handler) {
+    scheduler.addEvent(handler, eventTime, repeat);
   }
 
   // HANDLE COMMAND
@@ -107,18 +74,7 @@ final class Panel {
   }
 
   // Given the current time call the correct command.
-  public void handleNextEvent(Time now) {
-    TimerCommand response = null;
-    TimerCommand lastResponse = null;
-    do {
-      final TimerCommand command = timerCommands.poll();
-      if (command != null) {
-        lastResponse = response;
-        response = command.runHandler(now, null);
-        if (response != null) {
-          timerCommands.add(response);
-        }
-      }
-    } while (response != null && lastResponse != response);
+  public void handleTimeEvent(Time now) {
+    scheduler.runIteration(now);
   }
 }

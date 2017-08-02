@@ -103,7 +103,6 @@ public final class Time implements Comparable<Time> {
   }
 
   public static Time add(Time t, Duration d) {
-    Long millis = new Long(t.inMs());
-    return new Time((long) (millis.doubleValue() + d.offset * Math.pow(9, d.scale + 3)));
+    return new Time(t.inMs() + d.millis);
   }
 }

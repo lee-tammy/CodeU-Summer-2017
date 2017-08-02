@@ -23,6 +23,7 @@ import codeu.chat.common.ServerInfo;
 import codeu.chat.common.Type;
 import codeu.chat.common.User;
 import codeu.chat.common.UserType;
+import codeu.chat.util.Action;
 import codeu.chat.util.Duration;
 import codeu.chat.util.Time;
 import codeu.chat.util.Tokenizer;
@@ -46,6 +47,11 @@ public final class Chat {
   // panel to the top of the stack. When a command wants to go to the previous
   // panel all it needs to do is pop the top panel.
   private final Stack<Panel> panels = new Stack<>();
+
+  // Handle timers every 50 millisecond.
+  public static final int TIMER_WAIT_TIME = 50;
+  // Refresh messages every 5000 milliseconds.
+  public static final int MESSAGE_REFRESH_RATE = 5000;
 
   private Context context;
 
@@ -105,18 +111,13 @@ public final class Chat {
   }
 
   public void startHandlingTimers() {
-    // Handle timers every 1 second.
-    startHandlingTimers(1000);
-  }
-
-  public void startHandlingTimers(int sleepTime) {
     new Thread() {
       public void run() {
         while (true) {
           Panel current = panels.peek();
-          current.handleNextEvent(Time.now());
+          current.handleTimeEvent(Time.now());
           try {
-            Thread.sleep(sleepTime);
+            Thread.sleep(TIMER_WAIT_TIME);
           } catch (InterruptedException ex) {
             System.err.println(ex);
           }
@@ -631,11 +632,11 @@ public final class Chat {
 
     // List messages automatically every 5 seconds.
     panel.register(
-        new Duration(5),
-        new Panel.Command() {
+        new Duration(MESSAGE_REFRESH_RATE),
+        new Action() {
           @Override
-          public void invoke(List<String> args) {
-            listMessages(conversation, args);
+          public void invoke() {
+            listMessages(conversation, null);
           }
         });
 
