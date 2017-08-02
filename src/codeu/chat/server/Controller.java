@@ -23,11 +23,10 @@ import codeu.chat.common.InterestStatus;
 import codeu.chat.common.Message;
 import codeu.chat.common.RandomUuidGenerator;
 import codeu.chat.common.RawController;
-import codeu.chat.common.Type;
+import codeu.chat.common.InterestType;
 import codeu.chat.common.User;
 import codeu.chat.common.UserType;
 import codeu.chat.util.Logger;
-import codeu.chat.util.ServerLog;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 import java.io.File;
@@ -49,7 +48,6 @@ public final class Controller implements RawController, BasicController {
   public Controller(Uuid serverId, Model model) {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
-    log = new File(ServerLog.createFilePath());
   }
 
   public User userById(Uuid id) {
@@ -172,12 +170,12 @@ public final class Controller implements RawController, BasicController {
     return conversation;
   }
 
-  public Interest addInterest(Uuid userId, Uuid interestId, Type interestType) {
+  public Interest addInterest(Uuid userId, Uuid interestId, InterestType interestType) {
     return addInterest(userId, userId, interestId, interestType, Time.now());
   }
 
   public Interest addInterest(
-      Uuid id, Uuid userId, Uuid interestId, Type interestType, Time creationTime) {
+      Uuid id, Uuid userId, Uuid interestId, InterestType interestType, Time creationTime) {
     return model.addInterest(id, userId, interestId, interestType, creationTime);
   }
 
@@ -204,7 +202,7 @@ public final class Controller implements RawController, BasicController {
     if (interest == null) return null;
     Time lastUpdate = interest.lastUpdate;
     InterestStatus result = null;
-    if (interest.type == Type.USER) {
+    if (interest.type == InterestType.USER) {
       User user = model.userById().first(id);
       // Return all values with time higher than last Update
       Iterable<ConversationHeader> headers = model.conversationByTime().after(lastUpdate);
@@ -228,7 +226,7 @@ public final class Controller implements RawController, BasicController {
       }
 
       result = new InterestStatus(id, createdConversations, addedConversations, user.name);
-    } else if (interest.type == Type.CONVERSATION) {
+    } else if (interest.type == InterestType.CONVERSATION) {
       ConversationPermission perm = model.permissionById().first(id);
       if (!perm.containsUser(userId)) {
         return null;

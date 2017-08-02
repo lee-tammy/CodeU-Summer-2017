@@ -22,12 +22,11 @@ import codeu.chat.common.NetworkCode;
 import codeu.chat.common.Relay;
 import codeu.chat.common.Secret;
 import codeu.chat.common.ServerInfo;
-import codeu.chat.common.Type;
+import codeu.chat.common.InterestType;
 import codeu.chat.common.User;
 import codeu.chat.common.UserType;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
-import codeu.chat.util.ServerLog;
 import codeu.chat.util.Timeline;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
@@ -76,16 +75,6 @@ public final class Server {
     codeu.chat.server.Controller.setWriteToLog(false);
 
     info = new ServerInfo();
-
-    // create new log file
-    ServerLog log = new ServerLog(new File(ServerLog.createFilePath()));
-
-    // check if the server needs to be restored
-   // restore(log, this.controller);
-
-    // once we are done reading in old data from the log
-    // we set this to true so that new data is written to the log
-    codeu.chat.server.Controller.setWriteToLog(true);
 
     this.commands.put(
         NetworkCode.SERVER_INFO_REQUEST,
@@ -245,7 +234,7 @@ public final class Server {
           public void onMessage(InputStream in, OutputStream out) throws IOException {
             final Uuid userId = Uuid.SERIALIZER.read(in);
             final Uuid interestId = Uuid.SERIALIZER.read(in);
-            final Type interestType = Type.SERIALIZER.read(in);
+            final InterestType interestType = InterestType.SERIALIZER.read(in);
 
             controller.addInterest(userId, interestId, interestType);
             Serializers.INTEGER.write(out, NetworkCode.NEW_INTEREST_RESPONSE);
@@ -362,6 +351,11 @@ public final class Server {
           @Override
           public void run() {
             try {
+              if(!model.getRestoredLog()) {
+            	LOG.info("Restoring log...");
+            	boolean restored = model.restore(new File(model.createFilePath()));
+            	model.setRestoredLog(restored);
+              }
 
               LOG.info("Updating log...");
                   

@@ -20,7 +20,7 @@ import codeu.chat.client.core.MessageContext;
 import codeu.chat.client.core.UserContext;
 import codeu.chat.common.InterestStatus;
 import codeu.chat.common.ServerInfo;
-import codeu.chat.common.Type;
+import codeu.chat.common.InterestType;
 import codeu.chat.common.User;
 import codeu.chat.common.UserType;
 import codeu.chat.util.Time;
@@ -409,7 +409,7 @@ public final class Chat {
         new Panel.Command() {
           @Override
           public void invoke(List<String> args) {
-            Type type = Type.USER;
+            InterestType type = InterestType.USER;
 
             if (args.size() == 2) {
 
@@ -418,7 +418,7 @@ public final class Chat {
               final ConversationContext convoInterest = find(args.get(1), user);
 
               if (args.get(0).equals("u")) {
-                type = Type.USER;
+                type = InterestType.USER;
                 if (userInterest != null) {
                   user.getController().newInterest(userId, userInterest.user.id, type);
                 } else {
@@ -426,7 +426,7 @@ public final class Chat {
                 }
               } else if (args.get(0).equals("c")) {
                 if (convoInterest != null) {
-                  type = Type.CONVERSATION;
+                  type = InterestType.CONVERSATION;
                   user.getController().newInterest(userId, convoInterest.conversation.id, type);
                 } else {
                   System.out.format("ERROR: '%s' does not exist", args.get(1));
@@ -500,7 +500,7 @@ public final class Chat {
 
               for (InterestStatus interest : allInterests) {
 
-                if (interest.type == Type.CONVERSATION) {
+                if (interest.type == InterestType.CONVERSATION) {
                   System.out.format(
                       "Number of unread messages in conversation %s: '%d'\n",
                       interest.name, interest.unreadMessages);

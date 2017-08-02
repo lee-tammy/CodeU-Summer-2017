@@ -30,22 +30,13 @@ public final class Store<KEY, VALUE> implements StoreAccessor<KEY, VALUE> {
   private final NavigableMap<KEY, StoreLink<KEY, VALUE>> index;
 
   private final Comparator<KEY> comparator;
-  
-  private ArrayList<KEY> keys;
 
   public Store(Comparator<KEY> comparator) {
     this.index = new TreeMap<>(comparator);
     this.comparator = comparator;
-    keys = new ArrayList<KEY>();
-  }
-  
-  public ArrayList<KEY> getKeys() {
-	return keys;
   }
 
   public void insert(KEY key, VALUE value) {
-	// add to the list of keys
-    keys.add(key);
 	  
 	final StoreLink<KEY, VALUE> closestLink = floor(key);
 

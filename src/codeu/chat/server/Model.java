@@ -19,7 +19,7 @@ import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.ConversationPermission;
 import codeu.chat.common.Interest;
 import codeu.chat.common.Message;
-import codeu.chat.common.Type;
+import codeu.chat.common.InterestType;
 import codeu.chat.common.User;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
@@ -36,13 +36,13 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.lang.reflect.Type;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.InstanceCreator;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 
 public final class Model {
 
@@ -78,33 +78,48 @@ public final class Model {
       };
 
   private static final Comparator<String> STRING_COMPARE = String.CASE_INSENSITIVE_ORDER;
-  private Store<Uuid, User> userById = new Store<>(UUID_COMPARE);
+  private final Store<Uuid, User> userById = new Store<>(UUID_COMPARE);
   private final Store<Time, User> userByTime = new Store<>(TIME_COMPARE);
   private final Store<String, User> userByText = new Store<>(STRING_COMPARE);
+  private List<User> users = new ArrayList<User>();
 
-  private Store<Uuid, ConversationHeader> conversationById = new Store<>(UUID_COMPARE);
+  private final Store<Uuid, ConversationHeader> conversationById = new Store<>(UUID_COMPARE);
   private final Store<Time, ConversationHeader> conversationByTime = new Store<>(TIME_COMPARE);
   private final Store<String, ConversationHeader> conversationByText = new Store<>(STRING_COMPARE);
+  private List<ConversationHeader> conversations = new ArrayList<ConversationHeader>();
 
-  private Store<Uuid, ConversationPayload> conversationPayloadById =
+  private final Store<Uuid, ConversationPayload> conversationPayloadById =
       new Store<>(UUID_COMPARE);
+  private List<ConversationPayload> payloads = new ArrayList<ConversationPayload>();
 
-  private Store<Uuid, Message> messageById = new Store<>(UUID_COMPARE);
+  private final Store<Uuid, Message> messageById = new Store<>(UUID_COMPARE);
   private final Store<Time, Message> messageByTime = new Store<>(TIME_COMPARE);
   private final Store<String, Message> messageByText = new Store<>(STRING_COMPARE);
+  private List<Message> messages = new ArrayList<Message>();
 
-  private Store<Uuid, Interest> interestById = new Store<>(UUID_COMPARE);
+  private final Store<Uuid, Interest> interestById = new Store<>(UUID_COMPARE);
+  private List<Interest> interestList = new ArrayList<Interest>();
 
-  private Store<Uuid, ConversationPermission> permissionById = new Store<>(UUID_COMPARE);
+  private final Store<Uuid, ConversationPermission> permissionById = new Store<>(UUID_COMPARE);
+  private List<ConversationPermission> permissions = new ArrayList<ConversationPermission>();
 
   public Map<Uuid, ArrayList<Uuid>> interests = new HashMap<>();
-  private int logSize = 7; // number of elements stored in the log
+  private int logSize = 6; // number of elements stored in the log
   private final Gson gson = new GsonBuilder().create();
+  private boolean restoredLog = false;
+  
+  Type userType = new TypeToken<ArrayList<User>>(){}.getType();
+  Type conversationType = new TypeToken<ArrayList<ConversationHeader>>(){}.getType();
+  Type permissionType = new TypeToken<ArrayList<ConversationPermission>>(){}.getType();
+  Type payloadType = new TypeToken<ArrayList<ConversationPayload>>(){}.getType();
+  Type messageType = new TypeToken<ArrayList<Message>>(){}.getType();
+  Type interestType = new TypeToken<ArrayList<Interest>>(){}.getType();
   
   public void add(User user) {
     userById.insert(user.id, user);
     userByTime.insert(user.creation, user);
     userByText.insert(user.name, user);
+    users.add(user);
   }
 
   public StoreAccessor<Uuid, User> userById() {
@@ -127,8 +142,29 @@ public final class Model {
     conversationById.insert(conversation.id, conversation);
     conversationByTime.insert(conversation.creation, conversation);
     conversationByText.insert(conversation.title, conversation);
-    conversationPayloadById.insert(conversation.id, new ConversationPayload(conversation.id));
+    conversations.add(conversation);
+    ConversationPayload payload = new ConversationPayload(conversation.id);
+    conversationPayloadById.insert(conversation.id, payload);
+    payloads.add(payload);
     permissionById.insert(permission.id, permission);
+    permissions.add(permission);
+  }
+  
+  public void add(ConversationHeader conversation) {
+	conversationById.insert(conversation.id, conversation);
+	conversationByTime.insert(conversation.creation, conversation);
+	conversationByText.insert(conversation.title, conversation);
+	conversations.add(conversation);
+  }
+  
+  public void add(ConversationPermission permission) {
+	permissionById.insert(permission.id, permission);
+	permissions.add(permission);
+  }
+  
+  public void add(ConversationPayload payload) {
+	conversationPayloadById.insert(payload.id, payload);
+	payloads.add(payload);
   }
 
   public StoreAccessor<Uuid, ConversationHeader> conversationById() {
@@ -151,6 +187,7 @@ public final class Model {
     messageById.insert(message.id, message);
     messageByTime.insert(message.creation, message);
     messageByText.insert(message.content, message);
+    messages.add(message);
   }
 
   public StoreAccessor<Uuid, Message> messageById() {
@@ -170,13 +207,14 @@ public final class Model {
   }
 
   public Interest addInterest(
-      Uuid id, Uuid userId, Uuid interestId, Type interestType, Time creationTime) {
-    Interest newInterest = new Interest(id, interestId, interestType, creationTime);
+      Uuid id, Uuid userId, Uuid interestId, InterestType interestType, Time creationTime) {
+    Interest newInterest = new Interest(id, userId, interestId, interestType, creationTime);
     if (interests.get(userId) == null) {
       interests.put(userId, new ArrayList<Uuid>());
     }
     interests.get(userId).add(interestId);
     interestById.insert(interestId, newInterest);
+    interestList.add(newInterest);
     return newInterest;
   }
 
@@ -184,6 +222,14 @@ public final class Model {
     if (interests.get(userId) != null) {
       interests.get(userId).remove(interestId);
     }
+  }
+  
+  public boolean getRestoredLog() {
+	return restoredLog;
+  }
+  
+  public void setRestoredLog(boolean restoredLog) {
+	this.restoredLog = restoredLog;
   }
   
   public void refresh(File file) { 
@@ -203,19 +249,17 @@ public final class Model {
 	  FileWriter fw = new FileWriter(file.getAbsolutePath(), true);
 	  
 	  // take a snapshot of the users, conversations, messages, etc.  
-	  fw.write(gson.toJson(userById) + "\n");
+	  fw.write(gson.toJson(users) + "\n");
 	  
-	  fw.write(gson.toJson(conversationById) + "\n");
+	  fw.write(gson.toJson(conversations) + "\n");
 	  
-	  fw.write(gson.toJson(permissionById) + "\n");
+	  fw.write(gson.toJson(permissions) + "\n");
 	  
-	  fw.write(gson.toJson(messageById) + "\n");
+	  fw.write(gson.toJson(messages) + "\n");
 	  
-	  fw.write(gson.toJson(interestById) + "\n");	
+	  fw.write(gson.toJson(interestList) + "\n");	
 	  
-	  fw.write(gson.toJson(conversationPayloadById) + "\n");
-	  
-	  fw.write(gson.toJson(interests));
+	  fw.write(gson.toJson(payloads) + "\n");
 	  
 	  fw.flush();
 	  fw.close();
@@ -226,17 +270,17 @@ public final class Model {
 	  }
   }
   
-  @SuppressWarnings("unchecked")
-  public void restore(File file) {
+  public boolean restore(File file) {
 	// check to see if there is a log to restore from 
 	if(!file.exists())
-	  return;	
+	  return true;	
 	
 	BufferedReader br = null;
 	try {
 	  br = new BufferedReader(new FileReader(file.getAbsolutePath()));
 	} catch (FileNotFoundException e) {
 	  e.printStackTrace();
+	  return false;
 	}
 	
 	String completeText = "";
@@ -247,57 +291,62 @@ public final class Model {
       while((line = br.readLine()) != null) {
     	  completeText += line + "\n";
       }
+      br.close();
 	} catch (IOException e) {
-		e.printStackTrace();
+	  e.printStackTrace();
+	  return false;
 	}
-	
 	String[] jsonObjs = completeText.split("\n");
 	
 	if (jsonObjs.length == logSize) {
 	  // convert from json to respective Store objects
-	  JsonParser parser = new JsonParser();
-	  JsonArray array = parser.parse(jsonObjs[0]).getAsJsonArray();
-	  userById = gson.fromJson(jsonObjs[0], Store.class);
-	  conversationById = gson.fromJson(jsonObjs[1], Store.class);
-	  permissionById = gson.fromJson(jsonObjs[2], Store.class);
-	  messageById = gson.fromJson(jsonObjs[3], Store.class);
-	  interestById = gson.fromJson(jsonObjs[4], Store.class);
-	  conversationPayloadById = gson.fromJson(jsonObjs[5], Store.class);
-	  interests = gson.fromJson(jsonObjs[6], HashMap.class);
+	  users = gson.fromJson(jsonObjs[0], userType);
+	  conversations = gson.fromJson(jsonObjs[1], conversationType);
+	  permissions = gson.fromJson(jsonObjs[2], permissionType);
+	  messages = gson.fromJson(jsonObjs[3], messageType);
+	  interestList = gson.fromJson(jsonObjs[4], interestType);
+	  payloads = gson.fromJson(jsonObjs[5], payloadType);
 	  
 	  // restore users
-	  ArrayList<Uuid> userId = userById.getKeys();
-	  for(int i = 0; i < userId.size(); i++) {
-	    User temp = userById.first(userId.get(i));
-	    userByTime.insert(temp.creation, temp);
-	    userByText.insert(temp.name, temp);
+	  for(int i = 0; i < users.size(); i++) {
+	    add(users.get(i));
 	  }
 	  
 	  // restore conversations
-	  ArrayList<Uuid> conversationId = conversationById.getKeys();
-	  for(int i = 0; i < conversationId.size(); i++) {
-	    ConversationHeader temp = conversationById.first(conversationId.get(i));
-	    conversationByTime.insert(temp.creation, temp);
-	    conversationByText.insert(temp.title, temp);
+	  for(int i = 0; i < conversations.size(); i++) {
+	    add(conversations.get(i));
+	  }
+	  
+	  // restore permissions
+	  for(int i = 0; i < permissions.size(); i++) {
+	    add(permissions.get(i));
+	  }
+	  
+	  // restore payloads
+	  for(int i = 0; i < payloads.size(); i++) {
+		add(payloads.get(i));
 	  }
 	  
 	  // restore messages
-	  ArrayList<Uuid> messageId = messageById.getKeys();
-	  for(int i = 0; i < messageId.size(); i++) {
-	    Message temp = messageById.first(messageId.get(i));
-	    messageByTime.insert(temp.creation, temp);
-	    messageByText.insert(temp.content, temp);
+	  for(int i = 0; i < messages.size(); i++) {
+	    add(messages.get(i));
 	  }
+	  
+	  // restore interests
+	  for(int i = 0; i < interestList.size(); i++) {
+		Interest temp = interestList.get(i);
+		addInterest(temp.id, temp.userId, temp.interestId, temp.type, temp.lastUpdate);
+	  }
+	  return true;
 	} else {
 	  System.out.println("ERROR: incorrect number of elements in log");
 	  System.out.println("Expected: " + logSize + "\t Actual: " + jsonObjs.length);
+	  return false;
 	}
   }
-  public class ComparatorInstanceCreator implements InstanceCreator<Comparator<Object>> {
-	@Override
-	public Comparator<Object> createInstance(java.lang.reflect.Type arg0) {
-	  // TODO Auto-generated method stub
-	  return null;
-	}
+  
+  public String createFilePath() {
+	String workingDirectory = System.getProperty("user.dir");
+	return workingDirectory + File.separator + "serverLog.txt";
   }
 }
