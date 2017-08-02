@@ -79,6 +79,11 @@ public interface BasicController {
   // REMOVE USER
   //
   // Removes specified user from specified conversation
-  // if the user performing the action has adequate privileges
+  // if the user is performing the action has adequate privileges
   String removeUser(Uuid id, Uuid target, Uuid id2);
+
+  // LEAVE CONVERSATION
+  //
+  // Removes specified user from specified conversation 
+  void leaveConversation(Uuid userId, Uuid conversationId);
 }

@@ -92,6 +92,10 @@ public final class ConversationContext {
     return controller.removeUser(user.id, target, conversation.id);
   }
 
+  public void leave(Uuid user){
+    controller.leaveConversation(user, conversation.id);
+  }
+
   public Map<Uuid, UserType> getConversationPermission() {
     return controller.getConversationPermission(conversation.id);
   }

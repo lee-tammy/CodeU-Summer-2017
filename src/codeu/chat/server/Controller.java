@@ -401,6 +401,11 @@ public final class Controller implements RawController, BasicController {
   @Override
   public String removeUser(Uuid requester, Uuid target, Uuid conversation){
     ConversationPermission cp = model.permissionById().first(conversation);
+
+    if(requester.equals(target)){
+      LOG.warning("Can't remove yourself from current conversation");
+      return "Can not remove yourself. Use the leave command in the user panel.";
+    }
     
     // Cannot remove a user if they do not exist in the current conversation
     if(!cp.containsUser(target)){
@@ -425,6 +430,13 @@ public final class Controller implements RawController, BasicController {
     cp.removeUser(target);
     return "User removed successfully.";
   } 
+
+  @Override
+  public void leaveConversation(Uuid user, Uuid conversation){
+    ConversationPermission cp = model.permissionById().first(conversation);
+    cp.removeUser(user);
+  }
+
   
   @Override
   public Map<Uuid, UserType> getConversationPermission(Uuid id) {

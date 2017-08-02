@@ -155,7 +155,18 @@ public final class Server {
         final ConversationHeader conversation = 
             Serializers.NULLABLE(ConversationHeader.SERIALIZER).read(in);
         controller.removeConversation(conversation);
-        Serializers.INTEGER.write(out, NetworkCode.REMOVE_CONVERSATION_REQUEST);
+        Serializers.INTEGER.write(out, NetworkCode.REMOVE_CONVERSATION_RESPONSE);
+      }
+    });
+
+    this.commands.put(NetworkCode.LEAVE_CONVERSATION_REQUEST, new Command(){
+      @Override
+      public void onMessage(InputStream in, OutputStream out) throws IOException{
+        final Uuid userId = Uuid.SERIALIZER.read(in);
+        final Uuid conversationId = Uuid.SERIALIZER.read(in);
+        controller.leaveConversation(userId, conversationId);
+
+        Serializers.INTEGER.write(out, NetworkCode.LEAVE_CONVERSATION_RESPONSE);
       }
     });
 

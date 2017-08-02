@@ -250,6 +250,22 @@ public final class Controller implements BasicController {
   }
 
   @Override
+  public void leaveConversation(Uuid userId, Uuid conversationId){
+    try(final Connection connection = this.source.connect()){
+      Serializers.INTEGER.write(connection.out(), NetworkCode.LEAVE_CONVERSATION_REQUEST);
+      Uuid.SERIALIZER.write(connection.out(), userId);
+      Uuid.SERIALIZER.write(connection.out(), conversationId);
+
+      if(Serializers.INTEGER.read(connection.in()) != NetworkCode.LEAVE_CONVERSATION_RESPONSE){
+        LOG.error("Response from server failed.");
+      }
+    }catch(Exception ex){
+      LOG.error(ex, "Exception during call on server.");
+    }
+
+  }
+
+  @Override
   public Map<Uuid, UserType> getConversationPermission(Uuid id) {
     Map<Uuid, UserType> hm = new HashMap<Uuid, UserType>();
     try (final Connection connection = this.source.connect()) {

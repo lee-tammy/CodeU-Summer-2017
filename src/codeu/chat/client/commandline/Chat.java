@@ -363,17 +363,21 @@ public final class Chat {
                 return;
             }
 
-            if (name.length() > 0) {
-              if (find(name, user) != null) {
-                System.out.println("ERROR: Conversation name already taken");
-              }
-              final ConversationContext conversation = user.start(name, access);
-              if (conversation == null) {
-                System.out.println("ERROR: Failed to create new conversation");
-              }
-            } else {
+            if (name.isEmpty()){
               System.out.println("ERROR: Missing <title>");
+              return;
             }
+
+            if (find(name, user) != null) {
+              System.out.println("ERROR: Conversation name already taken");
+              return;
+            }
+
+            final ConversationContext conversation = user.start(name, access);
+            if (conversation == null) {
+              System.out.println("ERROR: Failed to create new conversation");
+            }
+            
           }
         });
 
@@ -385,7 +389,8 @@ public final class Chat {
     panel.register("c-remove", new Panel.Command(){
       @Override
       public void invoke(List<String> args){
-        final String name = args.isEmpty() ? args.get(0).trim() : "";
+        final String name = args.size() > 0 ? args.get(0).trim() : "";
+        System.out.println(name);
         if(name.isEmpty()){
           System.out.println("ERROR: Missing <title>");
           return;
@@ -446,7 +451,7 @@ public final class Chat {
     //
     panel.register("c-leave", new Panel.Command(){
       public void invoke(List<String> args){
-        final String title = args.isEmpty() ? args.get(0).trim() : "";
+        final String title = args.size() > 0 ? args.get(0).trim() : "";
         if(title.isEmpty()){
           System.out.println("ERROR: Missing <title>");
           return;
@@ -466,17 +471,17 @@ public final class Chat {
         }
 
         if(requester != UserType.CREATOR){
-          conversation.removeUser(user.user.id);
+          conversation.leave(user.user.id);
           return;
         }
 
-        final String name = args.isEmpty() ? args.get(1).trim() : "";
+        final String name = args.size() == 2 ? args.get(1).trim() : "";
         if(name.isEmpty()){
           user.stop(conversation.conversation);
           return;
         }
         UserContext username = findUser(name, context);
-        if(user == null){
+        if(username == null){
           System.out.println("ERROR: User does not exist.");
           return;
         }
@@ -486,7 +491,7 @@ public final class Chat {
           return;
         }
         conversation.changeAccess(username.user.id, UserType.CREATOR);
-        conversation.removeUser(user.user.id);
+        conversation.leave(user.user.id);
       }
     });
 
