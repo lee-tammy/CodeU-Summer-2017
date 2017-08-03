@@ -97,7 +97,9 @@ public final class Time implements Comparable<Time> {
   }
 
   // Difference of end and start times.
-  // DEPRECATED(Adam): Use Duration.java instead.
+  // @deprecated
+  // Use Duration.java instead.
+  @Deprecated
   public static Time duration(Time start, Time end) {
     return new Time(end.inMs() - start.inMs());
   }

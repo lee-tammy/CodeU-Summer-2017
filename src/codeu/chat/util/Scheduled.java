@@ -7,7 +7,7 @@ package codeu.chat.util;
 // events. There are two options for creating a Scheduled object. Option 1: use a one-time timer.
 // Option 2: Use a repeating timer that can either start for the first time at a specified moment or
 // (if unspecified) at Time.now() + repeat.
-public class Scheduled {
+public class Scheduled implements Comparable<Scheduled> {
 
   // ACTION
   //
@@ -16,10 +16,10 @@ public class Scheduled {
     public void invoke();
   }
 
-  Action handler;
-  Time firstTime;
-  Time nextEventTime;
-  Duration repeat;
+  public final Action handler;
+  public final Time firstTime;
+  public final Duration repeat;
+  private Time nextEventTime;
 
   public Scheduled(Action handler, Time eventTime, Duration repeat) {
     this.handler = handler;
@@ -37,18 +37,20 @@ public class Scheduled {
   }
 
   // Lower time means higher priority.
+  @Override
   public int compareTo(Scheduled other) {
     return other.nextEventTime.compareTo(this.nextEventTime);
   }
 
-  public Scheduled runHandler(Time now) {
+  // Returns true iff the Scheduled object has a repeat value.
+  public boolean runHandler(Time now) {
     if (now.compareTo(this.nextEventTime) >= 0) {
       handler.invoke();
       if (repeat == null) {
-        return null;
+        return false;
       }
       nextEventTime = Time.add(now, repeat);
     }
-    return this;
+    return true;
   }
 }
