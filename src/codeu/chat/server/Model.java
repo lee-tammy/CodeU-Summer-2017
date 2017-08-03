@@ -21,6 +21,7 @@ import codeu.chat.common.Interest;
 import codeu.chat.common.Message;
 import codeu.chat.common.InterestType;
 import codeu.chat.common.User;
+import codeu.chat.common.UserType;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.store.Store;
@@ -38,11 +39,16 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.lang.reflect.Type;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.TypeAdapter;
 import com.google.gson.reflect.TypeToken;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
+import com.google.gson.stream.JsonWriter;
 
 public final class Model {
 
@@ -105,7 +111,6 @@ public final class Model {
 
   public Map<Uuid, ArrayList<Uuid>> interests = new HashMap<>();
   private int logSize = 6; // number of elements stored in the log
-  private final Gson gson = new GsonBuilder().create();
   private boolean restoredLog = false;
   
   Type userType = new TypeToken<ArrayList<User>>(){}.getType();
@@ -244,22 +249,28 @@ public final class Model {
       e1.printStackTrace();
       System.out.println("Failed to clear contents of log!");
 	} 
+	
+	// create gson object for serializing
+	GsonBuilder gb = new GsonBuilder();
+	Type mapType = new TypeToken<Map<Uuid, UserType>>(){}.getType();
+	gb.registerTypeAdapter(mapType, new PermissionAdaptor());
+	Gson gson = gb.create();
 	  
 	try {
 	  FileWriter fw = new FileWriter(file.getAbsolutePath(), true);
 	  
 	  // take a snapshot of the users, conversations, messages, etc.  
-	  fw.write(gson.toJson(users) + "\n");
+	  fw.write(gson.toJson(users, userType) + "\n");
 	  
-	  fw.write(gson.toJson(conversations) + "\n");
+	  fw.write(gson.toJson(conversations, conversationType) + "\n");
 	  
-	  fw.write(gson.toJson(permissions) + "\n");
+	  fw.write(gson.toJson(permissions, permissionType) + "\n");
 	  
-	  fw.write(gson.toJson(messages) + "\n");
+	  fw.write(gson.toJson(messages, messageType) + "\n");
 	  
-	  fw.write(gson.toJson(interestList) + "\n");	
+	  fw.write(gson.toJson(interestList, interestType) + "\n");	
 	  
-	  fw.write(gson.toJson(payloads) + "\n");
+	  fw.write(gson.toJson(payloads, payloadType));
 	  
 	  fw.flush();
 	  fw.close();
@@ -299,13 +310,19 @@ public final class Model {
 	String[] jsonObjs = completeText.split("\n");
 	
 	if (jsonObjs.length == logSize) {
+	  // create gson object for deserializing
+	  GsonBuilder gb = new GsonBuilder();
+	  Type mapType = new TypeToken<Map<Uuid, UserType>>(){}.getType();
+	  gb.registerTypeAdapter(mapType, new PermissionAdaptor());
+	  Gson gson = gb.create();
+	  
 	  // convert from json to respective Store objects
-	  ArrayList<User> restoredUsers = gson.fromJson(jsonObjs[0], userType);
-	  ArrayList<ConversationHeader> restoredConvos = gson.fromJson(jsonObjs[1], conversationType);
-	  ArrayList<ConversationPermission> restoredPermissions = gson.fromJson(jsonObjs[2], permissionType);
-	  ArrayList<Message> restoredMessages = gson.fromJson(jsonObjs[3], messageType);
-	  ArrayList<Interest> restoredInterests = gson.fromJson(jsonObjs[4], interestType);
-	  ArrayList<ConversationPayload> restoredPayloads = gson.fromJson(jsonObjs[5], payloadType);
+	  ArrayList<User> restoredUsers = gson.fromJson(jsonObjs[0].trim(), userType);
+	  ArrayList<ConversationHeader> restoredConvos = gson.fromJson(jsonObjs[1].trim(), conversationType);
+	  ArrayList<ConversationPermission> restoredPermissions = gson.fromJson(jsonObjs[2].trim(), permissionType);
+	  ArrayList<Message> restoredMessages = gson.fromJson(jsonObjs[3].trim(), messageType);
+	  ArrayList<Interest> restoredInterests = gson.fromJson(jsonObjs[4].trim(), interestType);
+	  ArrayList<ConversationPayload> restoredPayloads = gson.fromJson(jsonObjs[5].trim(), payloadType);
 	  
 	  // restore users
 	  for(int i = 0; i < restoredUsers.size(); i++) {
@@ -351,5 +368,38 @@ public final class Model {
   public String createFilePath() {
 	String workingDirectory = System.getProperty("user.dir");
 	return workingDirectory + File.separator + "serverLog.txt";
+  }
+  
+  public class PermissionAdaptor extends TypeAdapter<Map<Uuid,UserType>> {
+	public Map<Uuid,UserType> read(JsonReader reader) throws IOException {
+	  if (reader.peek() == JsonToken.NULL) {
+	    reader.nextNull();
+	    return null;
+	  }
+	  String hashMap = reader.nextString();
+	  String[] mapArray = hashMap.split("_");
+	  Map<Uuid, UserType> map = new HashMap<Uuid, UserType>();
+	  for(int i = 0; i < mapArray.length; i++) {
+	    String[] values = mapArray[i].split(",");
+	    Uuid uuid = Uuid.parse(values[0]);
+		UserType ut = UserType.fromString(values[1]);
+		map.put(uuid, ut);
+	  }
+	  return map;
+	  }
+	public void write(JsonWriter writer, Map<Uuid,UserType> map) throws IOException {
+	  if (map == null) {
+	    writer.nullValue();
+	    return;
+	  }
+	  String hashMap = "";
+	  Set<Uuid> keys = map.keySet();
+	  
+	  for(Uuid key : keys) {
+		hashMap+= key + "," + map.get(key) + "_";
+	  }
+	  // want to trim off the extraneous "_" at the end
+	  writer.value(hashMap.substring(0, hashMap.length() - 1));
+	}
   }
 }

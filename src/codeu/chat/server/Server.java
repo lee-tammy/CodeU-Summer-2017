@@ -469,13 +469,4 @@ public final class Server {
       }
     };
   }
-  
-  public Model getModel() {
-	return model;
-  }
-
-  // checks if the server needs restoring
-//  private void restore(ServerLog log, Controller controller) {
-//    log.read(controller);
-//  }
 }

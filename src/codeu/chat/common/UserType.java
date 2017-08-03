@@ -43,6 +43,22 @@ public enum UserType {
     return ut;
   }
   
+  public static UserType fromString(String ut) {
+	switch(ut) {
+	  case "CREATOR":
+	    return UserType.CREATOR;
+	  case "OWNER":
+		return UserType.OWNER;
+	  case "MEMBER":
+		return UserType.MEMBER;
+	  case "NOTSET":
+		return UserType.NOTSET;
+	  default:
+        System.out.println("ERROR: invalid string");
+        return null;
+	}
+  }
+  
   // returns true if the user has manager access for the target UserType
   public static boolean hasManagerAccess(UserType user, UserType target) {
 	if (user == UserType.CREATOR || target == UserType.NOTSET) {
