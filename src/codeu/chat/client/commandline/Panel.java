@@ -14,6 +14,10 @@
 
 package codeu.chat.client.commandline;
 
+import codeu.chat.util.Duration;
+import codeu.chat.util.Scheduled;
+import codeu.chat.util.Scheduler;
+import codeu.chat.util.Time;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +35,7 @@ final class Panel {
   }
 
   private final Map<String, Command> commands = new HashMap<>();
+  private final Scheduler scheduler = new Scheduler();
 
   // REGISTER
   //
@@ -41,6 +46,18 @@ final class Panel {
     commands.put(commandName, command);
   }
 
+  public void register(Time eventTime, Scheduled.Action handler) {
+    scheduler.addEvent(new Scheduled(handler, eventTime));
+  }
+
+  public void register(Duration repeat, Scheduled.Action handler) {
+    scheduler.addEvent(new Scheduled(handler, repeat));
+  }
+
+  public void register(Time eventTime, Duration repeat, Scheduled.Action handler) {
+    scheduler.addEvent(new Scheduled(handler, eventTime, repeat));
+  }
+
   // HANDLE COMMAND
   //
   // Given a command name and the rest of the line (from the command line) call
@@ -48,11 +65,16 @@ final class Panel {
   // will be returned. True will be return if a command is found. Whether or not
   // the command was successful is not returned.
   //
-  public boolean handleCommand(String commandName, List<String>args) {
+  public boolean handleCommand(String commandName, List<String> args) {
     final Command command = commands.get(commandName);
-    if(command != null) {
+    if (command != null) {
       command.invoke(args);
     }
     return command != null;
+  }
+
+  // Given the current time call the correct command.
+  public void handleTimeEvent(Time now) {
+    scheduler.runIteration(now);
   }
 }
