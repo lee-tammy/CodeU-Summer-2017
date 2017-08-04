@@ -123,6 +123,7 @@ public final class Server {
           public void onMessage(InputStream in, OutputStream out) throws IOException {
 
             final String name = Serializers.STRING.read(in);
+            //final String pass = Serializers.STRING.read(in);
             final User user = controller.newUser(name);
 
             Serializers.INTEGER.write(out, NetworkCode.NEW_USER_RESPONSE);

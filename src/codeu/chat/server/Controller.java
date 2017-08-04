@@ -73,6 +73,10 @@ public final class Controller implements RawController, BasicController {
     return newUser(createId(), name, Time.now());
   }
 
+  public User newUser(String name, String password) {
+    return newUser(createId(), name, Time.now(), password);
+  }
+
   @Override
   public ConversationHeader newConversation(String title, Uuid owner, UserType defaultAccess) {
     return newConversation(createId(), title, owner, Time.now(), defaultAccess);
@@ -166,6 +170,32 @@ public final class Controller implements RawController, BasicController {
 
     if (writeToLog) {
       output.println("U_" + name + "_" + user.id + "_" + creationTime);
+      output.flush();
+    }
+
+    return user;
+  }
+  
+  public User newUser(Uuid id, String name, Time creationTime, String password) {
+
+    User user = null;
+
+    if (isIdFree(id)) {
+
+      user = new User(id, name, creationTime, password);
+      model.add(user);
+
+      LOG.info("newUser success (user.id=%s user.name=%s user.time=%s)", id, name, creationTime);
+
+    } else {
+
+      LOG.info(
+          "newUser fail - id in use (user.id=%s user.name=%s user.time=%s)",
+          id, name, creationTime);
+    }
+
+    if (writeToLog) {
+      output.println("U_" + name + "_" + user.id + "_" + creationTime + "_" + password);
       output.flush();
     }
 

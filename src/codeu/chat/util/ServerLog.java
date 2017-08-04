@@ -96,7 +96,7 @@ public final class ServerLog {
 
       } else if (commandType == 'U') {
         // parse a user
-        controller.newUser(Uuid.parse(ParArr[2]), ParArr[1], Time.parse(ParArr[3]));
+        controller.newUser(Uuid.parse(ParArr[2]), ParArr[1], Time.parse(ParArr[3]), ParArr[4]);
 
       } else if (commandType == 'C') {
         // parse a conversation

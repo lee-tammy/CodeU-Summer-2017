@@ -131,9 +131,9 @@ public final class Chat {
             System.out.println("ROOT MODE");
             System.out.println("  u-list");
             System.out.println("    List all users.");
-            System.out.println("  u-add <name>");
+            System.out.println("  u-add <name> <password>");
             System.out.println("    Add a new user with the given name.");
-            System.out.println("  u-sign-in <name>");
+            System.out.println("  u-sign-in <name> <password>");
             System.out.println("    Sign in as the user with the given name.");
             System.out.println("  info");
             System.out.println("    Get server info.");
@@ -192,11 +192,12 @@ public final class Chat {
           @Override
           public void invoke(List<String> args) {
             final String name = args.size() > 0 ? args.get(0).trim() : "";
+	    final String pass = args.size() > 1 ? args.get(1).trim() : "";
             if (name.length() > 0) {
               if (findUser(name, context) != null) {
                 System.out.println("ERROR: Username already taken");
               }
-              if (context.create(name) == null) {
+              if (context.create(name, pass) == null) {
                 System.out.println("ERROR: Failed to create new user");
               }
             } else {
