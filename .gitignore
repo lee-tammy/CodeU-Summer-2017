@@ -1,5 +1,4 @@
 bin/
 *.log
-*.json
 *.classpath
 *.project

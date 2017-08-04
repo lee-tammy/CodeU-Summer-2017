@@ -87,38 +87,38 @@ public final class Model {
   private final Store<Uuid, User> userById = new Store<>(UUID_COMPARE);
   private final Store<Time, User> userByTime = new Store<>(TIME_COMPARE);
   private final Store<String, User> userByText = new Store<>(STRING_COMPARE);
-  private List<User> users = new ArrayList<User>();
+  private final List<User> users = new ArrayList<User>();
 
   private final Store<Uuid, ConversationHeader> conversationById = new Store<>(UUID_COMPARE);
   private final Store<Time, ConversationHeader> conversationByTime = new Store<>(TIME_COMPARE);
   private final Store<String, ConversationHeader> conversationByText = new Store<>(STRING_COMPARE);
-  private List<ConversationHeader> conversations = new ArrayList<ConversationHeader>();
+  private final List<ConversationHeader> conversations = new ArrayList<ConversationHeader>();
 
   private final Store<Uuid, ConversationPayload> conversationPayloadById =
       new Store<>(UUID_COMPARE);
-  private List<ConversationPayload> payloads = new ArrayList<ConversationPayload>();
+  private final List<ConversationPayload> payloads = new ArrayList<ConversationPayload>();
 
   private final Store<Uuid, Message> messageById = new Store<>(UUID_COMPARE);
   private final Store<Time, Message> messageByTime = new Store<>(TIME_COMPARE);
   private final Store<String, Message> messageByText = new Store<>(STRING_COMPARE);
-  private List<Message> messages = new ArrayList<Message>();
+  private final List<Message> messages = new ArrayList<Message>();
 
   private final Store<Uuid, Interest> interestById = new Store<>(UUID_COMPARE);
-  private List<Interest> interestList = new ArrayList<Interest>();
+  private final List<Interest> interestList = new ArrayList<Interest>();
 
   private final Store<Uuid, ConversationPermission> permissionById = new Store<>(UUID_COMPARE);
-  private List<ConversationPermission> permissions = new ArrayList<ConversationPermission>();
+  private final List<ConversationPermission> permissions = new ArrayList<ConversationPermission>();
 
   public Map<Uuid, ArrayList<Uuid>> interests = new HashMap<>();
-  private int logSize = 6; // number of elements stored in the log
+  private static final int LOG_SIZE = 6; // number of elements stored in the log
   private boolean restoredLog = false;
   
-  Type userType = new TypeToken<ArrayList<User>>(){}.getType();
-  Type conversationType = new TypeToken<ArrayList<ConversationHeader>>(){}.getType();
-  Type permissionType = new TypeToken<ArrayList<ConversationPermission>>(){}.getType();
-  Type payloadType = new TypeToken<ArrayList<ConversationPayload>>(){}.getType();
-  Type messageType = new TypeToken<ArrayList<Message>>(){}.getType();
-  Type interestType = new TypeToken<ArrayList<Interest>>(){}.getType();
+  private final Type userType = new TypeToken<ArrayList<User>>(){}.getType();
+  private final Type conversationType = new TypeToken<ArrayList<ConversationHeader>>(){}.getType();
+  private final Type permissionType = new TypeToken<ArrayList<ConversationPermission>>(){}.getType();
+  private final Type payloadType = new TypeToken<ArrayList<ConversationPayload>>(){}.getType();
+  private final Type messageType = new TypeToken<ArrayList<Message>>(){}.getType();
+  private final Type interestType = new TypeToken<ArrayList<Interest>>(){}.getType();
   
   public void add(User user) {
     userById.insert(user.id, user);
@@ -239,12 +239,12 @@ public final class Model {
   
   public void refresh(File file) { 
 	// clear the current contents of the log
-	try {
-	  FileWriter fwOb = new FileWriter(file.getAbsolutePath(), false);
-	  PrintWriter pwOb = new PrintWriter(fwOb, false);
-	  pwOb.flush();
-	  pwOb.close();
-	  fwOb.close();
+    try {
+      FileWriter fwOb = new FileWriter(file.getAbsolutePath(), false);
+      PrintWriter pwOb = new PrintWriter(fwOb, false);
+      pwOb.flush();
+      pwOb.close();
+      fwOb.close();
 	} catch (IOException e1) {
       e1.printStackTrace();
       System.out.println("Failed to clear contents of log!");
@@ -253,7 +253,7 @@ public final class Model {
 	// create gson object for serializing
 	GsonBuilder gb = new GsonBuilder();
 	Type mapType = new TypeToken<Map<Uuid, UserType>>(){}.getType();
-	gb.registerTypeAdapter(mapType, new PermissionAdaptor());
+	gb.registerTypeAdapter(mapType, new PermissionAdapter());
 	Gson gson = gb.create();
 	  
 	try {
@@ -309,60 +309,60 @@ public final class Model {
 	}
 	String[] jsonObjs = completeText.split("\n");
 	
-	if (jsonObjs.length == logSize) {
-	  // create gson object for deserializing
-	  GsonBuilder gb = new GsonBuilder();
-	  Type mapType = new TypeToken<Map<Uuid, UserType>>(){}.getType();
-	  gb.registerTypeAdapter(mapType, new PermissionAdaptor());
-	  Gson gson = gb.create();
-	  
-	  // convert from json to respective Store objects
-	  ArrayList<User> restoredUsers = gson.fromJson(jsonObjs[0].trim(), userType);
-	  ArrayList<ConversationHeader> restoredConvos = gson.fromJson(jsonObjs[1].trim(), conversationType);
-	  ArrayList<ConversationPermission> restoredPermissions = gson.fromJson(jsonObjs[2].trim(), permissionType);
-	  ArrayList<Message> restoredMessages = gson.fromJson(jsonObjs[3].trim(), messageType);
-	  ArrayList<Interest> restoredInterests = gson.fromJson(jsonObjs[4].trim(), interestType);
-	  ArrayList<ConversationPayload> restoredPayloads = gson.fromJson(jsonObjs[5].trim(), payloadType);
-	  
-	  // restore users
-	  for(int i = 0; i < restoredUsers.size(); i++) {
-	    add(restoredUsers.get(i));
-	  }
-	  
-	  // restore conversations
-	  for(int i = 0; i < restoredConvos.size(); i++) {
-	    add(restoredConvos.get(i));
-	  }
-	  
-	  // restore permissions
-	  for(int i = 0; i < restoredPermissions.size(); i++) {
-	    add(restoredPermissions.get(i));
-	  }
-	  
-	  // restore payloads
-	  for(int i = 0; i < restoredPayloads.size(); i++) {
-		add(restoredPayloads.get(i));
-	  }
-	  
-	  // restore messages
-	  for(int i = 0; i < restoredMessages.size(); i++) {
-	    add(restoredMessages.get(i));
-	  }
-	  
-	  // restore interests
-	  for(int i = 0; i < restoredInterests.size(); i++) {
-		Interest temp = restoredInterests.get(i);
-		addInterest(temp.id, temp.userId, temp.interestId, temp.type, temp.lastUpdate);
-	  }
-	  
-	  System.out.println("Sucessfully restored previous state of the Server");
-	  
-	  return true;
-	} else {
-	  System.out.println("ERROR: incorrect number of elements in log");
-	  System.out.println("Expected: " + logSize + "\t Actual: " + jsonObjs.length);
-	  return false;
+	if (jsonObjs.length != LOG_SIZE) {
+      System.out.println("ERROR: incorrect number of elements in log");
+      System.out.println("Expected: " + LOG_SIZE + "\t Actual: " + jsonObjs.length);
+      return false;
 	}
+	
+	// create gson object for deserializing
+	GsonBuilder gb = new GsonBuilder();
+	Type mapType = new TypeToken<Map<Uuid, UserType>>(){}.getType();
+	gb.registerTypeAdapter(mapType, new PermissionAdapter());
+	Gson gson = gb.create();
+	  
+	// convert from json to respective Store objects
+	List<User> restoredUsers = gson.fromJson(jsonObjs[0].trim(), userType);
+	List<ConversationHeader> restoredConvos = gson.fromJson(jsonObjs[1].trim(), conversationType);
+	List<ConversationPermission> restoredPermissions = gson.fromJson(jsonObjs[2].trim(), permissionType);
+	List<Message> restoredMessages = gson.fromJson(jsonObjs[3].trim(), messageType);
+	List<Interest> restoredInterests = gson.fromJson(jsonObjs[4].trim(), interestType);
+	List<ConversationPayload> restoredPayloads = gson.fromJson(jsonObjs[5].trim(), payloadType);
+	  
+	// restore users
+	for(User user : restoredUsers) {
+	  add(user);
+	}
+	  
+	// restore conversations
+	for(ConversationHeader ch : restoredConvos) {
+	  add(ch);
+	}
+	  
+	// restore permissions
+	for(ConversationPermission cp : restoredPermissions) {
+	  add(cp);
+	}
+	  
+	// restore payloads
+	for(ConversationPayload cp : restoredPayloads) {
+	  add(cp);
+	}
+	  
+	// restore messages
+	for(Message message : restoredMessages) {
+	  add(message);
+	}
+	  
+	// restore interests
+	for(Interest interest : restoredInterests) {
+	  addInterest(interest.id, interest.userId, interest.interestId, 
+                  interest.type, interest.lastUpdate);
+	}
+	  
+	System.out.println("Sucessfully restored previous state of the Server");
+	  
+	return true;
   }
   
   public String createFilePath() {
@@ -370,7 +370,9 @@ public final class Model {
 	return workingDirectory + File.separator + "serverLog.txt";
   }
   
-  public class PermissionAdaptor extends TypeAdapter<Map<Uuid,UserType>> {
+  public class PermissionAdapter extends TypeAdapter<Map<Uuid,UserType>> {
+	
+	@Override
 	public Map<Uuid,UserType> read(JsonReader reader) throws IOException {
 	  if (reader.peek() == JsonToken.NULL) {
 	    reader.nextNull();
@@ -387,6 +389,8 @@ public final class Model {
 	  }
 	  return map;
 	  }
+	
+	@Override
 	public void write(JsonWriter writer, Map<Uuid,UserType> map) throws IOException {
 	  if (map == null) {
 	    writer.nullValue();
