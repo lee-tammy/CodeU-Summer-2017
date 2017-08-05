@@ -168,6 +168,10 @@ public final class Controller implements RawController, BasicController {
     return conversation;
   }
 
+  public void removeConversation(ConversationHeader conversation){
+	model.remove(conversation);
+  }
+  
   public Interest addInterest(Uuid userId, Uuid interestId, InterestType interestType) {
     return addInterest(userId, userId, interestId, interestType, Time.now());
   }

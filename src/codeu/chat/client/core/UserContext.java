@@ -56,6 +56,10 @@ public final class UserContext {
         : new ConversationContext(user, conversation, view, controller);
   }
 
+  public void stop(ConversationHeader conversation){
+    controller.removeConversation(conversation);
+  }
+
   public Iterable<ConversationContext> conversations() {
 
     // Use all the ids to get all the conversations and convert them to

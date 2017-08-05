@@ -210,6 +210,18 @@ public final class Model {
   public StoreAccessor<Uuid, ConversationPermission> permissionById() {
     return permissionById;
   }
+  
+  public void remove(ConversationHeader conversation){
+    conversationById.remove(conversation.id);
+	conversationByTime.remove(conversation.creation);
+	conversationByText.remove(conversation.title);
+	conversationPayloadById.remove(conversation.id);
+	for(int i = 0; i < conversations.size(); i++) {
+	  ConversationHeader ch = conversations.get(i);
+	  if (ch.id.equals(conversation.id))
+		conversations.remove(i);
+	}
+  }
 
   public Interest addInterest(
       Uuid id, Uuid userId, Uuid interestId, InterestType interestType, Time creationTime) {

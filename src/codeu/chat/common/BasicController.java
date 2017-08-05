@@ -52,6 +52,8 @@ public interface BasicController {
   //  Whether conversations can have the same title is undefined.
   ConversationHeader newConversation(String title, Uuid owner, UserType access);
 
+  void removeConversation(ConversationHeader conversation); 
+
   // CHANGE ACCESS
   //
   // Change the access of a target user in a given conversation. The requester must have both higher
