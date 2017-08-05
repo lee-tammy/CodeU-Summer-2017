@@ -36,8 +36,8 @@ public final class Store<KEY, VALUE> implements StoreAccessor<KEY, VALUE> {
   }
 
   public void insert(KEY key, VALUE value) {
-
-    final StoreLink<KEY, VALUE> closestLink = floor(key);
+	  
+	final StoreLink<KEY, VALUE> closestLink = floor(key);
 
     // Assume that the new value can only come after the current position. Move
     // through the chain of links until the next link is either the end (null)

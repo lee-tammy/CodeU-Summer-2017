@@ -19,7 +19,7 @@ public class InterestStatus {
               .write(out, value.newConversations);
           Serializers.NULLABLE(Serializers.COLLECTION(Serializers.STRING))
               .write(out, value.addedConversations);
-          Type.SERIALIZER.write(out, value.type);
+          InterestType.SERIALIZER.write(out, value.type);
           Serializers.STRING.write(out, value.name);
         }
 
@@ -32,7 +32,7 @@ public class InterestStatus {
           List<String> addedConversations =
               (List<String>)
                   Serializers.NULLABLE(Serializers.COLLECTION(Serializers.STRING)).read(in);
-          Type type = Type.SERIALIZER.read(in);
+          InterestType type = InterestType.SERIALIZER.read(in);
           String name = Serializers.STRING.read(in);
           return new InterestStatus(
               id, unreadMessages, newConversations, addedConversations, type, name);
@@ -49,7 +49,7 @@ public class InterestStatus {
   // USER
   public final List<String> addedConversations;
   // The type of the interest.
-  public final Type type;
+  public final InterestType type;
   // The name of the conversation or the User
   public final String name;
 
@@ -58,7 +58,7 @@ public class InterestStatus {
       int unreadMessages,
       List<String> newConversations,
       List<String> addedConversations,
-      Type type,
+      InterestType type,
       String name) {
     this.id = id;
     this.unreadMessages = unreadMessages;
@@ -69,11 +69,11 @@ public class InterestStatus {
   }
 
   public InterestStatus(Uuid id, int unreadMessages, String name) {
-    this(id, unreadMessages, null, null, Type.CONVERSATION, name);
+    this(id, unreadMessages, null, null, InterestType.CONVERSATION, name);
   }
 
   public InterestStatus(
       Uuid id, List<String> newConversations, List<String> addedConversations, String name) {
-    this(id, -1, newConversations, addedConversations, Type.USER, name);
+    this(id, -1, newConversations, addedConversations, InterestType.USER, name);
   }
 }

@@ -1,18 +1,24 @@
 package codeu.chat.common;
 
+import codeu.chat.server.Model.PermissionAdaptor;
 import codeu.chat.util.Serializer;
 import codeu.chat.util.Serializers;
 import codeu.chat.util.Uuid;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.google.gson.annotations.JsonAdapter;
+import com.google.gson.reflect.TypeToken;
 
 public class ConversationPermission {
   public final Uuid id;
   public final Uuid creator;
   public final UserType defaultAccess;
+  @JsonAdapter(PermissionAdaptor.class)
   private Map<Uuid, UserType> users;
 
   public static final Serializer<ConversationPermission> SERIALIZER =

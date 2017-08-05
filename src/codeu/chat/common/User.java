@@ -21,6 +21,7 @@ import java.util.Objects;
 
 import codeu.chat.util.Serializer;
 import codeu.chat.util.Serializers;
+import codeu.chat.util.Password;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 
@@ -38,10 +39,10 @@ public final class User {
 
     @Override
     public User read(InputStream in) throws IOException {
-
       return new User(Uuid.SERIALIZER.read(in),
                       Serializers.STRING.read(in),
-                      Time.SERIALIZER.read(in));
+                      Time.SERIALIZER.read(in), 
+                      Password.SERIALIZER.read(in));
 
     }
   };
@@ -49,18 +50,30 @@ public final class User {
   public final Uuid id;
   public final String name;
   public final Time creation;
+  public final Password ePassword;
 
   public User(Uuid id, String name, Time creation) {
-
+    
     this.id = id;
     this.name = name;
     this.creation = creation;
+    this.ePassword = null;
+  }
 
+  public User(Uuid id, String name, Time creation, String ePassword) {
+    this.id = id;
+    this.name = name;
+    this.creation = creation;
+    this.ePassword = ePassword;
+  }
+
+  public void setPassword(String ePassword) {
+    this.ePassword = ePassword;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(id, name, creation);
+    return Objects.hash(id, name, creation, ePassword);
   }
 
   @Override

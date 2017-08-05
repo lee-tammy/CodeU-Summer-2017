@@ -37,8 +37,8 @@ public final class Context {
     return view.getInfo();
   }
 
-  public UserContext create(String name) {
-    final User user = controller.newUser(name);
+  public UserContext create(String name, String password) {
+    final User user = controller.newUser(name, password);
     return user == null ? null : new UserContext(user, view, controller);
   }
 

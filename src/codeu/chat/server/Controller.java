@@ -23,16 +23,13 @@ import codeu.chat.common.InterestStatus;
 import codeu.chat.common.Message;
 import codeu.chat.common.RandomUuidGenerator;
 import codeu.chat.common.RawController;
-import codeu.chat.common.Type;
+import codeu.chat.common.InterestType;
 import codeu.chat.common.User;
 import codeu.chat.common.UserType;
 import codeu.chat.util.Logger;
-import codeu.chat.util.ServerLog;
 import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.PrintWriter;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -43,20 +40,12 @@ public final class Controller implements RawController, BasicController {
 
   private final Model model;
   private final Uuid.Generator uuidGenerator;
-
-  private PrintWriter output;
+  
   private static boolean writeToLog;
 
   public Controller(Uuid serverId, Model model) {
     this.model = model;
     this.uuidGenerator = new RandomUuidGenerator(serverId, System.currentTimeMillis());
-    try {
-      output =
-          new PrintWriter(new BufferedWriter(new FileWriter(ServerLog.createFilePath(), true)));
-      output.flush();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
   }
 
   public User userById(Uuid id) {
@@ -140,12 +129,6 @@ public final class Controller implements RawController, BasicController {
       foundConversation.lastMessage = message.id;
     }
 
-    if (writeToLog) {
-      output.println(
-          "M_" + author + "_" + id + "_" + conversation + "_" + creationTime + "_" + body);
-      output.flush();
-    }
-
     return message;
   }
 
@@ -166,11 +149,6 @@ public final class Controller implements RawController, BasicController {
       LOG.info(
           "newUser fail - id in use (user.id=%s user.name=%s user.time=%s)",
           id, name, creationTime);
-    }
-
-    if (writeToLog) {
-      output.println("U_" + name + "_" + user.id + "_" + creationTime);
-      output.flush();
     }
 
     return user;
@@ -194,11 +172,6 @@ public final class Controller implements RawController, BasicController {
           id, name, creationTime);
     }
 
-    if (writeToLog) {
-      output.println("U_" + name + "_" + user.id + "_" + creationTime + "_" + password);
-      output.flush();
-    }
-
     return user;
   }
 
@@ -216,21 +189,16 @@ public final class Controller implements RawController, BasicController {
       model.add(conversation, permission);
       LOG.info("Conversation added: " + id);
     }
-    
-    if (writeToLog) {
-        output.println("C_" + id + "_" + title + "_" + owner + "_" + creationTime + "_" + defaultAccess);
-        output.flush();
-      }
 
     return conversation;
   }
 
-  public Interest addInterest(Uuid userId, Uuid interestId, Type interestType) {
+  public Interest addInterest(Uuid userId, Uuid interestId, InterestType interestType) {
     return addInterest(userId, userId, interestId, interestType, Time.now());
   }
 
   public Interest addInterest(
-      Uuid id, Uuid userId, Uuid interestId, Type interestType, Time creationTime) {
+      Uuid id, Uuid userId, Uuid interestId, InterestType interestType, Time creationTime) {
     return model.addInterest(id, userId, interestId, interestType, creationTime);
   }
 
@@ -257,7 +225,7 @@ public final class Controller implements RawController, BasicController {
     if (interest == null) return null;
     Time lastUpdate = interest.lastUpdate;
     InterestStatus result = null;
-    if (interest.type == Type.USER) {
+    if (interest.type == InterestType.USER) {
       User user = model.userById().first(id);
       // Return all values with time higher than last Update
       Iterable<ConversationHeader> headers = model.conversationByTime().after(lastUpdate);
@@ -281,7 +249,7 @@ public final class Controller implements RawController, BasicController {
       }
 
       result = new InterestStatus(id, createdConversations, addedConversations, user.name);
-    } else if (interest.type == Type.CONVERSATION) {
+    } else if (interest.type == InterestType.CONVERSATION) {
       ConversationPermission perm = model.permissionById().first(id);
       if (!perm.containsUser(userId)) {
         return null;
@@ -456,5 +424,9 @@ public final class Controller implements RawController, BasicController {
   public Map<Uuid, UserType> getConversationPermission(Uuid id) {
 	  ConversationPermission cp = model.permissionById().first(id);
 	return cp.getUsers();
-  } 
+  }
+  
+  public void refreshLog() {
+	model.refresh(new File(model.createFilePath()));
+  }
 }
