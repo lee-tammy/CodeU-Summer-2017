@@ -350,7 +350,7 @@ public final class Controller implements RawController, BasicController {
 
     // Requester must have a higher access type than access type that will be
     // assigned to the added user
-    if (memberBit != null && !UserType.hasManagerAccess(cp.status(requester), memberBit)) {
+    if (memberBit == null || !UserType.hasManagerAccess(cp.status(requester), memberBit)) {
       LOG.warning("Requester doesn't have permission to add user as that access" + " type.");
 
       return "You do not have permission to add the user.";
@@ -373,11 +373,11 @@ public final class Controller implements RawController, BasicController {
   public String removeUser(Uuid requester, Uuid target, Uuid conversation) {
     ConversationPermission cp = model.permissionById().first(conversation);
 
-    if(requester.equals(target)){
+    if (requester.equals(target)) {
       LOG.warning("Can't remove yourself from current conversation");
       return "Can not remove yourself. Use the leave command in the user panel.";
     }
-   
+
     // Cannot remove a user if they do not exist in the current conversation
     if (!cp.containsUser(target)) {
       LOG.warning("User is not a member of the current conversation");
@@ -391,21 +391,21 @@ public final class Controller implements RawController, BasicController {
     }
 
     // Requester must have a higher access type than target
-    if (UserType.hasManagerAccess(cp.status(requester), cp.status(target))) {
+    if (!UserType.hasManagerAccess(cp.status(requester), cp.status(target))) {
       LOG.warning("Requester doesn't have permission to remove user as that access" + " type.");
       return "You do not have permission to remove the user.";
     }
 
     cp.removeUser(target);
     return "User removed successfully.";
-  } 
+  }
 
   @Override
-  public void leaveConversation(Uuid user, Uuid conversation){
+  public void leaveConversation(Uuid user, Uuid conversation) {
     ConversationPermission cp = model.permissionById().first(conversation);
     cp.removeUser(user);
   }
-  
+
   @Override
   public Map<Uuid, UserType> getConversationPermission(Uuid id) {
     ConversationPermission cp = model.permissionById().first(id);
