@@ -20,9 +20,11 @@ import codeu.chat.client.core.MessageContext;
 import codeu.chat.client.core.UserContext;
 import codeu.chat.common.InterestStatus;
 import codeu.chat.common.ServerInfo;
-import codeu.chat.common.Type;
+import codeu.chat.common.InterestType;
 import codeu.chat.common.User;
 import codeu.chat.common.UserType;
+import codeu.chat.util.Duration;
+import codeu.chat.util.Scheduled;
 import codeu.chat.util.Time;
 import codeu.chat.util.Tokenizer;
 import codeu.chat.util.Uuid;
@@ -46,11 +48,17 @@ public final class Chat {
   // panel all it needs to do is pop the top panel.
   private final Stack<Panel> panels = new Stack<>();
 
+  // Handle timers every 50 millisecond.
+  public static final int TIMER_WAIT_TIME = 50;
+  // Refresh messages every 5000 milliseconds.
+  public static final int MESSAGE_REFRESH_RATE = 5000;
+
   private Context context;
 
   public Chat(Context context) {
     this.context = context;
     this.panels.push(createRootPanel(context));
+    this.startHandlingTimers();
   }
 
   // HANDLE COMMAND
@@ -100,6 +108,22 @@ public final class Chat {
     // processing future commands.
     System.out.println("ERROR: Unsupported command");
     return true;
+  }
+
+  public void startHandlingTimers() {
+    new Thread() {
+      public void run() {
+        while (true) {
+          Panel current = panels.peek();
+          current.handleTimeEvent(Time.now());
+          try {
+            Thread.sleep(TIMER_WAIT_TIME);
+          } catch (InterruptedException ex) {
+            System.err.println(ex);
+          }
+        }
+      }
+    }.start();
   }
 
   // CREATE ROOT PANEL
@@ -390,7 +414,6 @@ public final class Chat {
       @Override
       public void invoke(List<String> args){
         final String name = args.size() > 0 ? args.get(0).trim() : "";
-        System.out.println(name);
         if(name.isEmpty()){
           System.out.println("ERROR: Missing <title>");
           return;
@@ -505,7 +528,7 @@ public final class Chat {
         new Panel.Command() {
           @Override
           public void invoke(List<String> args) {
-            Type type = Type.USER;
+            InterestType type = InterestType.USER;
 
             if (args.size() == 2) {
 
@@ -514,7 +537,7 @@ public final class Chat {
               final ConversationContext convoInterest = find(args.get(1), user);
 
               if (args.get(0).equals("u")) {
-                type = Type.USER;
+                type = InterestType.USER;
                 if (userInterest != null) {
                   user.getController().newInterest(userId, userInterest.user.id, type);
                 } else {
@@ -522,7 +545,7 @@ public final class Chat {
                 }
               } else if (args.get(0).equals("c")) {
                 if (convoInterest != null) {
-                  type = Type.CONVERSATION;
+                  type = InterestType.CONVERSATION;
                   user.getController().newInterest(userId, convoInterest.conversation.id, type);
                 } else {
                   System.out.format("ERROR: '%s' does not exist", args.get(1));
@@ -596,7 +619,7 @@ public final class Chat {
 
               for (InterestStatus interest : allInterests) {
 
-                if (interest.type == Type.CONVERSATION) {
+                if (interest.type == InterestType.CONVERSATION) {
                   System.out.format(
                       "Number of unread messages in conversation %s: '%d'\n",
                       interest.name, interest.unreadMessages);
@@ -642,6 +665,25 @@ public final class Chat {
     return panel;
   }
 
+  private void listMessages(final ConversationContext conversation, List<String> args) {
+    if (hasAccess(conversation.getUser(), conversation)) {
+      System.out.println("--- start of conversation ---");
+      for (MessageContext message = conversation.firstMessage();
+          message != null;
+          message = message.next()) {
+        System.out.println();
+        System.out.format("USER : %s\n", message.message.author);
+        System.out.format("SENT : %s\n", message.message.creation);
+        System.out.println();
+        System.out.println(message.message.content);
+        System.out.println();
+      }
+      System.out.println("---  end of conversation  ---");
+    } else {
+      System.out.println("ERROR: you no longer have access to this conversation");
+    }
+  }
+
   private Panel createConversationPanel(final ConversationContext conversation) {
 
     final Panel panel = new Panel();
@@ -656,7 +698,7 @@ public final class Chat {
         new Panel.Command() {
           @Override
           public void invoke(List<String> args) {
-            System.out.println("USER MODE");
+            System.out.println("CONVERSATION MODE");
             System.out.println("  m-list");
             System.out.println("    List all messages in the current conversation.");
             System.out.println("  m-add <message>");
@@ -683,6 +725,16 @@ public final class Chat {
           }
         });
 
+    // List messages automatically every 5 seconds.
+    panel.register(
+        new Duration(MESSAGE_REFRESH_RATE),
+        new Scheduled.Action() {
+          @Override
+          public void invoke() {
+            listMessages(conversation, null);
+          }
+        });
+
     // M-LIST (list messages)
     //
     // Add a command to print all messages in the current conversation when the
@@ -693,22 +745,7 @@ public final class Chat {
         new Panel.Command() {
           @Override
           public void invoke(List<String> args) {
-            if (hasAccess(conversation.getUser(), conversation)) {
-              System.out.println("--- start of conversation ---");
-              for (MessageContext message = conversation.firstMessage();
-                  message != null;
-                  message = message.next()) {
-                System.out.println();
-                System.out.format("USER : %s\n", message.message.author);
-                System.out.format("SENT : %s\n", message.message.creation);
-                System.out.println();
-                System.out.println(message.message.content);
-                System.out.println();
-              }
-              System.out.println("---  end of conversation  ---");
-            } else {
-              System.out.println("ERROR: you no longer have access to this conversation");
-            }
+            listMessages(conversation, args);
           }
         });
     // M-ADD (add message)
