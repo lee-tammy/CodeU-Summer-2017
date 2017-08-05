@@ -14,6 +14,7 @@
 
 package codeu.chat.common;
 
+import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 import java.util.Map;
 
@@ -52,7 +53,7 @@ public interface BasicController {
   //  Whether conversations can have the same title is undefined.
   ConversationHeader newConversation(String title, Uuid owner, UserType access);
 
-  void removeConversation(ConversationHeader conversation); 
+  void removeConversation(ConversationHeader conversation);
 
   // CHANGE ACCESS
   //
@@ -81,4 +82,10 @@ public interface BasicController {
   // Removes specified user from specified conversation
   // if the user performing the action has adequate privileges
   String removeUser(Uuid id, Uuid target, Uuid id2);
+
+  // HAS NEW MESSAGES
+  //
+  // Returns true iff the last message sent by the conversation was created after the timestamp in
+  // the parameter
+  boolean hasNewMessage(Uuid conversationId, Time lastUpdate);
 }
