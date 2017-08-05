@@ -19,7 +19,7 @@ import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.InterestStatus;
 import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
-import codeu.chat.common.Type;
+import codeu.chat.common.InterestType;
 import codeu.chat.common.User;
 import codeu.chat.common.UserType;
 import codeu.chat.util.Logger;
@@ -122,7 +122,6 @@ public final class Controller implements BasicController {
 
   @Override
   public void removeConversation(ConversationHeader conversation){ 
-    ConversationHeader response = null; 
     try(final Connection connection = source.connect()){
       Serializers.INTEGER.write(connection.out(), NetworkCode.REMOVE_CONVERSATION_REQUEST);
       Serializers.NULLABLE(ConversationHeader.SERIALIZER).write(connection.out(), conversation);
@@ -133,14 +132,13 @@ public final class Controller implements BasicController {
       LOG.error(ex, "Exception during call on server.");
     }
   }
-
-  public void newInterest(Uuid userId, Uuid interestId, Type interestType) {
+  public void newInterest(Uuid userId, Uuid interestId, InterestType interestType) {
 
     try (final Connection connection = this.source.connect()) {
       Serializers.INTEGER.write(connection.out(), NetworkCode.NEW_INTEREST_REQUEST);
       Uuid.SERIALIZER.write(connection.out(), userId);
       Uuid.SERIALIZER.write(connection.out(), interestId);
-      Type.SERIALIZER.write(connection.out(), interestType);
+      InterestType.SERIALIZER.write(connection.out(), interestType);
 
       if (Serializers.INTEGER.read(connection.in()) != NetworkCode.NEW_INTEREST_RESPONSE) {
         LOG.error("Response from server failed.");
