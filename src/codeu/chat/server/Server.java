@@ -17,16 +17,17 @@ package codeu.chat.server;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.InterestStatus;
+import codeu.chat.common.InterestType;
 import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
 import codeu.chat.common.Relay;
 import codeu.chat.common.Secret;
 import codeu.chat.common.ServerInfo;
-import codeu.chat.common.InterestType;
 import codeu.chat.common.User;
 import codeu.chat.common.UserType;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
+import codeu.chat.util.Time;
 import codeu.chat.util.Timeline;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
@@ -139,15 +140,17 @@ public final class Server {
           }
         });
 
-    this.commands.put(NetworkCode.REMOVE_CONVERSATION_REQUEST, new Command(){
-      @Override
-      public void onMessage(InputStream in, OutputStream out)throws IOException{ 
-        final ConversationHeader conversation = 
-            Serializers.NULLABLE(ConversationHeader.SERIALIZER).read(in);
-        controller.removeConversation(conversation);
-        Serializers.INTEGER.write(out, NetworkCode.REMOVE_CONVERSATION_RESPONSE);
-      }
-    });
+    this.commands.put(
+        NetworkCode.REMOVE_CONVERSATION_REQUEST,
+        new Command() {
+          @Override
+          public void onMessage(InputStream in, OutputStream out) throws IOException {
+            final ConversationHeader conversation =
+                Serializers.NULLABLE(ConversationHeader.SERIALIZER).read(in);
+            controller.removeConversation(conversation);
+            Serializers.INTEGER.write(out, NetworkCode.REMOVE_CONVERSATION_RESPONSE);
+          }
+        });
 
     // Get Users - A client wants to get all the users from the back end.
     this.commands.put(
@@ -334,6 +337,18 @@ public final class Server {
           }
         });
 
+    this.commands.put(
+        NetworkCode.HAS_NEW_MESSAGE_REQUEST,
+        new Command() {
+          @Override
+          public void onMessage(InputStream in, OutputStream out) throws IOException {
+            final Uuid conversationId = Uuid.SERIALIZER.read(in);
+            final Time lastUpdate = Time.SERIALIZER.read(in);
+            Serializers.INTEGER.write(out, NetworkCode.HAS_NEW_MESSAGE_RESPONSE);
+            Serializers.BOOLEAN.write(out, controller.hasNewMessage(conversationId, lastUpdate));
+          }
+        });
+
     this.timeline.scheduleNow(
         new Runnable() {
           @Override
@@ -355,20 +370,20 @@ public final class Server {
             timeline.scheduleIn(RELAY_REFRESH_MS, this);
           }
         });
-    
+
     this.timeline.scheduleNow(
         new Runnable() {
           @Override
           public void run() {
             try {
-              if(!model.getRestoredLog()) {
-            	LOG.info("Restoring log...");
-            	boolean restored = model.restore(new File(model.createFilePath()));
-            	model.setRestoredLog(restored);
+              if (!model.getRestoredLog()) {
+                LOG.info("Restoring log...");
+                boolean restored = model.restore(new File(model.createFilePath()));
+                model.setRestoredLog(restored);
               }
 
               LOG.info("Updating log...");
-                  
+
               controller.refreshLog();
 
             } catch (Exception ex) {
