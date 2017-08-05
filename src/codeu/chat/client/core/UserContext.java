@@ -54,7 +54,7 @@ public final class UserContext {
     return conversation == null
         ? null
         : new ConversationContext(user, conversation, view, controller);
-  }
+  } 
 
   public void stop(ConversationHeader conversation){
     controller.removeConversation(conversation);

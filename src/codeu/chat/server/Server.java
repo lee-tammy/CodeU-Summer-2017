@@ -152,6 +152,17 @@ public final class Server {
           }
         });
 
+    this.commands.put(NetworkCode.LEAVE_CONVERSATION_REQUEST, new Command(){
+      @Override
+      public void onMessage(InputStream in, OutputStream out) throws IOException{
+        final Uuid userId = Uuid.SERIALIZER.read(in);
+        final Uuid conversationId = Uuid.SERIALIZER.read(in);
+        controller.leaveConversation(userId, conversationId);
+
+        Serializers.INTEGER.write(out, NetworkCode.LEAVE_CONVERSATION_RESPONSE);
+      }
+    });
+
     // Get Users - A client wants to get all the users from the back end.
     this.commands.put(
         NetworkCode.GET_USERS_REQUEST,
