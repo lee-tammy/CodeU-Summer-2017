@@ -405,7 +405,7 @@ public final class Chat {
     panel.register("c-remove", new Panel.Command(){
       @Override
       public void invoke(List<String> args){
-        final String name = args.isEmpty() ? args.get(0).trim() : "";
+        final String name = args.size() > 0 ? args.get(0).trim() : "";
         if(name.isEmpty()){
           System.out.println("ERROR: Missing <title>");
           return;
