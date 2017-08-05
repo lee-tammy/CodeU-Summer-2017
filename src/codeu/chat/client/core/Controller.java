@@ -17,13 +17,14 @@ package codeu.chat.client.core;
 import codeu.chat.common.BasicController;
 import codeu.chat.common.ConversationHeader;
 import codeu.chat.common.InterestStatus;
+import codeu.chat.common.InterestType;
 import codeu.chat.common.Message;
 import codeu.chat.common.NetworkCode;
-import codeu.chat.common.InterestType;
 import codeu.chat.common.User;
 import codeu.chat.common.UserType;
 import codeu.chat.util.Logger;
 import codeu.chat.util.Serializers;
+import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 import codeu.chat.util.connections.Connection;
 import codeu.chat.util.connections.ConnectionSource;
@@ -121,17 +122,18 @@ public final class Controller implements BasicController {
   }
 
   @Override
-  public void removeConversation(ConversationHeader conversation){ 
-    try(final Connection connection = source.connect()){
+  public void removeConversation(ConversationHeader conversation) {
+    try (final Connection connection = source.connect()) {
       Serializers.INTEGER.write(connection.out(), NetworkCode.REMOVE_CONVERSATION_REQUEST);
       Serializers.NULLABLE(ConversationHeader.SERIALIZER).write(connection.out(), conversation);
-      if(Serializers.INTEGER.read(connection.in()) != NetworkCode.REMOVE_CONVERSATION_RESPONSE){
+      if (Serializers.INTEGER.read(connection.in()) != NetworkCode.REMOVE_CONVERSATION_RESPONSE) {
         LOG.error("Response during call on server.");
       }
-    }catch(Exception ex){
+    } catch (Exception ex) {
       LOG.error(ex, "Exception during call on server.");
     }
   }
+
   public void newInterest(Uuid userId, Uuid interestId, InterestType interestType) {
 
     try (final Connection connection = this.source.connect()) {
@@ -161,6 +163,23 @@ public final class Controller implements BasicController {
     } catch (Exception ex) {
       LOG.error(ex, "Exception during call on server.");
     }
+  }
+
+  @Override
+  public boolean hasNewMessage(Uuid conversationId, Time lastUpdate) {
+    try (final Connection connection = source.connect()) {
+      Serializers.INTEGER.write(connection.out(), NetworkCode.HAS_NEW_MESSAGE_REQUEST);
+      Uuid.SERIALIZER.write(connection.out(), conversationId);
+      Time.SERIALIZER.write(connection.out(), lastUpdate);
+      if (Serializers.INTEGER.read(connection.in()) == NetworkCode.HAS_NEW_MESSAGE_RESPONSE) {
+        return Serializers.BOOLEAN.read(connection.in());
+      } else {
+        LOG.error("Response from server failed.");
+      }
+    } catch (Exception ex) {
+      LOG.error(ex, "Exception during call on server.");
+    }
+    return false;
   }
 
   public Collection<InterestStatus> statusUpdate(UserContext user) {

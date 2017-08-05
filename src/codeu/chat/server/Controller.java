@@ -20,10 +20,10 @@ import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.ConversationPermission;
 import codeu.chat.common.Interest;
 import codeu.chat.common.InterestStatus;
+import codeu.chat.common.InterestType;
 import codeu.chat.common.Message;
 import codeu.chat.common.RandomUuidGenerator;
 import codeu.chat.common.RawController;
-import codeu.chat.common.InterestType;
 import codeu.chat.common.User;
 import codeu.chat.common.UserType;
 import codeu.chat.util.Logger;
@@ -40,7 +40,7 @@ public final class Controller implements RawController, BasicController {
 
   private final Model model;
   private final Uuid.Generator uuidGenerator;
-  
+
   private static boolean writeToLog;
 
   public Controller(Uuid serverId, Model model) {
@@ -151,7 +151,8 @@ public final class Controller implements RawController, BasicController {
   }
 
   @Override
-  public ConversationHeader newConversation(Uuid id, String title, Uuid owner, Time creationTime, UserType defaultAccess) {
+  public ConversationHeader newConversation(
+      Uuid id, String title, Uuid owner, Time creationTime, UserType defaultAccess) {
 
     final User foundOwner = model.userById().first(owner);
 
@@ -168,10 +169,10 @@ public final class Controller implements RawController, BasicController {
     return conversation;
   }
 
-  public void removeConversation(ConversationHeader conversation){
-	model.remove(conversation);
+  public void removeConversation(ConversationHeader conversation) {
+    model.remove(conversation);
   }
-  
+
   public Interest addInterest(Uuid userId, Uuid interestId, InterestType interestType) {
     return addInterest(userId, userId, interestId, interestType, Time.now());
   }
@@ -322,84 +323,79 @@ public final class Controller implements RawController, BasicController {
     return true;
   }
 
-
   /*
-   * Adds a user to the current conversation with the specified access type. 
+   * Adds a user to the current conversation with the specified access type.
    */
   @Override
-  public String addUser(Uuid requester, Uuid target, Uuid conversation, UserType memberBit){
+  public String addUser(Uuid requester, Uuid target, Uuid conversation, UserType memberBit) {
     ConversationPermission cp = model.permissionById().first(conversation);
-        
+
     // Cannot add themself
-    if(requester.equals(target)){
+    if (requester.equals(target)) {
       LOG.warning("Can't add yourself to current conversation");
       return "Can not add yourself.";
     }
 
     // Requester can not add user that is already in the current conversation
-    if(cp.containsUser(target)){
+    if (cp.containsUser(target)) {
       LOG.warning("User has already been added to the conversation.");
       return "User had already been added.";
     }
 
     // Requester can not add users with  member access type
-    if(cp.status(requester) == UserType.MEMBER){
-      LOG.warning("Requester's access type is member; can't add other users.");        
+    if (cp.status(requester) == UserType.MEMBER) {
+      LOG.warning("Requester's access type is member; can't add other users.");
       return "Can not add with member access type.";
     }
-    
+
     // Requester must have a higher access type than access type that will be
     // assigned to the added user
-    if(memberBit != null && !UserType.hasManagerAccess(cp.status(requester), memberBit)){ 
-      LOG.warning("Requester doesn't have permission to add user as that access"
-          + " type.");
-       
+    if (memberBit != null && !UserType.hasManagerAccess(cp.status(requester), memberBit)) {
+      LOG.warning("Requester doesn't have permission to add user as that access" + " type.");
+
       return "You do not have permission to add the user.";
     }
- 
+
     // If requester does not specify access type, add user with default access
     // type
-    if(memberBit == UserType.NOTSET){
+    if (memberBit == UserType.NOTSET) {
       cp.changeAccess(target, cp.defaultAccess);
-    }else{
+    } else {
       cp.changeAccess(target, memberBit);
-    } 
+    }
     return "User added successfully.";
-
   }
 
   /*
    * Removes a user from the current conversation.
    */
   @Override
-  public String removeUser(Uuid requester, Uuid target, Uuid conversation){
+  public String removeUser(Uuid requester, Uuid target, Uuid conversation) {
     ConversationPermission cp = model.permissionById().first(conversation);
 
     if(requester.equals(target)){
       LOG.warning("Can't remove yourself from current conversation");
       return "Can not remove yourself. Use the leave command in the user panel.";
     }
-    
+   
     // Cannot remove a user if they do not exist in the current conversation
-    if(!cp.containsUser(target)){
+    if (!cp.containsUser(target)) {
       LOG.warning("User is not a member of the current conversation");
       return "User does not exist in the conversation.";
     }
-    
-    // Requester with member access type cannot remove other users 
-    if(cp.status(requester) == UserType.MEMBER){
-      LOG.warning("Requester doesn't have permission to remove user as that access"
-          + " type.");
+
+    // Requester with member access type cannot remove other users
+    if (cp.status(requester) == UserType.MEMBER) {
+      LOG.warning("Requester doesn't have permission to remove user as that access" + " type.");
       return "Can not remove with member access type.";
     }
 
     // Requester must have a higher access type than target
-    if(UserType.hasManagerAccess(cp.status(requester), cp.status(target))){
-      LOG.warning("Requester doesn't have permission to remove user as that access"
-          + " type.");
+    if (UserType.hasManagerAccess(cp.status(requester), cp.status(target))) {
+      LOG.warning("Requester doesn't have permission to remove user as that access" + " type.");
       return "You do not have permission to remove the user.";
     }
-    
+
     cp.removeUser(target);
     return "User removed successfully.";
   } 
@@ -409,15 +405,34 @@ public final class Controller implements RawController, BasicController {
     ConversationPermission cp = model.permissionById().first(conversation);
     cp.removeUser(user);
   }
-
   
   @Override
   public Map<Uuid, UserType> getConversationPermission(Uuid id) {
-	  ConversationPermission cp = model.permissionById().first(id);
-	return cp.getUsers();
+    ConversationPermission cp = model.permissionById().first(id);
+    return cp.getUsers();
   }
-  
+
   public void refreshLog() {
-	model.refresh(new File(model.createFilePath()));
+    model.refresh(new File(model.createFilePath()));
+  }
+
+  @Override
+  public boolean hasNewMessage(Uuid conversationId, Time lastUpdate) {
+    if (conversationId == null || lastUpdate == null) {
+      LOG.error("Conversation IDs and timestamps can't be null to retrieve new messages.");
+      return false;
+    }
+    ConversationPayload payload = model.conversationPayloadById().first(conversationId);
+    if (payload == null) {
+      LOG.error("Payload retrieved does not exist");
+      return false;
+    }
+    Uuid lastMessageId = payload.lastMessage;
+    Message lastMessage = model.messageById().first(lastMessageId);
+    if (lastMessage == null) {
+      LOG.error("Message doesn't exist");
+      return false;
+    }
+    return lastMessage.creation.compareTo(lastUpdate) >= 0;
   }
 }

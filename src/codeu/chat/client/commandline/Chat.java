@@ -19,8 +19,8 @@ import codeu.chat.client.core.ConversationContext;
 import codeu.chat.client.core.MessageContext;
 import codeu.chat.client.core.UserContext;
 import codeu.chat.common.InterestStatus;
-import codeu.chat.common.ServerInfo;
 import codeu.chat.common.InterestType;
+import codeu.chat.common.ServerInfo;
 import codeu.chat.common.User;
 import codeu.chat.common.UserType;
 import codeu.chat.util.Duration;
@@ -52,6 +52,9 @@ public final class Chat {
   public static final int TIMER_WAIT_TIME = 50;
   // Refresh messages every 5000 milliseconds.
   public static final int MESSAGE_REFRESH_RATE = 5000;
+
+  // The time when the conversation was last updated.
+  private Time lastUpdate = Time.minTime();
 
   private Context context;
 
@@ -317,8 +320,9 @@ public final class Chat {
                 "    Add a new conversation with the given title and join it as the current user. ");
             System.out.println("    Specify default member/owner permission when a user is added");
             System.out.println("  c-remove <title>");
-            System.out.println("    Remove a conversation with the given title (Must" +
-            " be the creator to remove).");
+            System.out.println(
+                "    Remove a conversation with the given title (Must"
+                    + " be the creator to remove).");
             System.out.println("  c-join <title>");
             System.out.println("    Join the conversation as the current user.");
             System.out.println("  c-leave <title> <optional: username>");
@@ -410,31 +414,33 @@ public final class Chat {
     // Add a command that will remove a conversation when the creator  enters
     // "c-remove" while on the user panel.
     //
-    panel.register("c-remove", new Panel.Command(){
-      @Override
-      public void invoke(List<String> args){
-        final String name = args.size() > 0 ? args.get(0).trim() : "";
-        if(name.isEmpty()){
-          System.out.println("ERROR: Missing <title>");
-          return;
-        }
+    panel.register(
+        "c-remove",
+        new Panel.Command() {
+          @Override
+          public void invoke(List<String> args) {
+            final String name = args.size() > 0 ? args.get(0).trim() : "";
+            if (name.isEmpty()) {
+              System.out.println("ERROR: Missing <title>");
+              return;
+            }
 
-        ConversationContext conversation = find(name, user);
-        if(conversation == null){
-          System.out.println("ERROR: Conversation does not exist");
-          return;
-        }
+            ConversationContext conversation = find(name, user);
+            if (conversation == null) {
+              System.out.println("ERROR: Conversation does not exist");
+              return;
+            }
 
-        Map<Uuid, UserType> permissions = conversation.getConversationPermission(); 
-        UserType requester = permissions.get(user.user.id);
-        if(requester == null || requester != UserType.CREATOR){
-          System.out.println("ERROR: You do not have permission to remove this conversation.");
-          return;
-        }
+            Map<Uuid, UserType> permissions = conversation.getConversationPermission();
+            UserType requester = permissions.get(user.user.id);
+            if (requester == null || requester != UserType.CREATOR) {
+              System.out.println("ERROR: You do not have permission to remove this conversation.");
+              return;
+            }
 
-        user.stop(conversation.conversation);          
-      }
-    });
+            user.stop(conversation.conversation);
+          }
+        });
 
     // C-JOIN (join conversation)
     //
@@ -729,9 +735,16 @@ public final class Chat {
     panel.register(
         new Duration(MESSAGE_REFRESH_RATE),
         new Scheduled.Action() {
+
           @Override
           public void invoke() {
-            listMessages(conversation, null);
+            // Get the time before sending the has new message request.
+            Time now = Time.now();
+            if (conversation.hasNewMessage(lastUpdate)) {
+              listMessages(conversation, null);
+              System.out.print(">>> ");
+            }
+            lastUpdate = now;
           }
         });
 
@@ -745,6 +758,7 @@ public final class Chat {
         new Panel.Command() {
           @Override
           public void invoke(List<String> args) {
+            lastUpdate = Time.now();
             listMessages(conversation, args);
           }
         });
