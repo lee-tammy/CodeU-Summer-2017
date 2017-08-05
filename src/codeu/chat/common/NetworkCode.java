@@ -56,7 +56,5 @@ public final class NetworkCode {
       ADD_USER_RESPONSE = 47,
       REMOVE_USER_REQUEST = 48,
       REMOVE_USER_RESPONSE = 49,
-      USER_LIST_REQUEST = 50,
-      HAS_NEW_MESSAGE_REQUEST = 51,
-      HAS_NEW_MESSAGE_RESPONSE = 52;
+      USER_LIST_REQUEST = 50;
 }

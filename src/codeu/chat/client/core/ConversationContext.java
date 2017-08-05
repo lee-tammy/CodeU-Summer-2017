@@ -21,7 +21,6 @@ import codeu.chat.common.ConversationPayload;
 import codeu.chat.common.Message;
 import codeu.chat.common.User;
 import codeu.chat.common.UserType;
-import codeu.chat.util.Time;
 import codeu.chat.util.Uuid;
 import java.util.Arrays;
 import java.util.Collection;
@@ -99,9 +98,5 @@ public final class ConversationContext {
 
   public Uuid getUser() {
     return user.id;
-  }
-
-  public boolean hasNewMessage(Time lastUpdate) {
-    return controller.hasNewMessage(conversation.id, lastUpdate);
   }
 }

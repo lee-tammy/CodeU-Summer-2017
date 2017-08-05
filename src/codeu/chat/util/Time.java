@@ -74,10 +74,6 @@ public final class Time implements Comparable<Time> {
     return Time.fromMs(System.currentTimeMillis());
   }
 
-  public static Time minTime() {
-    return Time.fromMs(0);
-  }
-
   @Override
   public boolean equals(Object other) {
     if (other == null) return false;
