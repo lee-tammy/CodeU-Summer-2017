@@ -322,9 +322,9 @@ public final class Chat {
             System.out.println("  c-join <title>");
             System.out.println("    Join the conversation as the current user.");
             System.out.println("  c-leave <title> <optional: username>");
-            System.out.println("    Leave the conversation as the current user. If current user is creator,");
-            System.out.println("    If creator, type username after title to promote a user to creator access type.");
-            System.out.println("    If empty, the conversation will be deleted.");
+            System.out.println("    Leave the conversation as the current user. If user is creator,");
+            System.out.println("    type username after title to promote a user to creator access type.");
+            System.out.println("    If optional username is empty, the conversation will be deleted.");
             System.out.println("  i-add <u for user or c for conversation> <username or title>.");
             System.out.println("    Get updates on conversations and users.");
             System.out.println(
